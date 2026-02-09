@@ -1,0 +1,15 @@
+/* Custom CSS */
+
+@media (min-width: 1200px) {
+  .w-lg-100 {
+    width: 100% !important;
+  }
+}
+
+.gradient-bar {
+  background: linear-gradient(to right, #eb0b13 0%, #00073e 75%);
+}
+
+.rounded-rem-1 {
+  border-radius: 1rem;
+}
