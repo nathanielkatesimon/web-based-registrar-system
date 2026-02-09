@@ -2516,7 +2516,7 @@ progress {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
-  background-color: transparent;
+  background-color: #fffefe;
   background-clip: padding-box;
   border: var(--bs-border-width) solid #cacbcb;
   border-radius: var(--bs-border-radius);
@@ -2535,7 +2535,7 @@ progress {
 }
 .form-control:focus {
   color: #272b2c;
-  background-color: transparent;
+  background-color: #fffefe;
   border-color: #000035;
   outline: 0;
   box-shadow: 0 0.125rem 0.25rem 0 rgba(0, 0, 53, 0.4);
@@ -2568,7 +2568,7 @@ progress {
   margin: -0.543rem -0.9375rem;
   margin-inline-end: 0.9375rem;
   color: #272b2c;
-  background-color: transparent;
+  background-color: #fffefe;
   pointer-events: none;
   border-color: inherit;
   border-style: solid;
@@ -2583,7 +2583,7 @@ progress {
   }
 }
 .form-control:hover:not(:disabled):not([readonly])::file-selector-button {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #f2f1f1;
 }
 
 .form-control-plaintext {
@@ -2674,7 +2674,7 @@ textarea.form-control-lg {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
-  background-color: transparent;
+  background-color: #fffefe;
   background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
   background-repeat: no-repeat;
   background-position: right 0.9375rem center;
@@ -2746,7 +2746,7 @@ textarea.form-control-lg {
 }
 
 .form-check-input {
-  --bs-form-check-bg: transparent;
+  --bs-form-check-bg: #fffefe;
   flex-shrink: 0;
   width: 1.2em;
   height: 1.2em;
@@ -3025,7 +3025,7 @@ textarea.form-control-lg {
   z-index: -1;
   height: 1.5em;
   content: "";
-  background-color: transparent;
+  background-color: #fffefe;
   border-radius: var(--bs-border-radius);
 }
 .form-floating > .form-control:focus ~ label::after,
@@ -3037,7 +3037,7 @@ textarea.form-control-lg {
   z-index: -1;
   height: 1.5em;
   content: "";
-  background-color: transparent;
+  background-color: #fffefe;
   border-radius: var(--bs-border-radius);
 }
 .form-floating > .form-control:-webkit-autofill ~ label {
@@ -3094,7 +3094,7 @@ textarea.form-control-lg {
   color: #272b2c;
   text-align: center;
   white-space: nowrap;
-  background-color: transparent;
+  background-color: #fffefe;
   border: var(--bs-border-width) solid #cacbcb;
   border-radius: var(--bs-border-radius);
 }

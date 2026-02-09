@@ -16,7 +16,7 @@ export default function StudentLogin() {
           <div className="mb-6 fv-plugins-icon-container">
             <input
               type="text"
-              className="form-control bg-white"
+              className="form-control"
               id="email"
               name="email"
               placeholder="USN"
@@ -24,7 +24,7 @@ export default function StudentLogin() {
             <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
           </div>
           <div className="mb-6 form-password-toggle fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
-            <div className="input-group input-group-merge has-validation bg-white">
+            <div className="input-group input-group-merge has-validation">
               <input
                 type="password"
                 id="password"
