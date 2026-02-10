@@ -10,20 +10,55 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_032313) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_144954) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "student_profiles", force: :cascade do |t|
+    t.string "barangay_name"
+    t.date "birthday"
+    t.string "citizenship"
+    t.string "city_municipality"
+    t.string "civil_status"
+    t.string "contact_number"
+    t.string "course"
+    t.datetime "created_at", null: false
+    t.string "department"
+    t.string "house_number"
+    t.string "place_of_birth"
+    t.string "province"
+    t.string "religion"
+    t.string "school_level"
+    t.string "sex"
+    t.string "status"
+    t.string "strand"
+    t.string "street_name"
+    t.string "track"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "year_level"
+    t.index ["user_id"], name: "index_student_profiles_on_user_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "auth_id", default: "", null: false
     t.datetime "created_at", null: false
     t.string "email", default: ""
     t.string "encrypted_password", default: "", null: false
+    t.string "extension"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "middle_name"
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
+    t.string "type", null: false
     t.datetime "updated_at", null: false
     t.index ["auth_id"], name: "index_users_on_auth_id", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["type"], name: "index_users_on_type"
   end
+
+  add_foreign_key "student_profiles", "users"
 end

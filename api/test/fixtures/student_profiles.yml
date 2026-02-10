@@ -1,0 +1,45 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  civil_status: MyString
+  contact_number: MyString
+  sex: MyString
+  birthday: 2026-02-10
+  place_of_birth: MyString
+  citizenship: MyString
+  religion: MyString
+  house_number: MyString
+  street_name: MyString
+  barangay_name: MyString
+  city_municipality: MyString
+  province: MyString
+  status: MyString
+  school_level: MyString
+  year_level: MyString
+  course: MyString
+  department: MyString
+  strand: MyString
+  track: MyString
+
+two:
+  user: two
+  civil_status: MyString
+  contact_number: MyString
+  sex: MyString
+  birthday: 2026-02-10
+  place_of_birth: MyString
+  citizenship: MyString
+  religion: MyString
+  house_number: MyString
+  street_name: MyString
+  barangay_name: MyString
+  city_municipality: MyString
+  province: MyString
+  status: MyString
+  school_level: MyString
+  year_level: MyString
+  course: MyString
+  department: MyString
+  strand: MyString
+  track: MyString

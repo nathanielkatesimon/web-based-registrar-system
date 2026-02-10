@@ -1,4 +1,17 @@
 Rails.application.routes.draw do
+  get "staffs/new"
+  get "staffs/create"
+  get "staffs/edit"
+  get "staffs/update"
+  get "staffs/show"
+  get "staffs/index"
+  get "students/new"
+  get "students/create"
+  get "students/edit"
+  get "students/update"
+  get "students/show"
+  get "students/index"
+  resources :student_profiles
   devise_for :users, controllers: {
     sessions: 'users/sessions',
     registrations: 'users/registrations'
