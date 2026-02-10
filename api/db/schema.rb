@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_144954) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_152212) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "previous_schools", force: :cascade do |t|
+    t.integer "academic_year_from", null: false
+    t.integer "academic_year_to", null: false
+    t.boolean "completed"
+    t.datetime "created_at", null: false
+    t.string "program"
+    t.string "school_name", null: false
+    t.string "school_type", null: false
+    t.bigint "student_profile_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["student_profile_id", "school_type"], name: "index_previous_schools_on_student_profile_id_and_school_type"
+    t.index ["student_profile_id"], name: "index_previous_schools_on_student_profile_id"
+  end
 
   create_table "student_profiles", force: :cascade do |t|
     t.string "barangay_name"
@@ -60,5 +74,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_144954) do
     t.index ["type"], name: "index_users_on_type"
   end
 
+  add_foreign_key "previous_schools", "student_profiles"
   add_foreign_key "student_profiles", "users"
 end

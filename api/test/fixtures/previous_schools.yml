@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  student_profile: one
+  school_type: MyString
+  school_name: MyString
+  academic_year_from: 1
+  academic_year_to: 1
+  program: MyString
+  completed: false
+
+two:
+  student_profile: two
+  school_type: MyString
+  school_name: MyString
+  academic_year_from: 1
+  academic_year_to: 1
+  program: MyString
+  completed: false

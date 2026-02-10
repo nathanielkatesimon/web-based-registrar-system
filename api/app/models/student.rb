@@ -3,14 +3,6 @@ class Student < User
   accepts_nested_attributes_for :student_profile
   
   after_create :build_default_profile
-  
-  # Enums for better type safety
-  enum civil_status: {
-    single: 'single',
-    married: 'married',
-    widower: 'widower',
-    separated: 'separated'
-  }, _prefix: true
 
   delegate :civil_status, :contact_number, :sex, :birthday, :place_of_birth,
            :citizenship, :religion, :house_number, :street_name, :barangay_name,
