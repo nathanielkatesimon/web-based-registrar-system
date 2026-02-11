@@ -1,45 +1,43 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
-  user: one
-  civil_status: MyString
-  contact_number: MyString
-  sex: MyString
-  birthday: 2026-02-10
-  place_of_birth: MyString
-  citizenship: MyString
-  religion: MyString
-  house_number: MyString
-  street_name: MyString
-  barangay_name: MyString
-  city_municipality: MyString
-  province: MyString
-  status: MyString
-  school_level: MyString
-  year_level: MyString
-  course: MyString
-  department: MyString
-  strand: MyString
-  track: MyString
+  user: student_one
+  civil_status: single
+  contact_number: "09123456789"
+  sex: male
+  birthday: "2000-01-15"
+  place_of_birth: "Manila"
+  citizenship: Filipino
+  religion: Catholic
+  house_number: "123"
+  street_name: "Main Street"
+  barangay_name: "Barangay 1"
+  city_municipality: "Cebu City"
+  province: Cebu
+  status: currently_enrolled
+  school_level: college
+  year_level: 3rd
+  department: computer_studies
+  course: bachelor_of_science_in_computer_science
+  strand: 
+  track: 
 
 two:
-  user: two
-  civil_status: MyString
-  contact_number: MyString
-  sex: MyString
-  birthday: 2026-02-10
-  place_of_birth: MyString
-  citizenship: MyString
-  religion: MyString
-  house_number: MyString
-  street_name: MyString
-  barangay_name: MyString
-  city_municipality: MyString
-  province: MyString
-  status: MyString
-  school_level: MyString
-  year_level: MyString
-  course: MyString
-  department: MyString
-  strand: MyString
-  track: MyString
+  user: student_two
+  civil_status: single
+  contact_number: "09987654321"
+  sex: female
+  birthday: "1999-05-20"
+  place_of_birth: "Cebu City"
+  citizenship: Filipino
+  religion: Christian
+  house_number: "456"
+  street_name: "Second Street"
+  barangay_name: "Barangay 2"
+  city_municipality: "Mandaue City"
+  province: Cebu
+  status: currently_enrolled
+  school_level: senior_high
+  year_level: 12
+  department: 
+  course: 
+  strand: STEM
+  track: academic_track

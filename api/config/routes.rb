@@ -1,27 +1,20 @@
 Rails.application.routes.draw do
-  get "staffs/new"
-  get "staffs/create"
-  get "staffs/edit"
-  get "staffs/update"
-  get "staffs/show"
-  get "staffs/index"
-  get "students/new"
-  get "students/create"
-  get "students/edit"
-  get "students/update"
-  get "students/show"
-  get "students/index"
-  resources :student_profiles
+  get "up" => "rails/health#show", as: :rails_health_check
+
   devise_for :users, controllers: {
     sessions: 'users/sessions',
     registrations: 'users/registrations'
   }
 
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
+  namespace :api do
+    namespace :v1 do
+      resources :student_profiles, except: [:create, :destroy]
+      resources :students
+      resources :staffs
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+      # Additional helpful routes
+      get 'students/filter/by_status/:status', to: 'students#index'
+      get 'students/filter/by_school_level/:school_level', to: 'students#index'
+    end
+  end
 end
