@@ -5,6 +5,16 @@ import InitPasswordToggler from "@/components/initializer/init-password-toggler"
 
 export default function StaffRegistrationForm() {
   const [step, setStep] = useState(1);
+  const [middleName, setMiddleName] = useState("");
+  const [hasNoMiddleName, setHasNoMiddleName] = useState(false);
+
+  const handleNoMiddleNameChange = (event) => {
+    const checked = event.target.checked;
+    setHasNoMiddleName(checked);
+    if (checked) {
+      setMiddleName("");
+    }
+  };
 
   return <div className="p-5 p-lg-12 mx-lg-5 d-flex flex-column h-100 justify-content-center">
     <p className="text-black m-0">Step {step}/2</p>
@@ -31,9 +41,25 @@ export default function StaffRegistrationForm() {
         <input id="first_name" name="first_name" placeholder="First Name" type="text" className="form-control form-control-lg mb-5" />
     
         <label htmlFor="middle_name">Middle Name</label>
-        <input id="middle_name" name="middle_name" placeholder="Middle Name" type="text" className="form-control form-control-lg mb-5" />
+        <input
+          id="middle_name"
+          name="middle_name"
+          placeholder="Middle Name"
+          type="text"
+          className="form-control form-control-lg mb-5"
+          value={middleName}
+          onChange={(event) => setMiddleName(event.target.value)}
+          disabled={hasNoMiddleName}
+        />
         <div className="form-check form-check-primary mb-5">
-          <input className="form-check-input" type="checkbox" value="" id="i_have_no_legal_middle_name" />
+          <input
+            className="form-check-input"
+            type="checkbox"
+            value=""
+            id="i_have_no_legal_middle_name"
+            checked={hasNoMiddleName}
+            onChange={handleNoMiddleNameChange}
+          />
           <label className="form-check-label" htmlFor="i_have_no_legal_middle_name">
             I have no legal middle name
           </label>
