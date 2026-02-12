@@ -50,7 +50,7 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
       post api_v1_staffs_url,
            params: {
              staff: {
-               auth_id: "staff_003",
+               auth_id: "stf321",
                email: "registrar3@example.com",
                password: "password123",
                password_confirmation: "password123",
@@ -68,14 +68,14 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
 
     staff = Staff.order(:id).last
     assert_equal "Staff", staff.type
-    assert_equal "staff_003", staff.auth_id
+    assert_equal "stf321", staff.auth_id
     assert_equal "registrar3@example.com", staff.email
     assert_equal "Maria", staff.first_name
 
     json_response = JSON.parse(response.body)
     assert_equal staff.id, json_response["id"]
     assert_equal "Staff", json_response["type"]
-    assert_equal "staff_003", json_response["auth_id"]
+    assert_equal "stf321", json_response["auth_id"]
   end
 
   test "should return unprocessable_entity when auth_id format is invalid on create" do
@@ -98,7 +98,7 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     assert json_response.key?("errors")
-    assert_includes json_response["errors"].join(" "), "Employee ID should be short (max 10 characters)"
+    assert_includes json_response["errors"].join(" "), "Employee ID must be 6 characters"
   end
 
   test "should return unprocessable_entity when email is duplicate on create" do
@@ -161,7 +161,7 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     assert json_response.key?("errors")
-    assert_includes json_response["errors"].join(" "), "Employee ID should be short (max 10 characters)"
+    assert_includes json_response["errors"].join(" "), "Employee ID must be 6 characters"
   end
 
   test "should return not found for update when staff does not exist" do
@@ -181,7 +181,7 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
 
   test "should destroy staff" do
     staff = Staff.create!(
-      auth_id: "staff_099",
+      auth_id: "stf321",
       email: "to-delete-staff@example.com",
       password: "password123",
       password_confirmation: "password123",

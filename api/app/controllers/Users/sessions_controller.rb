@@ -46,14 +46,14 @@
 class Users::SessionsController < Devise::SessionsController
   prepend_before_action :require_no_authentication, only: [:create]
 
-  # GET /resource/sign_in
+  # GET api/v1/resource/sign_in
   def new
     render json: {
       message: "You must sign-in first"
     }, status: :unauthorized
   end
 
-  # POST /resource/sign_in
+  # POST api/v1/resource/sign_in
   def create
     self.resource = warden.authenticate(auth_options)
     if resource
@@ -62,11 +62,11 @@ class Users::SessionsController < Devise::SessionsController
         user: resource.as_json(:only => [:id, :auth_id])
       }, status: :ok
     else
-      render json: { message: "Invalid username or password" }, status: :unprocessable_entity
+      render json: { message: "Invalid ID or password" }, status: :unprocessable_entity
     end
   end
 
-  # DELETE /resource/sign_out
+  # DELETE api/v1/resource/sign_out
   def destroy
     signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
     render json: {}, status: :no_content
