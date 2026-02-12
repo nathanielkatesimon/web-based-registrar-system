@@ -1,0 +1,79 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_152212) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "previous_schools", force: :cascade do |t|
+    t.integer "academic_year_from", null: false
+    t.integer "academic_year_to", null: false
+    t.boolean "completed"
+    t.datetime "created_at", null: false
+    t.string "program"
+    t.string "school_name", null: false
+    t.string "school_type", null: false
+    t.bigint "student_profile_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["student_profile_id", "school_type"], name: "index_previous_schools_on_student_profile_id_and_school_type"
+    t.index ["student_profile_id"], name: "index_previous_schools_on_student_profile_id"
+  end
+
+  create_table "student_profiles", force: :cascade do |t|
+    t.string "barangay_name"
+    t.date "birthday"
+    t.string "citizenship"
+    t.string "city_municipality"
+    t.string "civil_status"
+    t.string "contact_number"
+    t.string "course"
+    t.datetime "created_at", null: false
+    t.string "department"
+    t.string "house_number"
+    t.string "place_of_birth"
+    t.string "province"
+    t.string "religion"
+    t.string "school_level"
+    t.string "sex"
+    t.string "status"
+    t.string "strand"
+    t.string "street_name"
+    t.string "track"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "year_level"
+    t.index ["user_id"], name: "index_student_profiles_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "auth_id", default: "", null: false
+    t.datetime "created_at", null: false
+    t.string "email", default: ""
+    t.string "encrypted_password", default: "", null: false
+    t.string "extension"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "middle_name"
+    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.string "type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["auth_id"], name: "index_users_on_auth_id", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["type"], name: "index_users_on_type"
+  end
+
+  add_foreign_key "previous_schools", "student_profiles"
+  add_foreign_key "student_profiles", "users"
+end

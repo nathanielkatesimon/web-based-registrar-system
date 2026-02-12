@@ -1,0 +1,19 @@
+staff_one:
+  auth_id: "staff_001"
+  email: "registrar1@example.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  first_name: "Pedro"
+  middle_name: "Reyes"
+  last_name: "Mendoza"
+  extension: "Jr."
+  type: "Staff"
+
+staff_two:
+  auth_id: "staff_002"
+  email: "registrar2@example.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  first_name: "Anthony"
+  middle_name: ""
+  last_name: "Pines"
+  extension: ""
+  type: "Staff"

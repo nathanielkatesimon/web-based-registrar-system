@@ -1,0 +1,37 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  student_profile: one
+  school_type: "senior_high"
+  school_name: "School One"
+  academic_year_from: 2002
+  academic_year_to: 2004
+  program: "Program One"
+  completed: false
+
+two:
+  student_profile: two
+  school_type: "college"
+  school_name: "School Two"
+  academic_year_from: 2020
+  academic_year_to: 2022
+  program: "Program Two"
+  completed: true
+
+three:
+  student_profile: one
+  school_type: "college"
+  school_name: "School Three"
+  academic_year_from: 2002
+  academic_year_to: 2004
+  program: "Program Three"
+  completed: true
+
+four:
+  student_profile: two
+  school_type: "senior_high"
+  school_name: "School Four"
+  academic_year_from: 2020
+  academic_year_to: 2022
+  program: "Program Four"
+  completed: false
