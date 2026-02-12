@@ -1,7 +1,7 @@
 class Student < User
-  has_one :student_profile, foreign_key: :user_id, dependent: :destroy
+  has_one :student_profile, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   accepts_nested_attributes_for :student_profile
-  
+
   after_create :build_default_profile
 
   delegate :civil_status, :contact_number, :sex, :birthday, :place_of_birth,
@@ -11,7 +11,7 @@ class Student < User
            to: :student_profile, allow_nil: true
 
   private
-  
+
   def build_default_profile
     create_student_profile unless student_profile
   end

@@ -1,5 +1,5 @@
 student_one:
-  auth_id: "auth_001"
+  auth_id: "auth400123456"
   email: "student1@example.com"
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
   first_name: "Juan"
@@ -9,7 +9,7 @@ student_one:
   type: "Student"
 
 student_two:
-  auth_id: "auth_002"
+  auth_id: "auth400223456"
   email: "student2@example.com"
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
   first_name: "Maria"
@@ -19,7 +19,7 @@ student_two:
   type: "Student"
 
 student_three:
-  auth_id: "auth_003"
+  auth_id: "auth400323456"
   email: "student3@example.com"
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
   first_name: "Tan"

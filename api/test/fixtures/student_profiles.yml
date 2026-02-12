@@ -1,5 +1,5 @@
 one:
-  user: student_one
+  student: student_one
   civil_status: single
   contact_number: "09123456789"
   sex: male
@@ -21,7 +21,7 @@ one:
   track: 
 
 two:
-  user: student_two
+  student: student_two
   civil_status: single
   contact_number: "09987654321"
   sex: female

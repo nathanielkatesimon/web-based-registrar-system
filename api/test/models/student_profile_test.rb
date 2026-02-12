@@ -32,19 +32,19 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   # Presence validations
   test "requires school_level" do
-    profile = StudentProfile.new(user: students(:student_three), status: 'currently_enrolled', year_level: '1st')
+    profile = StudentProfile.new(student: students(:student_three), status: 'currently_enrolled', year_level: '1st')
     assert_not profile.valid?
     assert_includes profile.errors[:school_level], "can't be blank"
   end
 
   test "requires status" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'college', year_level: '1st')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', year_level: '1st')
     assert_not profile.valid?
     assert_includes profile.errors[:status], "can't be blank"
   end
 
   test "requires year_level" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'college', status: 'currently_enrolled')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'currently_enrolled')
     assert_not profile.valid?
     assert_includes profile.errors[:year_level], "can't be blank"
   end
@@ -52,7 +52,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # College course validations
   test "college requires valid course" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -66,7 +66,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "college accepts valid courses" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -87,7 +87,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "college requires valid department" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -102,7 +102,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # Senior high strand validations
   test "senior high requires valid strand" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '11',
@@ -116,7 +116,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high accepts valid strands" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '11',
@@ -129,7 +129,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high requires valid track" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '11',
@@ -144,7 +144,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # year_level_matches_school_level validation
   test "college requires year level 1st, 2nd, 3rd, or 4th" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '11',
@@ -159,7 +159,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   test "college accepts valid year levels" do
     %w[1st 2nd 3rd 4th].each do |year|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'college',
         status: 'currently_enrolled',
         year_level: year,
@@ -181,7 +181,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high requires year level 11 or 12" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -196,7 +196,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   test "senior high accepts valid year levels" do
     %w[11 12].each do |year|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'senior_high',
         status: 'currently_enrolled',
         year_level: year,
@@ -211,7 +211,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # course_matches_department validation
   test "course must match department" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -232,7 +232,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
     courses.each do |course|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'college',
         status: 'currently_enrolled',
         year_level: '1st',
@@ -261,7 +261,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
     courses.each do |course|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'college',
         status: 'currently_enrolled',
         year_level: '1st',
@@ -289,7 +289,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
     courses.each do |course|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'college',
         status: 'currently_enrolled',
         year_level: '1st',
@@ -312,7 +312,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # strand_matches_track validation
   test "strand must match track" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '11',
@@ -329,7 +329,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
     strands.each do |strand|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'senior_high',
         status: 'currently_enrolled',
         year_level: '11',
@@ -346,7 +346,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
     strands.each do |strand|
       profile = StudentProfile.new(
-        user: students(:student_three),
+        student: students(:student_three),
         school_level: 'senior_high',
         status: 'currently_enrolled',
         year_level: '11',
@@ -361,7 +361,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   # previous_schools_required validation
   test "college currently_enrolled requires senior high school" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -385,7 +385,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "college transferee requires both senior high and college history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'transferee',
       year_level: '2nd',
@@ -422,7 +422,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "college returnee requires both senior high and college history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'returnee',
       year_level: '3rd',
@@ -454,7 +454,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "college graduated requires both senior high and college history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'graduated',
       year_level: '4th',
@@ -485,7 +485,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high transferee requires senior high history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'transferee',
       year_level: '12',
@@ -509,7 +509,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high returnee requires senior high history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'returnee',
       year_level: '12',
@@ -532,7 +532,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high graduated requires senior high history" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'graduated',
       year_level: '12',
@@ -556,7 +556,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "senior high currently_enrolled does not require previous schools" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'senior_high',
       status: 'currently_enrolled',
       year_level: '11',
@@ -570,7 +570,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   # Helper method tests
   test "available_courses returns correct courses for department" do
-    profile = StudentProfile.new(user: students(:student_three), department: 'computer_studies')
+    profile = StudentProfile.new(student: students(:student_three), department: 'computer_studies')
 
     assert_equal [
       'diploma_in_web_application_technology',
@@ -585,7 +585,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   end
 
   test "available_strands returns correct strands for track" do
-    profile = StudentProfile.new(user: students(:student_three), track: 'academic_track')
+    profile = StudentProfile.new(student: students(:student_three), track: 'academic_track')
 
     assert_equal %w[STEM ABM HUMSS GA], profile.available_strands
   end
@@ -597,7 +597,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "full_address concatenates address fields" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       house_number: '123',
       street_name: 'Main St',
       barangay_name: 'Poblacion',
@@ -610,7 +610,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "full_address handles nil fields" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       street_name: 'Main St',
       city_municipality: 'Cebu City'
     )
@@ -619,7 +619,7 @@ class StudentProfileTest < ActiveSupport::TestCase
   end
 
   test "requires_senior_high_history? returns true for college students" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'college', status: 'currently_enrolled')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'currently_enrolled')
     assert profile.requires_senior_high_history?
 
     profile.status = 'transferee'
@@ -633,12 +633,12 @@ class StudentProfileTest < ActiveSupport::TestCase
   end
 
   test "requires_senior_high_history? returns false for senior high students" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
     assert_not profile.requires_senior_high_history?
   end
 
   test "requires_college_history? returns true for college transferee, returnee, graduated" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'college', status: 'transferee')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'transferee')
     assert profile.requires_college_history?
 
     profile.status = 'returnee'
@@ -649,12 +649,12 @@ class StudentProfileTest < ActiveSupport::TestCase
   end
 
   test "requires_college_history? returns false for college currently_enrolled" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'college', status: 'currently_enrolled')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'currently_enrolled')
     assert_not profile.requires_college_history?
   end
 
   test "requires_previous_senior_high_only? returns true for senior high transferee, returnee, graduated" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'senior_high', status: 'transferee')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'transferee')
     assert profile.requires_previous_senior_high_only?
 
     profile.status = 'returnee'
@@ -665,14 +665,14 @@ class StudentProfileTest < ActiveSupport::TestCase
   end
 
   test "requires_previous_senior_high_only? returns false for currently_enrolled senior high" do
-    profile = StudentProfile.new(user: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
+    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
     assert_not profile.requires_previous_senior_high_only?
   end
 
   # Association tests
   test "accepts nested attributes for previous_schools" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'transferee',
       year_level: '2nd',
@@ -702,7 +702,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "rejects blank nested attributes for previous_schools" do
     profile = StudentProfile.new(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'currently_enrolled',
       year_level: '1st',
@@ -729,7 +729,7 @@ class StudentProfileTest < ActiveSupport::TestCase
 
   test "allows destroy on nested previous_schools" do
     profile = StudentProfile.create!(
-      user: students(:student_three),
+      student: students(:student_three),
       school_level: 'college',
       status: 'transferee',
       year_level: '2nd',

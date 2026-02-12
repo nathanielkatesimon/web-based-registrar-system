@@ -1,5 +1,9 @@
 class StudentProfile < ApplicationRecord
-  belongs_to :user
+  belongs_to :student,
+    class_name: "Student",
+    foreign_key: :user_id,
+    inverse_of: :student_profile,
+    optional: true
   has_many :previous_schools, dependent: :destroy
 
   accepts_nested_attributes_for :previous_schools,
