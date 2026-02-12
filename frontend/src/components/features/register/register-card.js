@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export default function RegisterCard({ children }) {
+export default function RegisterCard(props) {
   return (
     <div
       className="card overflow-hidden rounded-rem-1 w-100"
@@ -12,7 +12,7 @@ export default function RegisterCard({ children }) {
       }}
     >
       <div className="card-body d-flex p-0">
-        <div className="w-100 w-md-50">{children}</div>
+        <div className="w-100 w-md-50">{props.children}</div>
         <div className="d-none d-md-block overflow-hidden position-relative">
           <div className="position-absolute z-1 text-end w-100 bottom-0 p-12">
             <h2 className="m-0 fw-semibold text-white">Manage Requests</h2>
@@ -26,7 +26,7 @@ export default function RegisterCard({ children }) {
           </div>
           <Image
             alt="tab"
-            src="/staff_create_account_background.png"
+            src={props.image}
             className="w-100 staff_create_account_background"
             width={616}
             height={823}

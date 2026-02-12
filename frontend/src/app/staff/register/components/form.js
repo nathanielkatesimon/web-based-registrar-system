@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import InitPasswordToggler from "@/components/initializer/init-password-toggler";
+import Link from "next/link";
 
 export default function StaffRegistrationForm() {
   const [step, setStep] = useState(1);
@@ -21,22 +22,22 @@ export default function StaffRegistrationForm() {
     <h1 className="text-black fw-bolder">Create Account</h1>
     
     {/* ROLE SELECTOR START */}
-    {step != 2 && <>
+    {step == 1 && <>
       <p className="text-black">Please choose your role: </p>
       <div className="d-flex gap-8 align-items-center">
-        <a href="#" className="btn btn-xl btn-outline-primary rounded-pill" style={{ width: 150 }} >
+        <Link href="/student/register" className="btn btn-xl btn-outline-primary rounded-pill" style={{ width: 150 }} >
           Student
-        </a>
-        <a href="#" className="btn btn-xl btn-primary rounded-pill" style={{ width: 150 }} >
+        </Link>
+        <Link href="#" className="btn btn-xl btn-primary rounded-pill" style={{ width: 150 }} >
           Staff
-        </a>
+        </Link>
       </div>
     </>}
     {/* ROLE SELECTOR END */}
       
     <form>
       {/* STEP ONE START */}
-      {step != 2 && <>
+      {step == 1 && <>
         <label htmlFor="first_name" className="mt-10">First Name</label>
         <input id="first_name" name="first_name" placeholder="First Name" type="text" className="form-control form-control-lg mb-5" />
     
@@ -115,7 +116,7 @@ export default function StaffRegistrationForm() {
           <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
         </div>
   
-        <button className="btn btn-lg btn-primary w-100"> Submit </button>
+        <button className="btn btn-lg btn-primary w-100" type="button"> Submit </button>
         <button className="btn btn-lg btn-secondary w-100 mt-5" onClick={() => setStep(1)}> Back </button>
         <InitPasswordToggler/>
       </>}

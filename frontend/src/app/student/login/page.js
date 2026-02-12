@@ -8,7 +8,7 @@ export default function StudentLogin() {
   return (
     <AuthLayout>
       <div className="ms-auto me-12 my-9">
-        <Link href="#" className="text-white me-10 fs-5">Create Account</Link>
+        <Link href="/student/register" className="text-white me-10 fs-5">Create Account</Link>
         <Link href="/staff/login" className="btn btn-info rounded-pill fs-5">Staff login</Link>
       </div>
       <AuthCard>

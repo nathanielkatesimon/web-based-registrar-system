@@ -7,13 +7,13 @@ export default function StaffRegister() {
   return (
     <AuthLayout>
       <Link
-        href="/staff/login"
+        href="/student/login"
         className="text-white text-end py-6 fs-semibold w-100"
         style={{ minWidth: 412, maxWidth: 1232 }}
       >
         Already have an account?
       </Link>
-      <RegisterCard image="/staff_create_account_background.png">
+      <RegisterCard image="/student_create_account_background.png">
         <StaffRegistrationForm />
       </RegisterCard>
     </AuthLayout>

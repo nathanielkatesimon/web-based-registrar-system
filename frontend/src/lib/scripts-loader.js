@@ -5,7 +5,15 @@ export default function ScriptsLoader() {
   return (
     <>
       <Script
+        src="/assets/vendor/libs/jquery.js"
+        strategy="beforeInteractive"
+      />
+      <Script
         src="/assets/vendor/libs/bootstrap/bootstrap.js"
+        strategy="beforeInteractive"
+      />
+      <Script
+        src="/assets/vendor/libs/bootstrap-select.js"
         strategy="beforeInteractive"
       />
       <Script
