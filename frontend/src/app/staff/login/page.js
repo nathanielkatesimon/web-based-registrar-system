@@ -1,15 +1,22 @@
 import AuthLayout from "@/components/features/auth/auth-layout";
 import AuthCard from "@/components/features/auth/auth-card";
 import CopyrightNotice from "@/components/ui/copyright-notice";
-import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import Link from "next/link";
+import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 
-export default function StudentLogin() {
+export default function StaffLogin() {
   return (
     <AuthLayout>
       <div className="ms-auto me-12 my-9">
-        <Link href="#" className="text-white me-10 fs-5">Create Account</Link>
-        <Link href="/staff/login" className="btn btn-info rounded-pill fs-5">Staff login</Link>
+        <Link href="/staff/register" className="text-white me-10 fs-5">
+          Create Account
+        </Link>
+        <Link
+          href="/student/login"
+          className="btn btn-primary rounded-pill fs-5"
+        >
+          Student login
+        </Link>
       </div>
       <AuthCard>
         <form
@@ -23,9 +30,9 @@ export default function StudentLogin() {
             <input
               type="text"
               className="form-control form-control-lg"
-              id="email"
-              name="email"
-              placeholder="USN"
+              id="auth_id"
+              name="auth_id"
+              placeholder="Employee ID"
             />
             <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
           </div>
@@ -59,7 +66,7 @@ export default function StudentLogin() {
         </form>
       </AuthCard>
       <CopyrightNotice />
-      <InitPasswordToggler/>
+      <InitPasswordToggler />
     </AuthLayout>
   );
 }

@@ -1,4 +1,9 @@
 /* Custom CSS */
+@media (min-width: 768px) {
+  .w-md-50 {
+    width: 50% !important;
+  }
+}
 
 @media (min-width: 1200px) {
   .w-lg-100 {
@@ -12,4 +17,9 @@
 
 .rounded-rem-1 {
   border-radius: 1rem;
+}
+
+.staff_create_account_background {
+  transform: scale(115%);
+  filter: brightness(0.44);
 }
