@@ -129,8 +129,8 @@ cd web-based-registrar-system
 From the repository root, run:
 
 ```bash
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 ```
 
 ### 3. Run the frontend
