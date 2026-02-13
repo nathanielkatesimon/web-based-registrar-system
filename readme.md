@@ -1,5 +1,14 @@
 ## Web-Based Registrar System
 
+Quick links:
+- [Tech Stack](#tech-stack)
+- [API-Only Rails With Cookie Sessions](#api-only-rails-with-cookie-sessions)
+- [Authentication Notes](#authentication-notes)
+- [Domain Models (Backend)](#domain-models-backend)
+- [Contracts Folder](#contracts-folder)
+- [Repository Structure](#repository-structure)
+- [Quick Start](#quick-start)
+
 This repository contains a registrar system split into:
 - `frontend/`: Next.js web app
 - `api/`: Rails API backend
@@ -102,4 +111,43 @@ Core entities:
 ├── frontend/    # Next.js frontend
 ├── contracts/   # API behavior contracts
 └── readme.md    # Project documentation
+```
+
+## Quick Start
+
+### 1. Clone with GH CLI (first time only)
+
+If you already authenticated with GitHub CLI:
+
+```bash
+gh repo clone nathanielkatesimon/web-based-registrar-system
+cd web-based-registrar-system
+```
+
+### 2. Pull latest code from `main`
+
+From the repository root, run:
+
+```bash
+git checkout main
+git pull origin main
+```
+
+### 3. Run the frontend
+
+```bash
+cd frontend
+npm i
+npm run dev
+```
+
+### 4. Run the API
+
+Open a new terminal in the repository root, then run:
+
+```bash
+cd api
+bundle install
+rails db:migrate
+rails s
 ```
