@@ -31,6 +31,6 @@ class User < ApplicationRecord
   end
 
   def email_required?
-      false
+    false
   end
 end
