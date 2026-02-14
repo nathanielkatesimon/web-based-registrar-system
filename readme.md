@@ -86,7 +86,7 @@ Core entities:
 
 ## Contracts Folder
 
-`contracts/` documents expected API request/response behavior for integration and testing:
+`contracts/` documents expected API request/response behavior for integration and testing such as:
 
 1. `contracts/staff-registration-contract.md`
 - Defines `POST /api/v1/staffs/registrations`
@@ -96,8 +96,8 @@ Core entities:
 - Already-authenticated behavior (`200`)
 - Notes that successful registration also creates a Devise session cookie
 
-2. `contracts/staff-session-contract.md`
-- Defines staff-focused usage of shared session endpoints
+2. `contracts/user-session-contract.md`
+- Defines user-focused usage of shared session endpoints
 - Sign-in contract for `POST /api/v1/users/sign_in`
 - Sign-out contract for `DELETE /api/v1/users/sign_out`
 - Expected status codes and JSON payloads
