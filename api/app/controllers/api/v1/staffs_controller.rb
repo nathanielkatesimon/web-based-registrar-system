@@ -1,15 +1,6 @@
 class Api::V1::StaffsController < ApplicationController
   before_action :set_staff, only: [:show, :update, :destroy]
 
-  # GET /api/v1/staffs
-  def index
-    @staffs = Staff.all
-
-    render json: {
-      staffs: @staffs.map { |s| staff_json(s) }
-    }
-  end
-
   # GET /api/v1/staffs/:id
   def show
     render json: staff_json(@staff)

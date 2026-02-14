@@ -6,19 +6,6 @@ class Api::V1::StaffsControllerTest < ActionDispatch::IntegrationTest
     @staff_two = staffs(:staff_two)
   end
 
-  test "should get index" do
-    get api_v1_staffs_url, as: :json
-
-    assert_response :success
-
-    json_response = JSON.parse(response.body)
-    assert json_response.key?("staffs")
-
-    staff_ids = json_response["staffs"].map { |staff| staff["id"] }
-    assert_includes staff_ids, @staff_one.id
-    assert_includes staff_ids, @staff_two.id
-  end
-
   test "should show staff" do
     get api_v1_staff_url(@staff_one), as: :json
 
