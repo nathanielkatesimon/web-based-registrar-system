@@ -19,7 +19,7 @@ Body:
 ```json
 {
   "user": {
-    "auth_id": "staff_001",
+    "auth_id": "14-2026-011",
     "password": "password123"
   }
 }
@@ -31,7 +31,7 @@ Body:
 {
   "user": {
     "id": 10,
-    "auth_id": "staff_001"
+    "auth_id": "14-2026-011"
   }
 }
 ```

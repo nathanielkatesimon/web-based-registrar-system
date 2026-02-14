@@ -17,7 +17,7 @@ Creates a new `Staff` user (STI type) and signs them in using Devise cookie-base
 ```json
 {
   "user": {
-    "auth_id": "staff_010",
+    "auth_id": "14-2026-011",
     "email": "self.registered.staff@example.com",
     "password": "password123",
     "password_confirmation": "password123",
@@ -52,7 +52,7 @@ Creates a new `Staff` user (STI type) and signs them in using Devise cookie-base
 {
   "user": {
     "id": 123,
-    "auth_id": "staff_010",
+    "auth_id": "14-2026-011",
     "type": "Staff"
   }
 }
@@ -69,13 +69,13 @@ Returned when validations fail.
 ```json
 {
   "errors": [
-    "Auth Employee ID must be 6 characters"
+    "Employee ID invalid"
   ]
 }
 ```
 
 Example staff-specific validation errors:
-- `Employee ID must be 6 characters`
+- `Employee ID invalid`
 - `Auth has already been taken`
 - Devise password/email validation messages
 

@@ -13,8 +13,8 @@ class User < ApplicationRecord
   def auth_id_format
     if type == 'Student' && auth_id.present? && auth_id.length != 13
       errors.add(:auth_id, 'USN must be 13 characters')
-    elsif type == 'Staff' && auth_id.present? && auth_id.length != 6
-      errors.add(:auth_id, 'Employee ID must be 6 characters')
+    elsif type == 'Staff' && auth_id.present? && auth_id !~ /\A\d{2}-\d{4}-\d{3}\z/
+      errors.add(:employee, 'ID invalid')
     end
   end
 

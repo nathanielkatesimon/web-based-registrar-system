@@ -17,7 +17,7 @@ staff = Staff.create!(
   email: 'staff@example.com',
   password: 'password123',
   password_confirmation: 'password123',
-  auth_id: '123456',
+  auth_id: '14-2026-001',
   first_name: 'John',
   middle_name: 'dela',
   last_name: 'Cruz',

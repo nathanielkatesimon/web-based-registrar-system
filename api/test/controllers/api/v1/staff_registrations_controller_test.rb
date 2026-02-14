@@ -6,7 +6,7 @@ class Api::V1::StaffRegistrationsControllerTest < ActionDispatch::IntegrationTes
       post "/api/v1/staffs/registrations",
            params: {
              user: {
-               auth_id: "stf010",
+               auth_id: "14-2026-011",
                email: "self.registered.staff@example.com",
                password: "password123",
                password_confirmation: "password123",
@@ -22,7 +22,7 @@ class Api::V1::StaffRegistrationsControllerTest < ActionDispatch::IntegrationTes
 
     staff = Staff.order(:id).last
     assert_equal "Staff", staff.type
-    assert_equal "stf010", staff.auth_id
+    assert_equal "14-2026-011", staff.auth_id
 
     json_response = JSON.parse(response.body)
     assert_equal staff.id, json_response["user"]["id"]
@@ -46,6 +46,6 @@ class Api::V1::StaffRegistrationsControllerTest < ActionDispatch::IntegrationTes
     assert_response :unprocessable_entity
 
     json_response = JSON.parse(response.body)
-    assert_includes json_response["errors"].join(" "), "Employee ID must be 6 characters"
+    assert_includes json_response["errors"].join(" "), "Employee ID invalid"
   end
 end
