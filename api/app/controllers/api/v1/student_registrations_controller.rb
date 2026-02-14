@@ -4,6 +4,7 @@ class Api::V1::StudentRegistrationsController < Devise::RegistrationsController
 
   def create
     build_resource(sign_up_params.merge(type: "Student"))
+    resource.student_profile.registration_flow = true if resource.student_profile
 
     resource.save
     yield resource if block_given?

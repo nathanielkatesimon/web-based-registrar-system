@@ -358,8 +358,8 @@ class StudentProfileTest < ActiveSupport::TestCase
     end
   end
 
-  # previous_schools_required validation
-  test "college currently_enrolled requires senior high school" do
+  # Previous school validations
+  test "college currently_enrolled does not require previous schools outside registration flow" do
     profile = StudentProfile.new(
       student: students(:student_three),
       school_level: 'college',
@@ -369,90 +369,23 @@ class StudentProfileTest < ActiveSupport::TestCase
       course: 'bachelor_of_science_in_information_technology'
     )
 
-    assert_not profile.valid?
-    assert_includes profile.errors[:base], 'Must add previous senior high school information'
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Test Senior High',
-      academic_year_from: 2020,
-      academic_year_to: 2022,
-      program: 'STEM'
-    )
-
     assert profile.valid?
   end
 
-  test "college transferee requires both senior high and college history" do
+  test "college graduated does not require previous schools outside registration flow" do
     profile = StudentProfile.new(
       student: students(:student_three),
       school_level: 'college',
-      status: 'transferee',
-      year_level: '2nd',
+      status: 'graduated',
+      year_level: '4th',
       department: 'computer_studies',
       course: 'bachelor_of_science_in_information_technology'
     )
 
-    assert_not profile.valid?
-    assert_includes profile.errors[:base], 'Must add previous senior high school information'
-    assert_includes profile.errors[:base], 'Must add previous college information'
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Test Senior High',
-      academic_year_from: 2020,
-      academic_year_to: 2022,
-      program: 'STEM'
-    )
-
-    profile.valid?
-    assert_not profile.valid?
-    assert_includes profile.errors[:base], 'Must add previous college information'
-
-    profile.previous_schools.build(
-      school_type: 'college',
-      school_name: 'Test College',
-      academic_year_from: 2022,
-      academic_year_to: 2023,
-      program: 'BS IT'
-    )
-
     assert profile.valid?
   end
 
-  test "college returnee requires both senior high and college history" do
-    profile = StudentProfile.new(
-      student: students(:student_three),
-      school_level: 'college',
-      status: 'returnee',
-      year_level: '3rd',
-      department: 'business',
-      course: 'bachelor_of_science_in_business_administration'
-    )
-
-    assert_not profile.valid?
-    assert_includes profile.errors[:base], 'Must add previous senior high school information'
-    assert_includes profile.errors[:base], 'Must add previous college information'
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Test Senior High',
-      academic_year_from: 2018,
-      academic_year_to: 2020,
-      program: 'ABM'
-    )
-    profile.previous_schools.build(
-      school_type: 'college',
-      school_name: 'Previous College',
-      academic_year_from: 2020,
-      academic_year_to: 2022,
-      program: 'BSBA'
-    )
-
-    assert profile.valid?
-  end
-
-  test "college graduated requires both senior high and college history" do
+  test "registration flow requires previous school for college graduated status" do
     profile = StudentProfile.new(
       student: students(:student_three),
       school_level: 'college',
@@ -461,16 +394,38 @@ class StudentProfileTest < ActiveSupport::TestCase
       department: 'culinary',
       course: 'bachelor_of_science_in_hospitality_management'
     )
+    profile.registration_flow = true
 
     assert_not profile.valid?
+    assert_includes profile.errors[:base], 'Must add previous school information if already graduated'
+  end
 
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Test Senior High',
-      academic_year_from: 2016,
-      academic_year_to: 2018,
-      program: 'TVL - HE'
+  test "registration flow requires previous school for senior high graduated status" do
+    profile = StudentProfile.new(
+      student: students(:student_three),
+      school_level: 'senior_high',
+      status: 'graduated',
+      year_level: '12',
+      track: 'academic_track',
+      strand: 'STEM'
     )
+    profile.registration_flow = true
+
+    assert_not profile.valid?
+    assert_includes profile.errors[:base], 'Must add previous school information if already graduated'
+  end
+
+  test "registration flow allows graduated status with college previous school" do
+    profile = StudentProfile.new(
+      student: students(:student_three),
+      school_level: 'college',
+      status: 'graduated',
+      year_level: '4th',
+      department: 'culinary',
+      course: 'bachelor_of_science_in_hospitality_management'
+    )
+    profile.registration_flow = true
+
     profile.previous_schools.build(
       school_type: 'college',
       school_name: 'Same College',
@@ -483,7 +438,7 @@ class StudentProfileTest < ActiveSupport::TestCase
     assert profile.valid?
   end
 
-  test "senior high transferee requires senior high history" do
+  test "senior high transferee does not require previous schools outside registration flow" do
     profile = StudentProfile.new(
       student: students(:student_three),
       school_level: 'senior_high',
@@ -493,79 +448,7 @@ class StudentProfileTest < ActiveSupport::TestCase
       strand: 'STEM'
     )
 
-    assert_not profile.valid?
-    assert_includes profile.errors[:base], 'Must add previous senior high school information'
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Previous Senior High',
-      academic_year_from: 2023,
-      academic_year_to: 2024,
-      program: 'STEM'
-    )
-
     assert profile.valid?
-  end
-
-  test "senior high returnee requires senior high history" do
-    profile = StudentProfile.new(
-      student: students(:student_three),
-      school_level: 'senior_high',
-      status: 'returnee',
-      year_level: '12',
-      track: 'technical_vocational_livelihood',
-      strand: 'TVL - CSS'
-    )
-
-    assert_not profile.valid?
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Same Senior High',
-      academic_year_from: 2022,
-      academic_year_to: 2023,
-      program: 'TVL - CSS'
-    )
-
-    assert profile.valid?
-  end
-
-  test "senior high graduated requires senior high history" do
-    profile = StudentProfile.new(
-      student: students(:student_three),
-      school_level: 'senior_high',
-      status: 'graduated',
-      year_level: '12',
-      track: 'academic_track',
-      strand: 'ABM'
-    )
-
-    assert_not profile.valid?
-
-    profile.previous_schools.build(
-      school_type: 'senior_high',
-      school_name: 'Same Senior High',
-      academic_year_from: 2021,
-      academic_year_to: 2023,
-      program: 'ABM',
-      completed: true
-    )
-
-    assert profile.valid?
-  end
-
-  test "senior high currently_enrolled does not require previous schools" do
-    profile = StudentProfile.new(
-      student: students(:student_three),
-      school_level: 'senior_high',
-      status: 'currently_enrolled',
-      year_level: '11',
-      track: 'academic_track',
-      strand: 'HUMSS'
-    )
-
-    profile.valid?
-    assert_not_includes profile.errors[:base], 'Must add previous senior high school information'
   end
 
   # Helper method tests
@@ -616,57 +499,6 @@ class StudentProfileTest < ActiveSupport::TestCase
     )
 
     assert_equal 'Main St, Cebu City', profile.full_address
-  end
-
-  test "requires_senior_high_history? returns true for college students" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'currently_enrolled')
-    assert profile.requires_senior_high_history?
-
-    profile.status = 'transferee'
-    assert profile.requires_senior_high_history?
-
-    profile.status = 'returnee'
-    assert profile.requires_senior_high_history?
-
-    profile.status = 'graduated'
-    assert profile.requires_senior_high_history?
-  end
-
-  test "requires_senior_high_history? returns false for senior high students" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
-    assert_not profile.requires_senior_high_history?
-  end
-
-  test "requires_college_history? returns true for college transferee, returnee, graduated" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'transferee')
-    assert profile.requires_college_history?
-
-    profile.status = 'returnee'
-    assert profile.requires_college_history?
-
-    profile.status = 'graduated'
-    assert profile.requires_college_history?
-  end
-
-  test "requires_college_history? returns false for college currently_enrolled" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'college', status: 'currently_enrolled')
-    assert_not profile.requires_college_history?
-  end
-
-  test "requires_previous_senior_high_only? returns true for senior high transferee, returnee, graduated" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'transferee')
-    assert profile.requires_previous_senior_high_only?
-
-    profile.status = 'returnee'
-    assert profile.requires_previous_senior_high_only?
-
-    profile.status = 'graduated'
-    assert profile.requires_previous_senior_high_only?
-  end
-
-  test "requires_previous_senior_high_only? returns false for currently_enrolled senior high" do
-    profile = StudentProfile.new(student: students(:student_three), school_level: 'senior_high', status: 'currently_enrolled')
-    assert_not profile.requires_previous_senior_high_only?
   end
 
   # Association tests

@@ -95,8 +95,8 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "2026000000001", json_response["auth_id"]
   end
 
-  test "should return unprocessable_entity when previous school requirement is not met on create" do
-    assert_no_difference("Student.count") do
+  test "should create student without previous schools on create" do
+    assert_difference("Student.count", 1) do
       post api_v1_students_url,
            params: {
              student: {
@@ -118,11 +118,11 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
            as: :json
     end
 
-    assert_response :unprocessable_entity
+    assert_response :created
 
-    json_response = JSON.parse(response.body)
-    assert json_response.key?("errors")
-    assert_includes json_response["errors"].join(" "), "Must add previous senior high school information"
+    created_student = Student.order(:id).last
+    assert_equal "2026000000002", created_student.auth_id
+    assert_equal 0, created_student.student_profile.previous_schools.count
   end
 
   test "should return unprocessable_entity when auth_id format is invalid on create" do
@@ -130,7 +130,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
       post api_v1_students_url,
            params: {
              student: {
-               auth_id: "shortauthid",
+               auth_id: "shortid",
                email: "invalid-auth@example.com",
                password: "password123",
                password_confirmation: "password123",
@@ -145,7 +145,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     assert json_response.key?("errors")
-    assert_includes json_response["errors"].join(" "), "USN must be 13 characters"
+    assert_includes json_response["errors"].join(" "), "Student USN must be 11 to 13 characters"
   end
 
   test "should update student basic fields" do

@@ -52,8 +52,8 @@ class Api::V1::StudentRegistrationsControllerTest < ActionDispatch::IntegrationT
     assert_equal student.student_profile.id, json_response["user"]["student_profile"]["id"]
   end
 
-  test "should reject signup when required previous school is missing" do
-    assert_no_difference("Student.count") do
+  test "should allow signup when previous school is missing for non-graduated status" do
+    assert_difference("Student.count", 1) do
       post "/api/v1/students/registrations",
            params: {
              user: {
@@ -73,9 +73,58 @@ class Api::V1::StudentRegistrationsControllerTest < ActionDispatch::IntegrationT
            as: :json
     end
 
-    assert_response :unprocessable_entity
+    assert_response :created
+  end
 
+  test "should reject college graduated signup without previous school information" do
+    assert_no_difference("Student.count") do
+      post "/api/v1/students/registrations",
+           params: {
+             user: {
+               auth_id: "2026000000666",
+               email: "graduated.invalid.student@example.com",
+               password: "password123",
+               password_confirmation: "password123",
+               student_profile_attributes: {
+                 school_level: "college",
+                 status: "graduated",
+                 year_level: "4th",
+                 department: "computer_studies",
+                 course: "bachelor_of_science_in_information_technology"
+               }
+             }
+           },
+           as: :json
+    end
+
+    assert_response :unprocessable_entity
     json_response = JSON.parse(response.body)
-    assert_includes json_response["errors"].join(" "), "Must add previous senior high school information"
+    assert_includes json_response["errors"].join(" "), "Must add previous school information if already graduated"
+  end
+
+  test "should reject senior high graduated signup without previous school information" do
+    assert_no_difference("Student.count") do
+      post "/api/v1/students/registrations",
+           params: {
+             user: {
+               auth_id: "2026000000665",
+               email: "graduated.invalid.senior.high.student@example.com",
+               password: "password123",
+               password_confirmation: "password123",
+               student_profile_attributes: {
+                 school_level: "senior_high",
+                 status: "graduated",
+                 year_level: "12",
+                 track: "academic_track",
+                 strand: "STEM"
+               }
+             }
+           },
+           as: :json
+    end
+
+    assert_response :unprocessable_entity
+    json_response = JSON.parse(response.body)
+    assert_includes json_response["errors"].join(" "), "Must add previous school information if already graduated"
   end
 end

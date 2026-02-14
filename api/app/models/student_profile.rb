@@ -1,4 +1,6 @@
 class StudentProfile < ApplicationRecord
+  attr_accessor :registration_flow
+
   belongs_to :student,
     class_name: "Student",
     foreign_key: :user_id,
@@ -95,7 +97,7 @@ class StudentProfile < ApplicationRecord
   validate :year_level_matches_school_level
   validate :course_matches_department
   validate :strand_matches_track
-  validate :previous_schools_required
+  validate :graduated_requires_previous_college_information, if: :registration_flow?
 
   # Scopes for filtering valid options
   def available_courses
@@ -111,19 +113,6 @@ class StudentProfile < ApplicationRecord
   def full_address
     [house_number, street_name, barangay_name, city_municipality, province]
       .compact.join(', ')
-  end
-
-  # Helper methods for previous school requirements
-  def requires_senior_high_history?
-    college? && %w[currently_enrolled transferee returnee graduated].include?(status)
-  end
-
-  def requires_college_history?
-    college? && %w[transferee returnee graduated].include?(status)
-  end
-
-  def requires_previous_senior_high_only?
-    senior_high? && %w[transferee returnee graduated].include?(status)
   end
 
   private
@@ -156,39 +145,19 @@ class StudentProfile < ApplicationRecord
     end
   end
 
-  def previous_schools_required
-    return if status.blank? || school_level.blank?
+  def graduated_requires_previous_college_information
+    return unless status == 'graduated'
 
-    # IMPORTANT: Check both persisted and in-memory associations
-    # This allows validations to pass during initial creation with nested attributes
-    senior_high_schools = previous_schools.select { |ps| ps.school_type == 'senior_high' }
-    college_schools = previous_schools.select { |ps| ps.school_type == 'college' }
-
-    # College level validations
-    if college?
-      case status
-      when 'currently_enrolled'
-        if senior_high_schools.empty?
-          errors.add(:base, 'Must add previous senior high school information')
-        end
-      when 'transferee', 'returnee', 'graduated'
-        if senior_high_schools.empty?
-          errors.add(:base, 'Must add previous senior high school information')
-        end
-        if college_schools.empty?
-          errors.add(:base, 'Must add previous college information')
-        end
-      end
+    college_schools = previous_schools.select do |ps|
+      !ps.marked_for_destruction?
     end
 
-    # Senior high level validations
-    if senior_high?
-      case status
-      when 'transferee', 'returnee', 'graduated'
-        if senior_high_schools.empty?
-          errors.add(:base, 'Must add previous senior high school information')
-        end
-      end
-    end
+    return unless college_schools.empty?
+
+    errors.add(:base, 'Must add previous school information if already graduated')
+  end
+
+  def registration_flow?
+    registration_flow == true
   end
 end
