@@ -8,19 +8,6 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     @student_two_profile = student_profiles(:two)
   end
 
-  test "should get index" do
-    get api_v1_students_url, as: :json
-
-    assert_response :success
-
-    json_response = JSON.parse(response.body)
-    assert json_response.key?("students")
-
-    student_ids = json_response["students"].map { |student| student["id"] }
-    assert_includes student_ids, @student_one.id
-    assert_includes student_ids, @student_two.id
-  end
-
   test "should show student" do
     get api_v1_student_url(@student_one), as: :json
 

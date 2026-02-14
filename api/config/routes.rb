@@ -13,13 +13,9 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :student_profiles, except: [:create, :destroy]
+      #  resources :student_profiles, except: [:create, :destroy]
       resources :students
       resources :staffs
-
-      # Additional helpful routes
-      get 'students/filter/by_status/:status', to: 'students#index'
-      get 'students/filter/by_school_level/:school_level', to: 'students#index'
     end
   end
 end

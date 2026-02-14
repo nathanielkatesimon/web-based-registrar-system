@@ -1,15 +1,6 @@
 class Api::V1::StudentsController < ApplicationController
   before_action :set_student, only: [:show, :update, :destroy]
 
-  # GET /api/v1/students
-  def index
-    @students = Student.includes(:student_profile)
-
-    render json: {
-      students: @students
-    }
-  end
-
   # GET /api/v1/students/:id
   def show
     render json: @student
