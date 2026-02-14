@@ -144,10 +144,15 @@ npm run dev
 ### 4. Run the API
 
 Open a new terminal in the repository root, then run:
+#### Local environment variables
+```yml
+# api/config/local_env.yml
+FRONTEND_URL: "localhost:3000"
+```
 
 ```bash
 cd api
 bundle install
 rails db:migrate
-rails s
+bin/dev
 ```

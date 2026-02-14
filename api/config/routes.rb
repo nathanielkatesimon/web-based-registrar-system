@@ -18,4 +18,6 @@ Rails.application.routes.draw do
       resources :staffs
     end
   end
+  
+  get "/csrf", to: "application#csrf"
 end

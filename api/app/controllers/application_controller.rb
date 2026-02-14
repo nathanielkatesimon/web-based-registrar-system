@@ -6,6 +6,10 @@ class ApplicationController < ActionController::API
   protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
   respond_to :json
+  
+  def csrf
+    render json: { csrf_token: form_authenticity_token }
+  end
 
   protected
 
