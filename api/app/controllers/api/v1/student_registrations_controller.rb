@@ -1,7 +1,8 @@
 class Api::V1::StudentRegistrationsController < Devise::RegistrationsController
   prepend_before_action :require_no_authentication, only: [:create]
   prepend_before_action :set_minimum_password_length, only: []
-
+  skip_before_action :verify_authenticity_token, only: [:create]
+  
   def create
     build_resource(sign_up_params.merge(type: "Student"))
     resource.student_profile.registration_flow = true if resource.student_profile

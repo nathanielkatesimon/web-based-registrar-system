@@ -1,6 +1,7 @@
 class Api::V1::StaffRegistrationsController < Devise::RegistrationsController
   prepend_before_action :require_no_authentication, only: [:create]
   prepend_before_action :set_minimum_password_length, only: []
+  skip_before_action :verify_authenticity_token, only: [:create]
 
   def create
     build_resource(sign_up_params.merge(type: "Staff"))

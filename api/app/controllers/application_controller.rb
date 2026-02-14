@@ -1,9 +1,11 @@
 class ApplicationController < ActionController::API
   include ActionController::Cookies
+  include ActionController::RequestForgeryProtection
 
-  respond_to :json
-
+  self.allow_forgery_protection = !Rails.env.test?
+  protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
+  respond_to :json
 
   protected
 
