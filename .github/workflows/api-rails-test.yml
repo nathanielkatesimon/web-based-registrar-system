@@ -30,6 +30,7 @@ jobs:
         working-directory: api
 
     env:
+      FRONTEND_URL: localhost:3300
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/web_based_registrar_system_api_test
 
