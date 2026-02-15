@@ -1,26 +1,67 @@
 "use client"
 
-import { useState } from "react"
-import InitPasswordToggler from "@/components/initializer/init-password-toggler";
+import { useState, useRef } from "react"
 import Link from "next/link";
+import InitPasswordToggler from "@/components/initializer/init-password-toggler";
+import PasswordValidator, { getPasswordValidationError } from "@/components/features/register/password-validator";
 
 export default function StaffRegistrationForm() {
   const [step, setStep] = useState(1);
-  const [middleName, setMiddleName] = useState("");
   const [hasNoMiddleName, setHasNoMiddleName] = useState(false);
+  const formRef = useRef(null);
+  const [formValues, setFormValues] = useState({
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    employee_id: "",
+    email: "",
+    create_password: "",
+    password_confirmation: "",
+  });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleNoMiddleNameChange = (event) => {
     const checked = event.target.checked;
     setHasNoMiddleName(checked);
     if (checked) {
-      setMiddleName("");
+      setFormValues((prev) => ({ ...prev, middle_name: "" }));
+    }
+  };
+
+  const prevStep = () => {
+    formRef.current.className = "needs-validation";
+    setStep(step - 1);
+  };
+
+  const submit = () => {
+    const form = formRef.current;
+    const passwordError = getPasswordValidationError(
+      formValues.create_password,
+      formValues.password_confirmation
+    );
+
+    if (!form.checkValidity() || (step === 2 && passwordError)) {
+      form.className = "needs-validation was-validated";
+      return;
+    }
+
+    form.className = "needs-validation";
+    if (step === 2) {
+      // Submit form data to server
+      console.log("Form submitted");
+    } else {
+      setStep(step + 1);
     }
   };
 
   return <div className="p-5 p-lg-12 mx-lg-5 d-flex flex-column h-100 justify-content-center">
     <p className="text-black m-0">Step {step}/2</p>
     <h1 className="text-black fw-bolder">Create Account</h1>
-    
+
     {/* ROLE SELECTOR START */}
     {step == 1 && <>
       <p className="text-black">Please choose your role: </p>
@@ -34,13 +75,22 @@ export default function StaffRegistrationForm() {
       </div>
     </>}
     {/* ROLE SELECTOR END */}
-      
-    <form>
+
+    <form ref={formRef} className="needs-validation" noValidate={true}>
       {/* STEP ONE START */}
       {step == 1 && <>
         <label htmlFor="first_name" className="mt-10">First Name</label>
-        <input id="first_name" name="first_name" placeholder="First Name" type="text" className="form-control form-control-lg mb-5" />
-    
+        <input
+          id="first_name"
+          name="first_name"
+          placeholder="First Name"
+          type="text"
+          className="form-control form-control-lg mb-5"
+          value={formValues.first_name}
+          onChange={handleInputChange}
+          required
+        />
+
         <label htmlFor="middle_name">Middle Name</label>
         <input
           id="middle_name"
@@ -48,9 +98,10 @@ export default function StaffRegistrationForm() {
           placeholder="Middle Name"
           type="text"
           className="form-control form-control-lg mb-5"
-          value={middleName}
-          onChange={(event) => setMiddleName(event.target.value)}
+          value={formValues.middle_name}
+          onChange={handleInputChange}
           disabled={hasNoMiddleName}
+          required={hasNoMiddleName ? false : true}
         />
         <div className="form-check form-check-primary mb-5">
           <input
@@ -61,24 +112,51 @@ export default function StaffRegistrationForm() {
             checked={hasNoMiddleName}
             onChange={handleNoMiddleNameChange}
           />
-          <label className="form-check-label" htmlFor="i_have_no_legal_middle_name">
+          <label className="form-check-label text-black" htmlFor="i_have_no_legal_middle_name">
             I have no legal middle name
           </label>
         </div>
         <label htmlFor="last_name">Last Name</label>
-        <input id="last_name" name="last_name" placeholder="Last Name" type="text" className="form-control form-control-lg mb-12" />
-        <button className="btn btn-lg btn-primary w-100" onClick={() => setStep(2)}> Next </button>
+        <input
+          id="last_name"
+          name="last_name"
+          placeholder="Last Name"
+          type="text"
+          className="form-control form-control-lg mb-12"
+          value={formValues.last_name}
+          onChange={handleInputChange}
+          required
+        />
+        <button className="btn btn-lg btn-primary w-100" onClick={() => submit()} type="button"> Next </button>
       </>}
       {/* STEP ONE END*/}
-      
-      
+
+
       {/* STEP TWO START */}
       {step == 2 && <>
         <label htmlFor="employee_id">Employee ID</label>
-        <input id="employee_id" name="employee_id" placeholder="Enter Employee ID" type="text" className="form-control form-control-lg mb-5" />
+        <input
+          id="employee_id"
+          name="employee_id"
+          placeholder="Enter Employee ID"
+          type="text"
+          className="form-control form-control-lg mb-5"
+          value={formValues.employee_id}
+          onChange={handleInputChange}
+          required
+        />
 
         <label htmlFor="email">Email Address</label>
-        <input id="email" name="email" placeholder="Email Address" type="email" className="form-control form-control-lg mb-5" />
+        <input
+          id="email"
+          name="email"
+          placeholder="Email Address"
+          type="email"
+          className="form-control form-control-lg mb-5"
+          value={formValues.email}
+          onChange={handleInputChange}
+          required
+        />
 
         <label htmlFor="create_password">Create Password</label>
         <div className="form-password-toggle fv-plugins-icon-container fv-plugins-bootstrap5-row-valid mb-5">
@@ -90,12 +168,14 @@ export default function StaffRegistrationForm() {
               name="create_password"
               placeholder="Create Password"
               aria-describedby="create_password"
+              value={formValues.create_password}
+              onChange={handleInputChange}
+              required
             />
             <span className="input-group-text cursor-pointer">
               <i className="bx bx-hide"></i>
             </span>
           </div>
-          <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
         </div>
 
         <label htmlFor="create_password">Re-enter Password</label>
@@ -108,17 +188,23 @@ export default function StaffRegistrationForm() {
               name="password_confirmation"
               placeholder="Re-enter Password"
               aria-describedby="password_confirmation"
+              value={formValues.password_confirmation}
+              onChange={handleInputChange}
+              required
             />
             <span className="input-group-text cursor-pointer">
               <i className="bx bx-hide"></i>
             </span>
           </div>
-          <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+          <PasswordValidator
+            password={formValues.create_password}
+            password_confirmation={formValues.password_confirmation}
+          />
         </div>
-  
-        <button className="btn btn-lg btn-primary w-100" type="button"> Submit </button>
-        <button className="btn btn-lg btn-secondary w-100 mt-5" onClick={() => setStep(1)}> Back </button>
-        <InitPasswordToggler/>
+
+        <button className="btn btn-lg btn-primary w-100" type="button" onClick={() => submit()}> Submit </button>
+        <button className="btn btn-lg btn-secondary w-100 mt-5" onClick={() => prevStep()} type="button"> Back </button>
+        <InitPasswordToggler />
       </>}
       {/* STEP TWO END */}
     </form>
