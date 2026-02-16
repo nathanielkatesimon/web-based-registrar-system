@@ -1,5 +1,5 @@
 class Api::V1::StaffRegistrationsController < Devise::RegistrationsController
-  prepend_before_action :require_no_authentication, only: [:create]
+  prepend_before_action :reject_authenticated_user, only: [:create]
   prepend_before_action :set_minimum_password_length, only: []
   skip_before_action :verify_authenticity_token, only: [:create]
 
@@ -24,6 +24,12 @@ class Api::V1::StaffRegistrationsController < Devise::RegistrationsController
   end
 
   private
+
+  def reject_authenticated_user
+    return unless user_signed_in?
+
+    render json: { message: I18n.t("devise.failure.already_authenticated") }, status: :ok
+  end
 
   def sign_up_params
     params.require(:user).permit(

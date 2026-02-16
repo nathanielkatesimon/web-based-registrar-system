@@ -23,3 +23,7 @@
   transform: scale(115%);
   filter: brightness(0.44);
 }
+
+.sk-skeleton {
+  transform: scale(3);
+}

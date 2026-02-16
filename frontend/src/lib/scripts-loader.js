@@ -17,6 +17,10 @@ export default function ScriptsLoader() {
         strategy="beforeInteractive"
       />
       <Script
+        src="/assets/vendor/libs/sweetalert2.js"
+        strategy="beforeInteractive"
+      />
+      <Script
         src="/assets/scripts/main.js"
         strategy="beforeInteractive"
       />

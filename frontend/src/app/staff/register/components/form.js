@@ -2,12 +2,16 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import PasswordValidator, { getPasswordValidationError } from "@/components/features/register/password-validator";
+import { api } from "@/lib/api";
 
 export default function StaffRegistrationForm() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [hasNoMiddleName, setHasNoMiddleName] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef(null);
   const [formValues, setFormValues] = useState({
     first_name: "",
@@ -37,7 +41,51 @@ export default function StaffRegistrationForm() {
     setStep(step - 1);
   };
 
-  const submit = () => {
+  const showAlert = ({ icon, title, text }) => {
+    const Swal = typeof window !== "undefined" ? window.Swal : null;
+    if (Swal?.fire) {
+      return Swal.fire({
+        icon,
+        title,
+        text,
+        customClass: {
+          confirmButton: 'btn btn-primary',
+        },
+        showClass: {
+          popup: 'animate__animated animate__bounceIn'
+        },
+        buttonStyling: false
+      });
+    }
+
+    if (typeof window !== "undefined") {
+      window.alert(text || title);
+    }
+  };
+
+  const getApiErrors = (error) => {
+    const message = error?.message || "";
+    const jsonStart = message.indexOf("{");
+    if (jsonStart === -1) {
+      return [message || "Something went wrong. Please try again."];
+    }
+
+    try {
+      const parsed = JSON.parse(message.slice(jsonStart));
+      if (Array.isArray(parsed?.errors) && parsed.errors.length > 0) {
+        return parsed.errors;
+      }
+      if (parsed?.message) {
+        return [parsed.message];
+      }
+    } catch {
+      return [message];
+    }
+
+    return [message || "Something went wrong. Please try again."];
+  };
+
+  const submit = async () => {
     const form = formRef.current;
     const passwordError = getPasswordValidationError(
       formValues.create_password,
@@ -50,11 +98,54 @@ export default function StaffRegistrationForm() {
     }
 
     form.className = "needs-validation";
-    if (step === 2) {
-      // Submit form data to server
-      console.log("Form submitted");
-    } else {
+    if (step !== 2) {
       setStep(step + 1);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+        user: {
+          auth_id: formValues.employee_id.trim(),
+          email: formValues.email.trim(),
+          password: formValues.create_password,
+          password_confirmation: formValues.password_confirmation,
+          first_name: formValues.first_name.trim(),
+          middle_name: hasNoMiddleName ? "" : formValues.middle_name.trim(),
+          last_name: formValues.last_name.trim(),
+        },
+      };
+
+      const response = await api("/api/v1/staffs/registrations", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (response?.message) {
+        showAlert({
+          icon: "info",
+          title: "Already Signed In",
+          text: response.message,
+        });
+        return;
+      }
+
+      await showAlert({
+        icon: "success",
+        title: "Registration Successful",
+        text: "Account created successfully.",
+      });
+      window.location.href = "/staff/dashboard";
+    } catch (error) {
+      showAlert({
+        icon: "error",
+        title: "Registration Failed",
+        text: getApiErrors(error).join(" "),
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -202,8 +293,10 @@ export default function StaffRegistrationForm() {
           />
         </div>
 
-        <button className="btn btn-lg btn-primary w-100" type="button" onClick={() => submit()}> Submit </button>
-        <button className="btn btn-lg btn-secondary w-100 mt-5" onClick={() => prevStep()} type="button"> Back </button>
+        <button className="btn btn-lg btn-primary w-100" type="button" onClick={() => submit()} disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </button>
+        <button className="btn btn-lg btn-secondary w-100 mt-5" onClick={() => prevStep()} type="button" disabled={isSubmitting}> Back </button>
         <InitPasswordToggler />
       </>}
       {/* STEP TWO END */}

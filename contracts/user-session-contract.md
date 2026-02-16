@@ -4,6 +4,25 @@
 Session endpoints are shared by both `Staff` and `Student` (STI under `User`).
 Both user types authenticate through the same Devise session endpoints.
 
+## CSRF Bootstrap
+
+### Endpoint
+- Method: `GET`
+- Path: `/csrf`
+- Controller: `ApplicationController#csrf`
+
+### Purpose
+- Returns a CSRF token for clients that use cookie-based sessions and cannot rely on server-rendered `<meta name="csrf-token">`.
+- Required before CSRF-protected non-GET requests (for example, sign out).
+
+### Success Response
+- Status: `200 OK`
+```json
+{
+  "csrf_token": "..."
+}
+```
+
 ## Sign In
 
 ### Endpoint
@@ -84,6 +103,7 @@ Note: message text is locale-dependent from Devise (`devise.failure.already_auth
 ### Request
 Headers:
 - Cookie/session headers from prior sign-in.
+- `X-CSRF-Token: <token>` where token is obtained from `GET /csrf` (or a trusted meta tag if present).
 
 ### Success Response
 - Status: `204 No Content`
@@ -95,6 +115,7 @@ Headers:
 - Signs out current user session.
 - `verify_signed_out_user` is overridden to no-op, so sign-out responds without Devise redirect-style behavior.
 - Response shape is identical regardless of user STI type.
+- CSRF protection is enabled for this action; missing/invalid CSRF token results in request rejection (typically `422 Unprocessable Entity`).
 
 ## Implementation Notes (Current)
 - Authentication key is `auth_id` + `password`.

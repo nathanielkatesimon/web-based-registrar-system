@@ -13,11 +13,10 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      get "auth/session", to: "auth_sessions#show"
       #  resources :student_profiles, except: [:create, :destroy]
       resources :students
       resources :staffs
     end
   end
-  
-  get "/csrf", to: "application#csrf"
 end

@@ -46,7 +46,7 @@ const getCsrfToken = () =>
     : null;
 
 
-export async function api(path, options = {}) {
+export function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const csrf = getCsrfToken();
 
@@ -59,18 +59,10 @@ export async function api(path, options = {}) {
     headers["X-CSRF-Token"] = csrf;
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  return fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
     ...options,
     method,
     headers,
     credentials: "include",
   });
-
-  if (!res.ok) {
-    const errorBody = await res.text();
-    throw new Error(`API ${res.status}: ${errorBody}`);
-  }
-
-  if (res.status === 204) return null;
-  return res.json();
 }

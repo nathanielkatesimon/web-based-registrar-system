@@ -45,7 +45,7 @@
 # web app consumer, using cookie-based sessions to simplify authentication
 class Users::SessionsController < Devise::SessionsController
   prepend_before_action :require_no_authentication, only: [:create]
-  skip_before_action :verify_authenticity_token, only: [:create]
+  skip_before_action :verify_authenticity_token, only: [:create, :destroy]
   
   # GET api/v1/resource/sign_in
   def new
