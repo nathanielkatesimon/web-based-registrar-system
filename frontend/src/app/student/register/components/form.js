@@ -1,26 +1,242 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react";
+import Link from "next/link";
 import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import InitBootstrapSelect from "@/components/initializer/init-bootstrap-select";
-import Link from "next/link";
+import PasswordValidator, { getPasswordValidationError } from "@/components/features/register/password-validator";
+import { parseError, api } from "@/lib/api";
+import ShowAlert from "@/lib/show-alert";
 
-export default function StaffRegistrationForm() {
+const STATUS_MAP = {
+  current_enrolled: "currently_enrolled",
+  transferee: "transferee",
+  returnee: "returnee",
+  already_graduated: "graduated",
+};
+
+const YEAR_LEVEL_MAP = {
+  grade_11: "11",
+  grade_12: "12",
+  "1st_year": "1st",
+  "2nd_year": "2nd",
+  "3rd_year": "3rd",
+  "4th_year": "4th",
+};
+
+const COURSE_MAP = {
+  dwat: {
+    course: "diploma_in_web_application_technology",
+    department: "computer_studies",
+  },
+  bsit: {
+    course: "bachelor_of_science_in_information_technology",
+    department: "computer_studies",
+  },
+  bscs: {
+    course: "bachelor_of_science_in_computer_science",
+    department: "computer_studies",
+  },
+  doat: {
+    course: "diploma_in_office_administration_technology",
+    department: "business",
+  },
+  domt: {
+    course: "diploma_in_office_management_technology",
+    department: "business",
+  },
+  bsba: {
+    course: "bachelor_of_science_in_business_administration",
+    department: "business",
+  },
+  dhart: {
+    course: "diploma_in_hotel_and_restaurant_technology",
+    department: "culinary",
+  },
+  bshm: {
+    course: "bachelor_of_science_in_hospitality_management",
+    department: "culinary",
+  },
+};
+
+const STRAND_MAP = {
+  stem: { strand: "STEM", track: "academic_track" },
+  abm: { strand: "ABM", track: "academic_track" },
+  humss: { strand: "HUMSS", track: "academic_track" },
+  ga: { strand: "GA", track: "academic_track" },
+  tvl_css: { strand: "TVL - CSS", track: "technical_vocational_livelihood" },
+  tvl_programming: { strand: "TVL - Programming", track: "technical_vocational_livelihood" },
+  tvl_animation: { strand: "TVL - Animation", track: "technical_vocational_livelihood" },
+  tvl_he: { strand: "TVL - HE", track: "technical_vocational_livelihood" },
+};
+
+export default function StudentRegistrationForm() {
   const [step, setStep] = useState(1);
-  const [middleName, setMiddleName] = useState("");
   const [hasNoMiddleName, setHasNoMiddleName] = useState(false);
   const [academicStatus, setAcademicStatus] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef(null);
+
+  const [formValues, setFormValues] = useState({
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    usn: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+    year_level: "",
+    course_track: "",
+    department: "",
+    graduated_from: "",
+    graduated_to: "",
+    graduated_course_track: "",
+    graduated_department: "",
+  });
+
+  const isGraduated = academicStatus === "already_graduated";
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleNoMiddleNameChange = (event) => {
     const checked = event.target.checked;
     setHasNoMiddleName(checked);
     if (checked) {
-      setMiddleName("");
+      setFormValues((prev) => ({ ...prev, middle_name: "" }));
     }
   };
 
   const handleAcademicStatusChange = (status) => {
     setAcademicStatus((prevStatus) => (prevStatus === status ? "" : status));
+  };
+
+  const prevStep = () => {
+    formRef.current.className = "needs-validation";
+    setStep(step - 1);
+  };
+
+  const buildStudentProfileAttributes = () => {
+    const mappedStatus = STATUS_MAP[academicStatus];
+    if (!mappedStatus) {
+      return { error: "Please choose your academic status." };
+    }
+
+    const mappedYearLevel = YEAR_LEVEL_MAP[formValues.year_level];
+    if (!mappedYearLevel) {
+      return { error: "Please select your year level." };
+    }
+
+    const schoolLevel = ["11", "12"].includes(mappedYearLevel) ? "senior_high" : "college";
+    const selectedProgram = isGraduated ? formValues.graduated_course_track : formValues.course_track;
+
+    const profile = {
+      status: mappedStatus,
+      school_level: schoolLevel,
+      year_level: mappedYearLevel,
+    };
+
+    if (schoolLevel === "college") {
+      const selectedCourse = COURSE_MAP[selectedProgram];
+      if (!selectedCourse) {
+        return { error: "Please select a valid college course." };
+      }
+
+      profile.course = selectedCourse.course;
+      profile.department = selectedCourse.department;
+    } else {
+      const selectedStrand = STRAND_MAP[selectedProgram];
+      if (!selectedStrand) {
+        return { error: "Please select a valid senior high strand." };
+      }
+
+      profile.track = selectedStrand.track;
+      profile.strand = selectedStrand.strand;
+    }
+
+    if (isGraduated) {
+      if (!formValues.graduated_from || !formValues.graduated_to) {
+        return { error: "Please provide your previous school academic year range." };
+      }
+
+      profile.previous_schools_attributes = [
+        {
+          school_type: schoolLevel,
+          school_name: "Previous School",
+          academic_year_from: Number(formValues.graduated_from),
+          academic_year_to: Number(formValues.graduated_to),
+          program: schoolLevel === "college" ? profile.course : profile.strand,
+          completed: true,
+        },
+      ];
+    }
+
+    return { profile };
+  };
+
+  const submit = async () => {
+    const form = formRef.current;
+    const passwordError = getPasswordValidationError(
+      formValues.password,
+      formValues.password_confirmation
+    );
+
+    if (!form.checkValidity() || (step === 2 && passwordError)) {
+      form.className = "needs-validation was-validated";
+      return;
+    }
+
+    form.className = "needs-validation";
+    if (step !== 3) {
+      setStep(step + 1);
+      return;
+    }
+
+    const { profile, error: profileError } = buildStudentProfileAttributes();
+    if (profileError) {
+      await ShowAlert({ icon: "error", title: "Registration Failed", text: profileError });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+        user: {
+          auth_id: formValues.usn.trim(),
+          email: formValues.email.trim(),
+          password: formValues.password,
+          password_confirmation: formValues.password_confirmation,
+          first_name: formValues.first_name.trim(),
+          middle_name: hasNoMiddleName ? "" : formValues.middle_name.trim(),
+          last_name: formValues.last_name.trim(),
+          student_profile_attributes: profile,
+        },
+      };
+
+      const response = await api("/api/v1/students/registrations", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const responseJson = await response.json();
+
+      if (response.status === 200 || response.status === 201) {
+        if (responseJson?.message) {
+          await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message });
+        } else {
+          await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully." });
+        }
+        window.location.href = "/student/dashboard";
+      } else {
+        await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(responseJson) || "Please review your inputs and try again." });
+      }
+    } catch (error) {
+      await ShowAlert({ icon: "error", title: "Registration Failed", text: "Something went wrong. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return <div className="p-5 p-lg-12 mx-lg-5 d-flex flex-column h-100 justify-content-center">
@@ -41,11 +257,20 @@ export default function StaffRegistrationForm() {
     </>}
     {/* ROLE SELECTOR END */}
 
-    <form>
+    <form ref={formRef} className="needs-validation" noValidate={true}>
       {/* STEP ONE START */}
       {step == 1 && <>
         <label htmlFor="first_name" className="mt-10">First Name</label>
-        <input id="first_name" name="first_name" placeholder="First Name" type="text" className="form-control form-control-lg mb-5" />
+        <input
+          id="first_name"
+          name="first_name"
+          placeholder="First Name"
+          type="text"
+          className="form-control form-control-lg mb-5"
+          value={formValues.first_name}
+          onChange={handleInputChange}
+          required
+        />
 
         <label htmlFor="middle_name">Middle Name</label>
         <input
@@ -54,9 +279,10 @@ export default function StaffRegistrationForm() {
           placeholder="Middle Name"
           type="text"
           className="form-control form-control-lg mb-5"
-          value={middleName}
-          onChange={(event) => setMiddleName(event.target.value)}
+          value={formValues.middle_name}
+          onChange={handleInputChange}
           disabled={hasNoMiddleName}
+          required={!hasNoMiddleName}
         />
         <div className="form-check form-check-primary mb-5">
           <input
@@ -72,8 +298,17 @@ export default function StaffRegistrationForm() {
           </label>
         </div>
         <label htmlFor="last_name">Last Name</label>
-        <input id="last_name" name="last_name" placeholder="Last Name" type="text" className="form-control form-control-lg mb-12" />
-        <button className="btn btn-lg btn-primary w-100" type="button" onClick={() => setStep(2)}> Next </button>
+        <input
+          id="last_name"
+          name="last_name"
+          placeholder="Last Name"
+          type="text"
+          className="form-control form-control-lg mb-12"
+          value={formValues.last_name}
+          onChange={handleInputChange}
+          required
+        />
+        <button className="btn btn-lg btn-primary w-100" type="button" onClick={submit}> Next </button>
       </>}
       {/* STEP ONE END*/}
 
@@ -81,21 +316,42 @@ export default function StaffRegistrationForm() {
       {/* STEP TWO START */}
       {step == 2 && <>
         <label htmlFor="usn">USN</label>
-        <input id="employee_id" name="usn" placeholder="Enter USN" type="text" className="form-control form-control-lg mb-5" />
+        <input
+          id="usn"
+          name="usn"
+          placeholder="Enter USN"
+          type="text"
+          className="form-control form-control-lg mb-5"
+          value={formValues.usn}
+          onChange={handleInputChange}
+          required
+        />
 
         <label htmlFor="email">Email Address</label>
-        <input id="email" name="email" placeholder="Email Address" type="email" className="form-control form-control-lg mb-5" />
+        <input
+          id="email"
+          name="email"
+          placeholder="Email Address"
+          type="email"
+          className="form-control form-control-lg mb-5"
+          value={formValues.email}
+          onChange={handleInputChange}
+          required
+        />
 
-        <label htmlFor="create_password">Create Password</label>
+        <label htmlFor="password">Create Password</label>
         <div className="form-password-toggle fv-plugins-icon-container fv-plugins-bootstrap5-row-valid mb-5">
           <div className="input-group input-group-merge has-validation">
             <input
               type="password"
-              id="create_password"
+              id="password"
               className="form-control form-control-lg"
-              name="create_password"
+              name="password"
               placeholder="Create Password"
-              aria-describedby="create_password"
+              aria-describedby="password"
+              value={formValues.password}
+              onChange={handleInputChange}
+              required
             />
             <span className="input-group-text cursor-pointer">
               <i className="bx bx-hide"></i>
@@ -104,7 +360,7 @@ export default function StaffRegistrationForm() {
           <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
         </div>
 
-        <label htmlFor="create_password">Re-enter Password</label>
+        <label htmlFor="password_confirmation">Re-enter Password</label>
         <div className="mb-12 form-password-toggle fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
           <div className="input-group input-group-merge has-validation">
             <input
@@ -114,33 +370,44 @@ export default function StaffRegistrationForm() {
               name="password_confirmation"
               placeholder="Re-enter Password"
               aria-describedby="password_confirmation"
+              value={formValues.password_confirmation}
+              onChange={handleInputChange}
+              required
             />
             <span className="input-group-text cursor-pointer">
               <i className="bx bx-hide"></i>
             </span>
           </div>
-          <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+          <PasswordValidator
+            password={formValues.password}
+            password_confirmation={formValues.password_confirmation}
+          />
         </div>
 
-        <button className="btn btn-lg btn-primary w-100" type="button" onClick={() => setStep(3)}> Next </button>
-        <button className="btn btn-lg btn-secondary w-100 mt-5" type="button" onClick={() => setStep(1)}> Back </button>
-        <InitPasswordToggler/>
+        <button className="btn btn-lg btn-primary w-100" type="button" onClick={submit}> Next </button>
+        <button className="btn btn-lg btn-secondary w-100 mt-5" type="button" onClick={prevStep}> Back </button>
+        <InitPasswordToggler />
       </>}
       {/* STEP TWO END */}
 
 
       {/* STEP THREE START */}
       {step == 3 && <>
-        <section className={academicStatus == "already_graduated" ? "d-none" : ""}>
+        <section className={isGraduated ? "d-none" : ""}>
           <div className="mb-5">
             <label htmlFor="year_level">Year Level</label>
             <select
               id="year_level"
+              name="year_level"
               className="selectpicker w-100 bg-white rounded-2"
               data-style="btn-default"
               data-size="6"
               title="Select year level"
+              value={formValues.year_level}
+              onChange={handleInputChange}
+              required={!isGraduated}
             >
+              <option value="">Select year level</option>
               <optgroup label="SHS">
                 <option value="grade_11">Grade 11</option>
                 <option value="grade_12">Grade 12</option>
@@ -153,16 +420,21 @@ export default function StaffRegistrationForm() {
               </optgroup>
             </select>
           </div>
-          
+
           <div className="mb-5">
             <label htmlFor="course_track">Course/Track</label>
             <select
               id="course_track"
+              name="course_track"
               className="selectpicker w-100 bg-white rounded-2"
               data-style="btn-default"
               data-size="6"
               title="Select course or track"
+              value={formValues.course_track}
+              onChange={handleInputChange}
+              required={!isGraduated}
             >
+              <option value="">Select course or track</option>
               <optgroup label="Strand: SHS">
                 <option value="stem">STEM</option>
                 <option value="abm">ABM</option>
@@ -172,10 +444,6 @@ export default function StaffRegistrationForm() {
                 <option value="tvl_programming">TVL - Programming</option>
                 <option value="tvl_animation">TVL - Animation</option>
                 <option value="tvl_he">TVL - HE</option>
-              </optgroup>
-              <optgroup label="Track: SHS">
-                <option value="academic_track">Academic Track</option>
-                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
               </optgroup>
               <optgroup label="Course: College">
                 <option value="dwat">Diploma in Web Application Technology</option>
@@ -189,16 +457,25 @@ export default function StaffRegistrationForm() {
               </optgroup>
             </select>
           </div>
-  
+
           <div className="mb-5">
             <label htmlFor="department">Department</label>
             <select
               id="department"
+              name="department"
               className="selectpicker w-100 bg-white rounded-2"
               data-style="btn-default"
               data-size="6"
               title="Select department"
+              value={formValues.department}
+              onChange={handleInputChange}
+              required={!isGraduated}
             >
+              <option value="">Select department</option>
+              <optgroup label="College">
+                <option value="academic_track">Academic Track</option>
+                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
+              </optgroup>
               <optgroup label="College">
                 <option value="computer_studies">Computer Studies</option>
                 <option value="business">Business</option>
@@ -207,7 +484,7 @@ export default function StaffRegistrationForm() {
             </select>
           </div>
         </section>
-        
+
         <p className="text-black fw-semibold">Please check which fits if none leave unchecked:</p>
         <div>
           <input
@@ -217,6 +494,7 @@ export default function StaffRegistrationForm() {
             name="academic_status"
             value="current_enrolled"
             checked={academicStatus === "current_enrolled"}
+            required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("current_enrolled")}
           />
           <label className="my-2" htmlFor="checkbox1">I am currently enrolled</label>
@@ -228,6 +506,7 @@ export default function StaffRegistrationForm() {
             name="academic_status"
             value="transferee"
             checked={academicStatus === "transferee"}
+            required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("transferee")}
           />
           <label className="my-2" htmlFor="checkbox2">I am a transferee</label>
@@ -239,6 +518,7 @@ export default function StaffRegistrationForm() {
             name="academic_status"
             value="returnee"
             checked={academicStatus === "returnee"}
+            required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("returnee")}
           />
           <label className="my-2" htmlFor="checkbox3">I am a returnee</label>
@@ -250,28 +530,71 @@ export default function StaffRegistrationForm() {
             name="academic_status"
             value="already_graduated"
             checked={academicStatus === "already_graduated"}
+            required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("already_graduated")}
           />
           <label className="my-2" htmlFor="checkbox4">I already graduated</label>
-        </div>        
+        </div>
         <br />
-        
-        <section className={academicStatus == "already_graduated" ? "" : "d-none"}>
-          <label htmlFor="email">Academic Year</label>
-          <div className="w-100 d-flex gap-4">          
-            <input id="from" name="from" placeholder="from" type="number" className="form-control mb-5" />
-            <input id="to" name="to" placeholder="to" type="number" className="form-control mb-5" />
-          </div>
-          
+
+        <section className={isGraduated ? "" : "d-none"}>
           <div className="mb-5">
-            <label htmlFor="course_track">Course/Track</label>
+            <label htmlFor="year_level_graduated">Year Level</label>
             <select
-              id="course_track"
+              id="year_level_graduated"
+              name="year_level"
+              className="selectpicker w-100 bg-white rounded-2"
+              data-style="btn-default"
+              data-size="6"
+              title="Select year level"
+              value={formValues.year_level}
+              onChange={handleInputChange}
+              required={isGraduated}
+            >
+              <option value="">Select year level</option>
+              <option value="grade_12">Senior High School</option>
+              <option value="4th_year">College</option>
+            </select>
+          </div>
+
+          <label htmlFor="graduated_from">Academic Year</label>
+          <div className="w-100 d-flex gap-4">
+            <input
+              id="graduated_from"
+              name="graduated_from"
+              placeholder="from"
+              type="number"
+              className="form-control mb-5"
+              value={formValues.graduated_from}
+              onChange={handleInputChange}
+              required={isGraduated}
+            />
+            <input
+              id="graduated_to"
+              name="graduated_to"
+              placeholder="to"
+              type="number"
+              className="form-control mb-5"
+              value={formValues.graduated_to}
+              onChange={handleInputChange}
+              required={isGraduated}
+            />
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="graduated_course_track">Course/Track</label>
+            <select
+              id="graduated_course_track"
+              name="graduated_course_track"
               className="selectpicker w-100 bg-white rounded-2"
               data-style="btn-default"
               data-size="6"
               title="Select course or track"
+              value={formValues.graduated_course_track}
+              onChange={handleInputChange}
+              required={isGraduated}
             >
+              <option value="">Select course or track</option>
               <optgroup label="Strand: SHS">
                 <option value="stem">STEM</option>
                 <option value="abm">ABM</option>
@@ -281,10 +604,6 @@ export default function StaffRegistrationForm() {
                 <option value="tvl_programming">TVL - Programming</option>
                 <option value="tvl_animation">TVL - Animation</option>
                 <option value="tvl_he">TVL - HE</option>
-              </optgroup>
-              <optgroup label="Track: SHS">
-                <option value="academic_track">Academic Track</option>
-                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
               </optgroup>
               <optgroup label="Course: College">
                 <option value="dwat">Diploma in Web Application Technology</option>
@@ -298,16 +617,20 @@ export default function StaffRegistrationForm() {
               </optgroup>
             </select>
           </div>
-  
+
           <div className="mb-5">
-            <label htmlFor="department">Department</label>
+            <label htmlFor="graduated_department">Department</label>
             <select
-              id="department"
+              id="graduated_department"
+              name="graduated_department"
               className="selectpicker w-100 bg-white rounded-2"
               data-style="btn-default"
               data-size="6"
               title="Select department"
+              value={formValues.graduated_department}
+              onChange={handleInputChange}
             >
+              <option value="">Select department</option>
               <optgroup label="College">
                 <option value="computer_studies">Computer Studies</option>
                 <option value="business">Business</option>
@@ -317,9 +640,11 @@ export default function StaffRegistrationForm() {
           </div>
           <br/>
         </section>
-        
-        <button className="btn btn-lg btn-primary w-100" type="button"> Submit </button>
-        <button className="btn btn-lg btn-secondary w-100 mt-5" type="button" onClick={() => setStep(2)}> Back </button>
+
+        <button className="btn btn-lg btn-primary w-100" type="button" onClick={submit} disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </button>
+        <button className="btn btn-lg btn-secondary w-100 mt-5" type="button" onClick={prevStep} disabled={isSubmitting}> Back </button>
         <InitBootstrapSelect />
       </>}
       {/* STEP THREE END */}
