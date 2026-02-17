@@ -45,6 +45,11 @@ const getCsrfToken = () =>
     ? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
     : null;
 
+export function parseError(response) {
+  if (!(response.errors instanceof Array)) return;
+  if(response.errors.length === 0) return;
+  return response.errors[0];
+}
 
 export function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
