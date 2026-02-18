@@ -632,6 +632,10 @@ export default function StudentRegistrationForm() {
             >
               <option value="">Select department</option>
               <optgroup label="College">
+                <option value="academic_track">Academic Track</option>
+                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
+              </optgroup>
+              <optgroup label="College">
                 <option value="computer_studies">Computer Studies</option>
                 <option value="business">Business</option>
                 <option value="culinary">Culinary</option>
