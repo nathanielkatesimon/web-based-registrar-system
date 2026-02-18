@@ -70,6 +70,14 @@ const STRAND_MAP = {
   tvl_he: { strand: "TVL - HE", track: "technical_vocational_livelihood" },
 };
 
+const DEPARTMENT_LABEL_MAP = {
+  academic_track: "Academic Track",
+  technical_vocational_livelihood: "Technical-Vocational-Livelihood",
+  computer_studies: "Computer Studies",
+  business: "Business",
+  culinary: "Culinary",
+};
+
 export default function StudentRegistrationForm() {
   const [step, setStep] = useState(1);
   const [hasNoMiddleName, setHasNoMiddleName] = useState(false);
@@ -116,6 +124,24 @@ export default function StudentRegistrationForm() {
   const prevStep = () => {
     formRef.current.className = "needs-validation";
     setStep(step - 1);
+  };
+
+  const getDepartmentDisplay = (selectedProgram) => {
+    if (!selectedProgram) {
+      return "";
+    }
+
+    const selectedCourse = COURSE_MAP[selectedProgram];
+    if (selectedCourse) {
+      return DEPARTMENT_LABEL_MAP[selectedCourse.department] || "";
+    }
+
+    const selectedStrand = STRAND_MAP[selectedProgram];
+    if (selectedStrand) {
+      return DEPARTMENT_LABEL_MAP[selectedStrand.track] || "";
+    }
+
+    return "";
   };
 
   const buildStudentProfileAttributes = () => {
@@ -459,29 +485,13 @@ export default function StudentRegistrationForm() {
           </div>
 
           <div className="mb-5">
-            <label htmlFor="department">Department</label>
-            <select
-              id="department"
-              name="department"
-              className="selectpicker w-100 bg-white rounded-2"
-              data-style="btn-default"
-              data-size="6"
-              title="Select department"
-              value={formValues.department}
-              onChange={handleInputChange}
-              required={!isGraduated}
+            <label htmlFor="department_display">Department</label>
+            <div
+              id="department_display"
+              className="form-control form-control-lg d-flex align-items-center mb-0 bg-light border-0"
             >
-              <option value="">Select department</option>
-              <optgroup label="College">
-                <option value="academic_track">Academic Track</option>
-                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
-              </optgroup>
-              <optgroup label="College">
-                <option value="computer_studies">Computer Studies</option>
-                <option value="business">Business</option>
-                <option value="culinary">Culinary</option>
-              </optgroup>
-            </select>
+              {getDepartmentDisplay(formValues.course_track) || "Department"}
+            </div>
           </div>
         </section>
 
@@ -619,28 +629,13 @@ export default function StudentRegistrationForm() {
           </div>
 
           <div className="mb-5">
-            <label htmlFor="graduated_department">Department</label>
-            <select
-              id="graduated_department"
-              name="graduated_department"
-              className="selectpicker w-100 bg-white rounded-2"
-              data-style="btn-default"
-              data-size="6"
-              title="Select department"
-              value={formValues.graduated_department}
-              onChange={handleInputChange}
+            <label htmlFor="graduated_department_display">Department</label>
+            <div
+              id="graduated_department_display"
+              className="form-control form-control-lg d-flex align-items-center mb-0 bg-light border-0"
             >
-              <option value="">Select department</option>
-              <optgroup label="College">
-                <option value="academic_track">Academic Track</option>
-                <option value="technical_vocational_livelihood">Technical-Vocational-Livelihood</option>
-              </optgroup>
-              <optgroup label="College">
-                <option value="computer_studies">Computer Studies</option>
-                <option value="business">Business</option>
-                <option value="culinary">Culinary</option>
-              </optgroup>
-            </select>
+              {getDepartmentDisplay(formValues.graduated_course_track) || "Department"}
+            </div>
           </div>
           <br/>
         </section>
