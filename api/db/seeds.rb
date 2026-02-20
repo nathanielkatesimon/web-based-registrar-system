@@ -453,6 +453,36 @@ profile.save!
 puts "✓ Created Graduated Senior High Student: #{graduated_shs.full_name}"
 
 # =============================================================================
+# DOCUMENT TYPES
+# =============================================================================
+puts "\nCreating document types..."
+
+[
+  { name: 'Certificate of Good Moral Character', price_cents: 5_000 },
+  { name: 'Honorable Dismissal', price_cents: 10_000 },
+  { name: 'Form 137', price_cents: 20_000 },
+  { name: 'Form 138 (Grade 11)', price_cents: 10_000 },
+  { name: 'Form 138 (Grade 12)', price_cents: 10_000 },
+  { name: 'Original Transcript of Records (TOR) per Page', price_cents: 20_000 },
+  { name: 'Original Diploma', price_cents: 5_000 },
+  { name: 'Certificate of Grades', price_cents: 5_000 },
+  { name: 'Transfer Credentials for College', price_cents: 50_000 },
+  { name: 'Transfer Credentials for Senior High School', price_cents: 45_000 },
+  { name: 'Certified True Copy of TOR', price_cents: 5_000 },
+  { name: 'Certified True Copy of Diploma', price_cents: 5_000 },
+  { name: 'Certificate of Graduation', price_cents: 5_000 },
+  { name: 'Certificate of Enrollment', price_cents: 5_000 },
+  { name: 'Certificate of GWA/GPA', price_cents: 5_000 },
+  { name: 'Certificate of Scholarship', price_cents: 5_000 }
+].each do |attrs|
+  DocumentType.find_or_create_by!(name: attrs[:name]) do |document_type|
+    document_type.price_cents = attrs[:price_cents]
+  end
+end
+
+puts "✓ Created/verified #{DocumentType.count} document types"
+
+# =============================================================================
 # SUMMARY
 # =============================================================================
 puts "\n=========================================="
@@ -461,6 +491,7 @@ puts "=========================================="
 puts "Total Users created: #{User.count}"
 puts "  - Staff: #{Staff.count}"
 puts "  - Students: #{Student.count}"
+puts "Total Document Types: #{DocumentType.count}"
 puts "Total Student Profiles: #{StudentProfile.count}"
 puts "Total Previous Schools: #{PreviousSchool.count}"
 puts "\n=========================================="
