@@ -52,3 +52,5 @@ end
 gem "devise", "~> 5.0"
 
 gem "active_model_serializers", "~> 0.10.16"
+
+gem "money-rails", "~> 3.0"

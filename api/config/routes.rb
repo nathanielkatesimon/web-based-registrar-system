@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :document_request_items
+  resources :document_types
   resources :document_requests
   get "up" => "rails/health#show", as: :rails_health_check
 
