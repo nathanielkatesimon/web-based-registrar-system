@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :document_requests
   get "up" => "rails/health#show", as: :rails_health_check
 
   devise_for :users, skip: :all

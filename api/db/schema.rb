@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_093256) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_094513) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_093256) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "document_requests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "delivery_method"
+    t.integer "payment_method"
+    t.integer "payment_status"
+    t.integer "payment_verified_at"
+    t.integer "shipping_fee_cents"
+    t.integer "status"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_document_requests_on_user_id"
   end
 
   create_table "previous_schools", force: :cascade do |t|
@@ -104,6 +117,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_093256) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "document_requests", "users"
   add_foreign_key "previous_schools", "student_profiles"
   add_foreign_key "student_profiles", "users"
 end
