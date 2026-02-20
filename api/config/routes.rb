@@ -1,7 +1,4 @@
 Rails.application.routes.draw do
-  resources :document_request_items
-  resources :document_types
-  resources :document_requests
   get "up" => "rails/health#show", as: :rails_health_check
 
   devise_for :users, skip: :all
@@ -20,6 +17,9 @@ Rails.application.routes.draw do
       #  resources :student_profiles, except: [:create, :destroy]
       resources :students
       resources :staffs
+      resources :document_request_items
+      resources :document_types
+      resources :document_requests
     end
   end
 end

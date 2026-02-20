@@ -1,4 +1,4 @@
-class DocumentTypesController < ApplicationController
+class Api::V1::DocumentTypesController < ApplicationController
   before_action :set_document_type, only: %i[ show update destroy ]
 
   # GET /document_types

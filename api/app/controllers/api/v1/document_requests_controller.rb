@@ -1,4 +1,4 @@
-class DocumentRequestsController < ApplicationController
+class Api::V1::DocumentRequestsController < ApplicationController
   before_action :set_document_request, only: %i[ show update destroy ]
 
   # GET /document_requests
