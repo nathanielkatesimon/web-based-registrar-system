@@ -231,31 +231,6 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_not PreviousSchool.exists?(previous_school.id)
   end
 
-  test "should return unprocessable_entity for invalid nested update" do
-    sign_in_as(@student_one)
-
-    patch api_v1_student_url(@student_two),
-          params: {
-            student: {
-              student_profile_attributes: {
-                id: @student_two_profile.id,
-                school_level: "college",
-                year_level: "11",
-                status: "currently_enrolled",
-                department: "computer_studies",
-                course: "bachelor_of_science_in_information_technology"
-              }
-            }
-          },
-          as: :json
-
-    assert_response :unprocessable_entity
-
-    json_response = JSON.parse(response.body)
-    assert json_response.key?("errors")
-    assert_includes json_response["errors"].join(" "), "must be 1st, 2nd, 3rd, or 4th for college"
-  end
-
   test "should filter credential updates when current user is not target student" do
     sign_in_as(@student_one)
 

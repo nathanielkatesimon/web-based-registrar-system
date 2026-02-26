@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const menuItems = [
   { label: "Personal Info", href: "/student/dashboard/profile/personal_info", alert: true },
   { label: "Family Info", href: "/student/dashboard/profile/family_info", alert: true },
-  { label: "Academic Info", href: "#", alert: true },
+  { label: "Academic Info", href: "/student/dashboard/profile/academic_info", alert: true },
   { label: "Deficiencies", href: "#" },
   { label: "Account", href: "#" },
 ];

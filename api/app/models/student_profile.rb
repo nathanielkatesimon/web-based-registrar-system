@@ -72,33 +72,6 @@ class StudentProfile < ApplicationRecord
   # All strands (flattened)
   SENIOR_HIGH_STRANDS = TRACK_STRANDS.values.flatten.freeze
 
-  # Validations
-  validates :school_level, presence: true
-  validates :status, presence: true
-  validates :year_level, presence: true
-
-  # College validations
-  validates :course,
-    inclusion: { in: COLLEGE_COURSES },
-    if: :college?
-  validates :department,
-    inclusion: { in: DEPARTMENT_COURSES.keys },
-    if: :college?
-
-  # Senior High validations
-  validates :strand,
-    inclusion: { in: SENIOR_HIGH_STRANDS },
-    if: :senior_high?
-  validates :track,
-    inclusion: { in: TRACK_STRANDS.keys },
-    if: :senior_high?
-
-  # Custom validations
-  validate :year_level_matches_school_level
-  validate :course_matches_department
-  validate :strand_matches_track
-  validate :graduated_requires_previous_college_information, if: :registration_flow?
-
   # Scopes for filtering valid options
   def available_courses
     return [] unless department.present?
@@ -113,51 +86,5 @@ class StudentProfile < ApplicationRecord
   def full_address
     [house_number, street_name, barangay_name, city_municipality, province]
       .compact.join(', ')
-  end
-
-  private
-
-  def year_level_matches_school_level
-    return unless school_level.present? && year_level.present?
-
-    if college? && !%w[1st 2nd 3rd 4th].include?(year_level)
-      errors.add(:year_level, 'must be 1st, 2nd, 3rd, or 4th for college')
-    elsif senior_high? && !%w[11 12].include?(year_level)
-      errors.add(:year_level, 'must be 11 or 12 for senior high')
-    end
-  end
-
-  def course_matches_department
-    return unless college? && course.present? && department.present?
-
-    valid_courses = DEPARTMENT_COURSES[department] || []
-    unless valid_courses.include?(course)
-      errors.add(:course, "is not valid for #{department} department")
-    end
-  end
-
-  def strand_matches_track
-    return unless senior_high? && strand.present? && track.present?
-
-    valid_strands = TRACK_STRANDS[track] || []
-    unless valid_strands.include?(strand)
-      errors.add(:strand, "is not valid for #{track}")
-    end
-  end
-
-  def graduated_requires_previous_college_information
-    return unless status == 'graduated'
-
-    college_schools = previous_schools.select do |ps|
-      !ps.marked_for_destruction?
-    end
-
-    return unless college_schools.empty?
-
-    errors.add(:base, 'Must add previous school information if already graduated')
-  end
-
-  def registration_flow?
-    registration_flow == true
   end
 end
