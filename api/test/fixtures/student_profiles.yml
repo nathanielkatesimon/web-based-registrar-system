@@ -19,6 +19,18 @@ one:
   course: bachelor_of_science_in_computer_science
   strand: 
   track: 
+  current_college_school_name: ACLC
+  current_college_program: bachelor_of_science_in_computer_science
+  current_college_level: 3rd
+  current_college_year_from: 2024
+  current_college_year_to: 2025
+  current_college_department_track: computer_studies
+  current_senior_high_school_name: School One
+  current_senior_high_program: STEM
+  current_senior_high_level: 12
+  current_senior_high_year_from: 2022
+  current_senior_high_year_to: 2024
+  current_senior_high_department_track: academic_track
 
 two:
   student: student_two
@@ -41,3 +53,15 @@ two:
   course: 
   strand: STEM
   track: academic_track
+  current_senior_high_school_name: ACLC
+  current_senior_high_program: STEM
+  current_senior_high_level: 12
+  current_senior_high_year_from: 2024
+  current_senior_high_year_to: 2025
+  current_senior_high_department_track: academic_track
+  prev_senior_high_school_name: School Four
+  prev_senior_high_program: ABM
+  prev_senior_high_level: 11
+  prev_senior_high_year_from: 2022
+  prev_senior_high_year_to: 2024
+  prev_senior_high_department_track: academic_track

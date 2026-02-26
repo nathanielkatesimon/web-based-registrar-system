@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_26_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -113,20 +113,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_120000) do
     t.index ["user_id"], name: "index_family_infos_on_user_id", unique: true
   end
 
-  create_table "previous_schools", force: :cascade do |t|
-    t.integer "academic_year_from", null: false
-    t.integer "academic_year_to", null: false
-    t.boolean "completed"
-    t.datetime "created_at", null: false
-    t.string "program"
-    t.string "school_name", null: false
-    t.string "school_type", null: false
-    t.bigint "student_profile_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["student_profile_id", "school_type"], name: "index_previous_schools_on_student_profile_id_and_school_type"
-    t.index ["student_profile_id"], name: "index_previous_schools_on_student_profile_id"
-  end
-
   create_table "student_profiles", force: :cascade do |t|
     t.string "barangay_name"
     t.date "birthday"
@@ -136,9 +122,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_120000) do
     t.string "contact_number"
     t.string "course"
     t.datetime "created_at", null: false
+    t.string "current_college_department_track"
+    t.string "current_college_level"
+    t.string "current_college_program"
+    t.string "current_college_school_name"
+    t.integer "current_college_year_from"
+    t.integer "current_college_year_to"
+    t.string "current_senior_high_department_track"
+    t.string "current_senior_high_level"
+    t.string "current_senior_high_program"
+    t.string "current_senior_high_school_name"
+    t.integer "current_senior_high_year_from"
+    t.integer "current_senior_high_year_to"
     t.string "department"
     t.string "house_number"
     t.string "place_of_birth"
+    t.string "prev_college_department_track"
+    t.string "prev_college_level"
+    t.string "prev_college_program"
+    t.string "prev_college_school_name"
+    t.integer "prev_college_year_from"
+    t.integer "prev_college_year_to"
+    t.string "prev_senior_high_department_track"
+    t.string "prev_senior_high_level"
+    t.string "prev_senior_high_program"
+    t.string "prev_senior_high_school_name"
+    t.integer "prev_senior_high_year_from"
+    t.integer "prev_senior_high_year_to"
     t.string "province"
     t.string "religion"
     t.string "school_level"
@@ -179,6 +189,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_120000) do
   add_foreign_key "document_request_items", "document_types"
   add_foreign_key "document_requests", "users"
   add_foreign_key "family_infos", "users"
-  add_foreign_key "previous_schools", "student_profiles"
   add_foreign_key "student_profiles", "users"
 end

@@ -77,11 +77,6 @@ const STRAND_OPTIONS_BY_TRACK = {
   ],
 };
 
-const PROGRAM_OPTIONS = [
-  ...Object.values(COURSE_OPTIONS_BY_DEPARTMENT).flat(),
-  ...Object.values(STRAND_OPTIONS_BY_TRACK).flat(),
-];
-
 const COLLEGE_COURSE_OPTIONS = Object.entries(COURSE_OPTIONS_BY_DEPARTMENT).flatMap(
   ([department, options]) => options.map((option) => ({ ...option, department }))
 );
@@ -90,14 +85,8 @@ const SENIOR_HIGH_STRAND_OPTIONS = Object.entries(STRAND_OPTIONS_BY_TRACK).flatM
   ([track, options]) => options.map((option) => ({ ...option, track }))
 );
 
-const SENIOR_HIGH_PROGRAM_OPTIONS = SENIOR_HIGH_STRAND_OPTIONS.map(({ value, label }) => ({
-  value,
-  label,
-}));
-const COLLEGE_PROGRAM_OPTIONS = COLLEGE_COURSE_OPTIONS.map(({ value, label }) => ({
-  value,
-  label,
-}));
+const SENIOR_HIGH_PROGRAM_OPTIONS = SENIOR_HIGH_STRAND_OPTIONS.map(({ value, label }) => ({ value, label }));
+const COLLEGE_PROGRAM_OPTIONS = COLLEGE_COURSE_OPTIONS.map(({ value, label }) => ({ value, label }));
 
 const INITIAL_FORM = {
   status: "currently_enrolled",
@@ -124,36 +113,64 @@ const normalizeYear = (value) => {
   return String(value);
 };
 
-const isSchoolBlank = (school) =>
-  !school.from && !school.to && !school.program && !school.name;
-
 const toNumberOrNil = (value) => {
   if (!value) return null;
   const number = Number(value);
   return Number.isNaN(number) ? null : number;
 };
 
-const buildPreviousSchoolAttr = ({ id, schoolType, from, to, program, schoolName, defaultSchoolName = "" }) => {
-  const resolvedSchoolName = (schoolName || "").trim() || defaultSchoolName;
-  const school = {
-    from: (from || "").trim(),
-    to: (to || "").trim(),
-    program: (program || "").trim(),
-    name: resolvedSchoolName,
-  };
+const findCollegeOption = (value, department) => {
+  if (!value) return null;
+  return (
+    COLLEGE_COURSE_OPTIONS.find((option) => option.value === value && option.department === department) ||
+    COLLEGE_COURSE_OPTIONS.find((option) => option.value === value) ||
+    null
+  );
+};
 
-  if (isSchoolBlank(school)) {
-    return id ? { id, _destroy: true } : null;
-  }
+const findShsOption = (value, track) => {
+  if (!value) return null;
+  return (
+    SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === value && option.track === track) ||
+    SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === value) ||
+    null
+  );
+};
+
+const mapProfileToForm = (profile) => {
+  const status = profile?.status || "currently_enrolled";
+  const schoolLevel = profile?.school_level || "college";
+
+  const isCollege = schoolLevel === "college";
+  const isTransferee = status === "transferee";
+  const isGraduated = status === "graduated";
+
+  const previousSlot = isCollege
+    ? isTransferee || isGraduated
+      ? "prev_college"
+      : "current_college"
+    : isTransferee || isGraduated
+      ? "prev_senior_high"
+      : "current_senior_high";
 
   return {
-    ...(id ? { id } : {}),
-    school_type: schoolType,
-    academic_year_from: toNumberOrNil(school.from),
-    academic_year_to: toNumberOrNil(school.to),
-    program: school.program,
-    school_name: school.name,
-    completed: false,
+    status,
+    school_level: schoolLevel,
+    year_level: profile?.year_level || "",
+    course: profile?.course || profile?.strand || "",
+    department: profile?.department || profile?.track || "",
+    strand: profile?.strand || "",
+    track: profile?.track || "",
+    previous_from: normalizeYear(profile?.[`${previousSlot}_year_from`]),
+    previous_to: normalizeYear(profile?.[`${previousSlot}_year_to`]),
+    previous_program: profile?.[`${previousSlot}_program`] || "",
+    previous_school_name: profile?.[`${previousSlot}_school_name`] || "",
+    shs_from: normalizeYear(profile?.current_senior_high_year_from),
+    shs_to: normalizeYear(profile?.current_senior_high_year_to),
+    shs_program: profile?.current_senior_high_program || "",
+    shs_school_name: profile?.current_senior_high_school_name || "",
+    graduated_from: normalizeYear(profile?.[`${previousSlot}_year_from`]),
+    graduated_to: normalizeYear(profile?.[`${previousSlot}_year_to`]),
   };
 };
 
@@ -211,8 +228,6 @@ export default function AcademicInfoPage() {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
   const [profileId, setProfileId] = useState(null);
-  const [previousSchoolId, setPreviousSchoolId] = useState(null);
-  const [shsSchoolId, setShsSchoolId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -242,35 +257,9 @@ export default function AcademicInfoPage() {
         if (!isMounted) return;
 
         const profile = payload?.student_profile || {};
-        const schools = profile?.previous_schools || [];
-        const sameLevelSchool = schools.find((school) => school.school_type === profile?.school_level) || null;
-        const shsSchool =
-          schools.find((school) => school.school_type === "senior_high" && school.id !== sameLevelSchool?.id) ||
-          (profile?.school_level === "college" ? schools.find((school) => school.school_type === "senior_high") : null);
-
-        const nextFormData = {
-          status: profile?.status || "currently_enrolled",
-          school_level: profile?.school_level || "college",
-          year_level: profile?.year_level || "",
-          course: profile?.course || profile?.strand || "",
-          department: profile?.department || profile?.track || "",
-          strand: profile?.strand || "",
-          track: profile?.track || "",
-          previous_from: normalizeYear(sameLevelSchool?.academic_year_from),
-          previous_to: normalizeYear(sameLevelSchool?.academic_year_to),
-          previous_program: sameLevelSchool?.program || "",
-          previous_school_name: sameLevelSchool?.school_name || "",
-          shs_from: normalizeYear(shsSchool?.academic_year_from),
-          shs_to: normalizeYear(shsSchool?.academic_year_to),
-          shs_program: shsSchool?.program || "",
-          shs_school_name: shsSchool?.school_name || "",
-          graduated_from: normalizeYear(sameLevelSchool?.academic_year_from),
-          graduated_to: normalizeYear(sameLevelSchool?.academic_year_to),
-        };
+        const nextFormData = mapProfileToForm(profile);
 
         setProfileId(profile?.id || null);
-        setPreviousSchoolId(sameLevelSchool?.id || null);
-        setShsSchoolId(shsSchool?.id || null);
         setFormData(nextFormData);
         setInitialFormData(nextFormData);
       } catch (err) {
@@ -299,6 +288,7 @@ export default function AcademicInfoPage() {
   const isGraduated = formData.status === "graduated";
 
   const yearLevelOptions = YEAR_LEVEL_OPTIONS[formData.school_level] || [];
+
   const departmentTrackOptions = useMemo(() => {
     if (isCollege) return DEPARTMENT_OPTIONS;
     if (isSeniorHigh) return TRACK_OPTIONS;
@@ -310,25 +300,25 @@ export default function AcademicInfoPage() {
       if (COURSE_OPTIONS_BY_DEPARTMENT[formData.department]) {
         return COURSE_OPTIONS_BY_DEPARTMENT[formData.department];
       }
-      return COLLEGE_COURSE_OPTIONS.map(({ value, label }) => ({ value, label }));
+      return COLLEGE_PROGRAM_OPTIONS;
     }
 
     if (isSeniorHigh) {
       if (STRAND_OPTIONS_BY_TRACK[formData.department]) {
         return STRAND_OPTIONS_BY_TRACK[formData.department];
       }
-      return SENIOR_HIGH_STRAND_OPTIONS.map(({ value, label }) => ({ value, label }));
+      return SENIOR_HIGH_PROGRAM_OPTIONS;
     }
 
     return [];
   }, [formData.department, isCollege, isSeniorHigh]);
-  const previousProgramOptions = useMemo(() => {
-    if (formData.school_level === "college") return COLLEGE_PROGRAM_OPTIONS;
-    if (formData.school_level === "senior_high") return SENIOR_HIGH_PROGRAM_OPTIONS;
-    return PROGRAM_OPTIONS;
-  }, [formData.school_level]);
 
-  const showPreviousSchoolSection = isTransferee || isGraduated;
+  const previousProgramOptions = useMemo(() => {
+    if (isCollege) return COLLEGE_PROGRAM_OPTIONS;
+    if (isSeniorHigh) return SENIOR_HIGH_PROGRAM_OPTIONS;
+    return [];
+  }, [isCollege, isSeniorHigh]);
+
   const showSeniorHighSection = isCollege && !isGraduated;
 
   const handleInputChange = (event) => {
@@ -344,6 +334,7 @@ export default function AcademicInfoPage() {
         next.department = "";
         next.strand = "";
         next.track = "";
+        next.previous_program = "";
         if (value !== "college") {
           next.shs_from = "";
           next.shs_to = "";
@@ -353,12 +344,12 @@ export default function AcademicInfoPage() {
       }
 
       if (name === "department") {
-        if (isCollege) {
+        if (next.school_level === "college") {
           const departmentCourses = COURSE_OPTIONS_BY_DEPARTMENT[value] || [];
           if (!departmentCourses.some((option) => option.value === next.course)) {
             next.course = "";
           }
-        } else if (isSeniorHigh) {
+        } else {
           const trackPrograms = STRAND_OPTIONS_BY_TRACK[value] || [];
           if (!trackPrograms.some((option) => option.value === next.course)) {
             next.course = "";
@@ -367,33 +358,33 @@ export default function AcademicInfoPage() {
       }
 
       if (name === "course") {
-        const selectedCollegeCourse = COLLEGE_COURSE_OPTIONS.find((option) => option.value === value);
-        const selectedShsProgram = SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === value);
+        const selectedCollegeCourse = findCollegeOption(value, next.department);
+        const selectedShsProgram = findShsOption(value, next.department);
 
-        if (isCollege && selectedCollegeCourse) {
+        if (next.school_level === "college" && selectedCollegeCourse) {
           next.department = selectedCollegeCourse.department;
-        } else if (isSeniorHigh && selectedShsProgram) {
+        }
+
+        if (next.school_level === "senior_high" && selectedShsProgram) {
           next.department = selectedShsProgram.track;
         }
       }
 
-      if (name === "previous_program") {
-        const selectedCollegeCourse = COLLEGE_COURSE_OPTIONS.find((option) => option.value === value);
-        const selectedShsProgram = SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === value);
-
-        if (isTransferee && isCollege && selectedCollegeCourse) {
-          next.department = selectedCollegeCourse.department;
-          if (!next.course) next.course = selectedCollegeCourse.value;
-        } else if (isTransferee && isSeniorHigh && selectedShsProgram) {
-          next.department = selectedShsProgram.track;
-          if (!next.course) next.course = selectedShsProgram.value;
+      if (name === "previous_program" && next.status === "transferee") {
+        if (next.school_level === "college") {
+          const selected = findCollegeOption(value);
+          if (selected && !next.course) {
+            next.course = selected.value;
+            next.department = selected.department;
+          }
         }
-      }
 
-      if (name === "shs_program") {
-        const selectedShsProgram = SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === value);
-        if (selectedShsProgram) {
-          next.track = selectedShsProgram.track;
+        if (next.school_level === "senior_high") {
+          const selected = findShsOption(value);
+          if (selected && !next.course) {
+            next.course = selected.value;
+            next.department = selected.track;
+          }
         }
       }
 
@@ -411,102 +402,145 @@ export default function AcademicInfoPage() {
       setIsSaving(true);
       setSaveMessage("");
 
-      let resolvedSchoolLevel = formData.school_level;
-      let resolvedYearLevel = isGraduated ? null : formData.year_level || null;
+      const isGraduatedStatus = formData.status === "graduated";
+      const resolvedSchoolLevel = formData.school_level;
+
+      let resolvedYearLevel = null;
       let resolvedCourse = null;
       let resolvedDepartment = null;
       let resolvedStrand = null;
       let resolvedTrack = null;
 
-      if (!isGraduated) {
+      if (!isGraduatedStatus) {
         if (!formData.year_level) {
           throw new Error("Please select year level.");
         }
 
-        const schoolLevelFromYear = ["11", "12"].includes(formData.year_level) ? "senior_high" : "college";
-
-        if (formData.school_level !== schoolLevelFromYear) {
+        const levelFromYear = ["11", "12"].includes(formData.year_level) ? "senior_high" : "college";
+        if (resolvedSchoolLevel !== levelFromYear) {
           throw new Error("Year level does not match selected school level.");
         }
 
-        resolvedSchoolLevel = schoolLevelFromYear;
+        resolvedYearLevel = formData.year_level;
+      }
 
-        if (resolvedSchoolLevel === "college") {
-          const selectedCourse =
-            COLLEGE_COURSE_OPTIONS.find(
-              (option) => option.value === formData.course && option.department === formData.department
-            ) || COLLEGE_COURSE_OPTIONS.find((option) => option.value === formData.course);
-          if (!selectedCourse) {
-            throw new Error("Please select a valid college department/track and course/program.");
-          }
-
-          resolvedCourse = selectedCourse.value;
-          resolvedDepartment = selectedCourse.department;
-        } else {
-          const selectedStrand =
-            SENIOR_HIGH_STRAND_OPTIONS.find(
-              (option) => option.value === formData.course && option.track === formData.department
-            ) || SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === formData.course);
-          if (!selectedStrand) {
-            throw new Error("Please select a valid senior high department/track and course/program.");
-          }
-
-          resolvedStrand = selectedStrand.value;
-          resolvedTrack = selectedStrand.track;
-        }
-      } else if (formData.school_level === "college") {
-        const selectedCourse =
-          COLLEGE_COURSE_OPTIONS.find(
-            (option) => option.value === formData.course && option.department === formData.department
-          ) || COLLEGE_COURSE_OPTIONS.find((option) => option.value === formData.course);
+      if (resolvedSchoolLevel === "college") {
+        const selectedCourse = findCollegeOption(formData.course, formData.department);
         if (!selectedCourse) {
           throw new Error("Please select a valid college department/track and course/program.");
         }
 
-        resolvedSchoolLevel = "college";
         resolvedCourse = selectedCourse.value;
         resolvedDepartment = selectedCourse.department;
       } else {
-        const selectedStrand =
-          SENIOR_HIGH_STRAND_OPTIONS.find(
-            (option) => option.value === formData.course && option.track === formData.department
-          ) || SENIOR_HIGH_STRAND_OPTIONS.find((option) => option.value === formData.course);
+        const selectedStrand = findShsOption(formData.course, formData.department);
         if (!selectedStrand) {
           throw new Error("Please select a valid senior high department/track and course/program.");
         }
 
-        resolvedSchoolLevel = "senior_high";
         resolvedStrand = selectedStrand.value;
         resolvedTrack = selectedStrand.track;
       }
 
-      const previousSchoolsAttributes = [];
+      const selectedPreviousCollege = findCollegeOption(formData.previous_program);
+      const selectedPreviousShs = findShsOption(formData.previous_program);
+      const selectedCurrentShs = findShsOption(formData.shs_program);
 
-      if (showPreviousSchoolSection) {
-        const previousAttr = buildPreviousSchoolAttr({
-          id: previousSchoolId,
-          schoolType: resolvedSchoolLevel,
-          from: isGraduated ? formData.graduated_from : formData.previous_from,
-          to: isGraduated ? formData.graduated_to : formData.previous_to,
-          program: formData.previous_program || resolvedCourse || resolvedStrand || formData.course || formData.strand,
-          schoolName: formData.previous_school_name,
-          defaultSchoolName: isTransferee ? "" : "ACLC",
-        });
+      const slotFields = {
+        current_college_school_name: null,
+        current_college_program: null,
+        current_college_level: null,
+        current_college_year_from: null,
+        current_college_year_to: null,
+        current_college_department_track: null,
+        prev_college_school_name: null,
+        prev_college_program: null,
+        prev_college_level: null,
+        prev_college_year_from: null,
+        prev_college_year_to: null,
+        prev_college_department_track: null,
+        current_senior_high_school_name: null,
+        current_senior_high_program: null,
+        current_senior_high_level: null,
+        current_senior_high_year_from: null,
+        current_senior_high_year_to: null,
+        current_senior_high_department_track: null,
+        prev_senior_high_school_name: null,
+        prev_senior_high_program: null,
+        prev_senior_high_level: null,
+        prev_senior_high_year_from: null,
+        prev_senior_high_year_to: null,
+        prev_senior_high_department_track: null,
+      };
 
-        if (previousAttr) previousSchoolsAttributes.push(previousAttr);
+      if (resolvedSchoolLevel === "college" && !isGraduatedStatus) {
+        slotFields.current_college_school_name = "ACLC";
+        slotFields.current_college_program = resolvedCourse;
+        slotFields.current_college_level = resolvedYearLevel;
+        slotFields.current_college_department_track = resolvedDepartment;
       }
 
-      if (showSeniorHighSection) {
-        const shsAttr = buildPreviousSchoolAttr({
-          id: shsSchoolId,
-          schoolType: "senior_high",
-          from: formData.shs_from,
-          to: formData.shs_to,
-          program: formData.shs_program,
-          schoolName: formData.shs_school_name,
-        });
+      if (resolvedSchoolLevel === "senior_high" && !isGraduatedStatus) {
+        slotFields.current_senior_high_school_name = "ACLC";
+        slotFields.current_senior_high_program = resolvedStrand;
+        slotFields.current_senior_high_level = resolvedYearLevel;
+        slotFields.current_senior_high_department_track = resolvedTrack;
+      }
 
-        if (shsAttr) previousSchoolsAttributes.push(shsAttr);
+      if (formData.status === "transferee") {
+        if (resolvedSchoolLevel === "college") {
+          slotFields.prev_college_school_name = (formData.previous_school_name || "").trim() || "ACLC";
+          slotFields.prev_college_program = selectedPreviousCollege?.value || formData.previous_program || resolvedCourse;
+          slotFields.prev_college_level = resolvedYearLevel;
+          slotFields.prev_college_year_from = toNumberOrNil(formData.previous_from);
+          slotFields.prev_college_year_to = toNumberOrNil(formData.previous_to);
+          slotFields.prev_college_department_track = selectedPreviousCollege?.department || resolvedDepartment;
+
+          slotFields.current_senior_high_school_name = (formData.shs_school_name || "").trim() || "ACLC";
+          slotFields.current_senior_high_program = selectedCurrentShs?.value || formData.shs_program;
+          slotFields.current_senior_high_level = "12";
+          slotFields.current_senior_high_year_from = toNumberOrNil(formData.shs_from);
+          slotFields.current_senior_high_year_to = toNumberOrNil(formData.shs_to);
+          slotFields.current_senior_high_department_track = selectedCurrentShs?.track || null;
+        }
+
+        if (resolvedSchoolLevel === "senior_high") {
+          slotFields.prev_senior_high_school_name = (formData.previous_school_name || "").trim() || "ACLC";
+          slotFields.prev_senior_high_program = selectedPreviousShs?.value || formData.previous_program || resolvedStrand;
+          slotFields.prev_senior_high_level = resolvedYearLevel;
+          slotFields.prev_senior_high_year_from = toNumberOrNil(formData.previous_from);
+          slotFields.prev_senior_high_year_to = toNumberOrNil(formData.previous_to);
+          slotFields.prev_senior_high_department_track = selectedPreviousShs?.track || resolvedTrack;
+        }
+      }
+
+      if (formData.status === "currently_enrolled" || formData.status === "returnee") {
+        if (resolvedSchoolLevel === "college") {
+          slotFields.current_senior_high_school_name = (formData.shs_school_name || "").trim() || "ACLC";
+          slotFields.current_senior_high_program = selectedCurrentShs?.value || formData.shs_program;
+          slotFields.current_senior_high_level = "12";
+          slotFields.current_senior_high_year_from = toNumberOrNil(formData.shs_from);
+          slotFields.current_senior_high_year_to = toNumberOrNil(formData.shs_to);
+          slotFields.current_senior_high_department_track = selectedCurrentShs?.track || null;
+        }
+      }
+
+      if (formData.status === "graduated") {
+        if (resolvedSchoolLevel === "college") {
+          slotFields.prev_college_school_name = "ACLC";
+          slotFields.prev_college_program = resolvedCourse;
+          slotFields.prev_college_level = null;
+          slotFields.prev_college_year_from = toNumberOrNil(formData.graduated_from);
+          slotFields.prev_college_year_to = toNumberOrNil(formData.graduated_to);
+          slotFields.prev_college_department_track = resolvedDepartment;
+        } else {
+          slotFields.prev_senior_high_school_name = "ACLC";
+          slotFields.prev_senior_high_program = resolvedStrand;
+          slotFields.prev_senior_high_level = null;
+          slotFields.prev_senior_high_year_from = toNumberOrNil(formData.graduated_from);
+          slotFields.prev_senior_high_year_to = toNumberOrNil(formData.graduated_to);
+          slotFields.prev_senior_high_department_track = resolvedTrack;
+        }
       }
 
       const payload = {
@@ -520,7 +554,7 @@ export default function AcademicInfoPage() {
             department: resolvedDepartment,
             strand: resolvedStrand,
             track: resolvedTrack,
-            previous_schools_attributes: previousSchoolsAttributes,
+            ...slotFields,
           },
         },
       };
@@ -542,36 +576,9 @@ export default function AcademicInfoPage() {
       }
 
       const profile = responseJson?.student_profile || {};
-      const schools = profile?.previous_schools || [];
-      const sameLevelSchool = schools.find((school) => school.school_type === profile?.school_level) || null;
-      const shsSchool =
-        schools.find((school) => school.school_type === "senior_high" && school.id !== sameLevelSchool?.id) ||
-        (profile?.school_level === "college" ? schools.find((school) => school.school_type === "senior_high") : null);
+      const nextFormData = mapProfileToForm(profile);
 
       setProfileId(profile?.id || null);
-      setPreviousSchoolId(sameLevelSchool?.id || null);
-      setShsSchoolId(shsSchool?.id || null);
-
-      const nextFormData = {
-        status: profile?.status || formData.status,
-        school_level: profile?.school_level || formData.school_level,
-        year_level: profile?.year_level || "",
-        course: profile?.course || profile?.strand || "",
-        department: profile?.department || profile?.track || "",
-        strand: profile?.strand || "",
-        track: profile?.track || "",
-        previous_from: normalizeYear(sameLevelSchool?.academic_year_from),
-        previous_to: normalizeYear(sameLevelSchool?.academic_year_to),
-        previous_program: sameLevelSchool?.program || "",
-        previous_school_name: sameLevelSchool?.school_name || "",
-        shs_from: normalizeYear(shsSchool?.academic_year_from),
-        shs_to: normalizeYear(shsSchool?.academic_year_to),
-        shs_program: shsSchool?.program || "",
-        shs_school_name: shsSchool?.school_name || "",
-        graduated_from: normalizeYear(sameLevelSchool?.academic_year_from),
-        graduated_to: normalizeYear(sameLevelSchool?.academic_year_to),
-      };
-
       setFormData(nextFormData);
       setInitialFormData(nextFormData);
       setSaveMessage("Changes saved.");
@@ -596,9 +603,10 @@ export default function AcademicInfoPage() {
     <div className="min-vh-100 py-4">
       <div className="container" style={{ maxWidth: "760px" }}>
         <InitBootstrapSelect
-          key={`${formData.status}-${formData.school_level}-${formData.department}-${formData.track}-${isLoading}`}
+          key={`${formData.status}-${formData.school_level}-${formData.department}-${formData.course}-${isLoading}`}
           selector=".academic-select"
         />
+
         <div className="d-flex justify-content-between align-items-center">
           <h3 className="text-primary fw-bold m-0">Academic Information</h3>
           {!isLoading && hasChanges && (
@@ -663,62 +671,20 @@ export default function AcademicInfoPage() {
             />
           )}
 
-          {isCollege && !isGraduated && (
-            <>
-              <SelectInput
-                label="Course/Program"
-                name="course"
-                value={formData.course}
-                onChange={handleInputChange}
-                options={courseProgramOptions}
-              />
-              <SelectInput
-                label="Department/Track"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                options={departmentTrackOptions}
-              />
-            </>
-          )}
-
-          {isSeniorHigh && !isGraduated && (
-            <>
-              <SelectInput
-                label="Course/Program"
-                name="course"
-                value={formData.course}
-                onChange={handleInputChange}
-                options={courseProgramOptions}
-              />
-              <SelectInput
-                label="Department/Track"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                options={departmentTrackOptions}
-              />
-            </>
-          )}
-
-          {isGraduated && (
-            <>
-              <SelectInput
-                label="Course/Program"
-                name="course"
-                value={formData.course}
-                onChange={handleInputChange}
-                options={courseProgramOptions}
-              />
-              <SelectInput
-                label="Department/Track"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                options={departmentTrackOptions}
-              />
-            </>
-          )}
+          <SelectInput
+            label="Course/Program"
+            name="course"
+            value={formData.course}
+            onChange={handleInputChange}
+            options={courseProgramOptions}
+          />
+          <SelectInput
+            label="Department/Track"
+            name="department"
+            value={formData.department}
+            onChange={handleInputChange}
+            options={departmentTrackOptions}
+          />
         </div>
 
         {isTransferee && (

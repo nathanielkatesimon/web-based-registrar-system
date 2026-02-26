@@ -78,84 +78,45 @@ class StudentProfileTest < ActiveSupport::TestCase
     assert_equal 'Main St, Cebu City', profile.full_address
   end
 
-  test "accepts nested attributes for previous_schools" do
+  test "supports school slots for college and senior high" do
     profile = StudentProfile.new(
       student: students(:student_three),
-      previous_schools_attributes: [
-        {
-          school_type: 'senior_high',
-          school_name: 'Test Senior High',
-          academic_year_from: 2020,
-          academic_year_to: 2022,
-          program: 'STEM'
-        },
-        {
-          school_type: 'college',
-          school_name: 'Previous College',
-          academic_year_from: 2022,
-          academic_year_to: 2023,
-          program: 'BS IT'
-        }
-      ]
+      current_college_school_name: "ACLC",
+      current_college_program: "bachelor_of_science_in_information_technology",
+      current_college_level: "2nd",
+      current_college_year_from: 2024,
+      current_college_year_to: 2025,
+      current_college_department_track: "computer_studies",
+      current_senior_high_school_name: "Sample SHS",
+      current_senior_high_program: "STEM",
+      current_senior_high_level: "12",
+      current_senior_high_year_from: 2022,
+      current_senior_high_year_to: 2024,
+      current_senior_high_department_track: "academic_track"
     )
 
     assert profile.valid?
-    assert_equal 2, profile.previous_schools.size
   end
 
-  test "rejects blank nested attributes for previous_schools" do
+  test "supports previous school slots for transferee history" do
     profile = StudentProfile.new(
       student: students(:student_three),
-      previous_schools_attributes: [
-        {
-          school_type: 'senior_high',
-          school_name: 'Test Senior High',
-          academic_year_from: 2020,
-          academic_year_to: 2022,
-          program: 'STEM'
-        },
-        {
-          school_type: '',
-          school_name: '',
-          academic_year_from: nil,
-          academic_year_to: nil,
-          program: ''
-        }
-      ]
+      status: "transferee",
+      school_level: "college",
+      prev_college_school_name: "Previous College",
+      prev_college_program: "bachelor_of_science_in_information_technology",
+      prev_college_level: "1st",
+      prev_college_year_from: 2023,
+      prev_college_year_to: 2024,
+      prev_college_department_track: "computer_studies",
+      prev_senior_high_school_name: "Previous SHS",
+      prev_senior_high_program: "STEM",
+      prev_senior_high_level: "12",
+      prev_senior_high_year_from: 2021,
+      prev_senior_high_year_to: 2023,
+      prev_senior_high_department_track: "academic_track"
     )
 
-    assert_equal 1, profile.previous_schools.size
-  end
-
-  test "allows destroy on nested previous_schools" do
-    profile = StudentProfile.create!(
-      student: students(:student_three),
-      previous_schools_attributes: [
-        {
-          school_type: 'senior_high',
-          school_name: 'Test Senior High',
-          program: 'STEM',
-          academic_year_from: 2020,
-          academic_year_to: 2022
-        },
-        {
-          school_type: 'college',
-          school_name: 'Previous College',
-          program: 'BS IT',
-          academic_year_from: 2022,
-          academic_year_to: 2023
-        }
-      ]
-    )
-
-    school_to_destroy = profile.previous_schools.first
-
-    profile.update(
-      previous_schools_attributes: [
-        { id: school_to_destroy.id, _destroy: '1' }
-      ]
-    )
-
-    assert_equal 1, profile.previous_schools.reload.size
+    assert profile.valid?
   end
 end

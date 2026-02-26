@@ -7,7 +7,7 @@
 - Auth required: `No` (must be logged out)
 
 ## Purpose
-Creates a new `Student` user (STI type), accepts nested `student_profile` and `previous_schools` data, and signs the student in using Devise cookie-based session authentication.
+Creates a new `Student` user (STI type), accepts nested `student_profile` data (including school slots), and signs the student in using Devise cookie-based session authentication.
 
 ## Request
 ### Headers
@@ -45,16 +45,16 @@ Creates a new `Student` user (STI type), accepts nested `student_profile` and `p
       "course": "bachelor_of_science_in_information_technology",
       "track": null,
       "strand": null,
-      "previous_schools_attributes": [
-        {
-          "school_type": "senior_high",
-          "school_name": "ABC Senior High School",
-          "academic_year_from": 2022,
-          "academic_year_to": 2024,
-          "program": "STEM",
-          "completed": true
-        }
-      ]
+      "current_college_school_name": "ACLC",
+      "current_college_program": "bachelor_of_science_in_information_technology",
+      "current_college_level": "1st",
+      "current_college_department_track": "computer_studies",
+      "current_senior_high_school_name": "ABC Senior High School",
+      "current_senior_high_program": "STEM",
+      "current_senior_high_level": "12",
+      "current_senior_high_year_from": 2022,
+      "current_senior_high_year_to": 2024,
+      "current_senior_high_department_track": "academic_track"
     }
   }
 }
@@ -93,24 +93,36 @@ Nested `student_profile_attributes`:
 - `department` (string)
 - `strand` (string)
 - `track` (string)
-- `previous_schools_attributes` (array)
-
-Nested `previous_schools_attributes[]`:
-- `id` (integer)
-- `school_type` (string)
-- `school_name` (string)
-- `academic_year_from` (integer, required when adding a previous school)
-- `academic_year_to` (integer, required when adding a previous school)
-- `program` (string)
-- `completed` (boolean)
-- `_destroy` (boolean)
+- `current_college_school_name`
+- `current_college_program`
+- `current_college_level`
+- `current_college_year_from`
+- `current_college_year_to`
+- `current_college_department_track`
+- `prev_college_school_name`
+- `prev_college_program`
+- `prev_college_level`
+- `prev_college_year_from`
+- `prev_college_year_to`
+- `prev_college_department_track`
+- `current_senior_high_school_name`
+- `current_senior_high_program`
+- `current_senior_high_level`
+- `current_senior_high_year_from`
+- `current_senior_high_year_to`
+- `current_senior_high_department_track`
+- `prev_senior_high_school_name`
+- `prev_senior_high_program`
+- `prev_senior_high_level`
+- `prev_senior_high_year_from`
+- `prev_senior_high_year_to`
+- `prev_senior_high_department_track`
 
 ### Server-Enforced Behavior
 - `type` is always forced to `Student` server-side.
 - Any client-supplied `type` is ignored.
 - `student_profile_attributes` is accepted during signup through nested attributes.
 - During signup, controller sets `student_profile.registration_flow = true`.
-- During signup, if `student_profile.status = "graduated"` (for either `college` or `senior_high`), at least one `previous_schools` entry is required.
 - If no profile is provided, `Student` creates a default blank `student_profile` after create.
 
 ## Success Response
@@ -131,20 +143,11 @@ Nested `previous_schools_attributes[]`:
       "year_level": "1st",
       "department": "computer_studies",
       "course": "bachelor_of_science_in_information_technology",
-      "previous_schools": [
-        {
-          "id": 1,
-          "school_type": "senior_high",
-          "school_name": "ABC Senior High School"
-        }
-      ]
+      "current_college_school_name": "ACLC"
     }
   }
 }
 ```
-
-Notes:
-- Actual response includes `user` with: `id`, `auth_id`, `type`, and full nested `student_profile` (including `previous_schools`) as serialized by Rails `as_json`.
 
 ### Session/Cookies
 - A Devise session is created on successful registration.
@@ -152,7 +155,7 @@ Notes:
 
 ## Error Responses
 ### Status: `422 Unprocessable Entity`
-Returned when validations fail in `Student`, `StudentProfile`, nested `PreviousSchool`, or Devise validations.
+Returned when validations fail in `Student`, `StudentProfile`, or Devise validations.
 
 ```json
 {
@@ -163,23 +166,6 @@ Returned when validations fail in `Student`, `StudentProfile`, nested `PreviousS
 }
 ```
 
-Common student-related validation errors include:
-- `Student profile school level can't be blank`
-- `Student profile status can't be blank`
-- `Student profile year level can't be blank`
-- `Student profile year level must be 1st, 2nd, 3rd, or 4th for college`
-- `Student profile year level must be 11 or 12 for senior high`
-- `Student profile course is not included in the list`
-- `Student profile department is not included in the list`
-- `Student profile strand is not included in the list`
-- `Student profile track is not included in the list`
-- `Student profile base Must add previous school information if already graduated`
-- `Student profile previous schools academic year from can't be blank`
-- `Student profile previous schools academic year to can't be blank`
-- `Student profile previous schools academic year to must be after academic year from`
-- `Student USN must be 11 to 13 characters`
-- Devise password/email validation messages
-
 ### Status: `200 OK` (Already Authenticated)
 If requester is already signed in, Devise `require_no_authentication` responds with:
 
@@ -189,50 +175,20 @@ If requester is already signed in, Devise `require_no_authentication` responds w
 }
 ```
 
-Note: exact message is locale-dependent (`devise.failure.already_authenticated`).
-
 ## STI and Model Rules (Current)
 - Record class stored in `users` table with `type = "Student"`.
 - `auth_id` is required and unique (case-insensitive).
-- For `Student`, `auth_id` must match `^(\d{11}|\d{12}|\d{13})$` (digits only, 11 to 13 characters).
+- For `Student`, `auth_id` must match `^(\\d{11}|\\d{12}|\\d{13})$` (digits only, 11 to 13 characters).
 - `Student` has one `student_profile` (`user_id` FK).
-- `StudentProfile` has many `previous_schools`.
 - `student_profile` enums:
   - `civil_status`: `single`, `married`, `widower`, `separated`
   - `status`: `currently_enrolled`, `transferee`, `returnee`, `graduated`
   - `school_level`: `college`, `senior_high`
   - `sex`: `male`, `female`
-- For `college`:
-  - `department` must be one of: `computer_studies`, `business`, `culinary`
-  - `course` must belong to selected department
-  - `year_level` must be `1st`, `2nd`, `3rd`, or `4th`
-- For `senior_high`:
-  - `track` must be one of: `academic_track`, `technical_vocational_livelihood`
-  - `strand` must belong to selected track
-  - `year_level` must be `11` or `12`
-- Previous school requirements:
-  - During student registration (`POST /api/v1/students/registrations`), previous school history is optional for non-`graduated` status.
-  - During student registration, `status = graduated` requires at least one previous-school entry for both `college` and `senior_high`.
-  - Outside registration flow (other create/update contexts), there is no required previous-school history rule.
-- If a `previous_schools` entry is provided, `PreviousSchool` validations apply:
-  - `school_name`, `school_type`, `program`, `academic_year_from`, and `academic_year_to` are required.
-  - `academic_year_from` and `academic_year_to` must be numeric and `> 1900`.
-  - `academic_year_from` and `academic_year_to` must be `<= (current year + 10)`.
-  - `academic_year_to` must be greater than `academic_year_from`.
-
-## Previous-School Validations
-- `graduated_requires_previous_college_information` (`StudentProfile`):
-  - Runs only when `registration_flow` is `true` (student registration endpoint).
-  - Applies only when `status = graduated`.
-  - Requires at least one `previous_schools` row not marked for destruction.
-  - Adds error: `Must add previous school information if already graduated` when missing.
-- `accepts_nested_attributes_for :previous_schools` behavior:
-  - `reject_if: :all_blank`: completely blank previous-school rows are ignored.
-  - `allow_destroy: true`: existing rows can be removed via `_destroy`.
 
 ## Frontend Integration Notes
 - Send credentials with cookie support (e.g., `credentials: "include"` in `fetch`).
-- Use `user.student_profile_attributes` and nested `previous_schools_attributes` in request payload.
+- Use `user.student_profile_attributes` payload with flat slot fields.
 - Handle both:
   - `201` success with `user`
   - `422` validation errors with `errors[]`

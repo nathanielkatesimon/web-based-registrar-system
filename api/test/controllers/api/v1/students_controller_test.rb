@@ -52,40 +52,39 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @student_one_profile.id, json_response["student_profile"]["id"]
   end
 
-  test "should create student with nested profile and previous schools" do
+  test "should create student with nested profile and school slots" do
     assert_difference("Student.count", 1) do
       assert_difference("StudentProfile.count", 1) do
-        assert_difference("PreviousSchool.count", 1) do
-          post api_v1_students_url,
-               params: {
-                 student: {
-                   auth_id: "2026000000001",
-                   email: "new.student@example.com",
-                   password: "password123",
-                   password_confirmation: "password123",
-                   first_name: "New",
-                   middle_name: "Sample",
-                   last_name: "Student",
-                   student_profile_attributes: {
-                     school_level: "college",
-                     status: "currently_enrolled",
-                     year_level: "1st",
-                     department: "computer_studies",
-                     course: "bachelor_of_science_in_information_technology",
-                     previous_schools_attributes: [
-                       {
-                         school_type: "senior_high",
-                         school_name: "Sample Senior High",
-                         academic_year_from: 2022,
-                         academic_year_to: 2024,
-                         program: "STEM"
-                       }
-                     ]
-                   }
+        post api_v1_students_url,
+             params: {
+               student: {
+                 auth_id: "2026000000001",
+                 email: "new.student@example.com",
+                 password: "password123",
+                 password_confirmation: "password123",
+                 first_name: "New",
+                 middle_name: "Sample",
+                 last_name: "Student",
+                 student_profile_attributes: {
+                   school_level: "college",
+                   status: "currently_enrolled",
+                   year_level: "1st",
+                   department: "computer_studies",
+                   course: "bachelor_of_science_in_information_technology",
+                   current_college_school_name: "ACLC",
+                   current_college_program: "bachelor_of_science_in_information_technology",
+                   current_college_level: "1st",
+                   current_college_department_track: "computer_studies",
+                   current_senior_high_school_name: "Sample Senior High",
+                   current_senior_high_program: "STEM",
+                   current_senior_high_level: "12",
+                   current_senior_high_year_from: 2022,
+                   current_senior_high_year_to: 2024,
+                   current_senior_high_department_track: "academic_track"
                  }
-               },
-               as: :json
-        end
+               }
+             },
+             as: :json
       end
     end
 
@@ -94,15 +93,15 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     student = Student.order(:id).last
     assert_equal "2026000000001", student.auth_id
     assert_equal "college", student.student_profile.school_level
-    assert_equal 1, student.student_profile.previous_schools.count
-    assert_equal "senior_high", student.student_profile.previous_schools.first.school_type
+    assert_equal "ACLC", student.student_profile.current_college_school_name
+    assert_equal "Sample Senior High", student.student_profile.current_senior_high_school_name
 
     json_response = JSON.parse(response.body)
     assert_equal student.id, json_response["id"]
     assert_equal "2026000000001", json_response["auth_id"]
   end
 
-  test "should create student without previous schools on create" do
+  test "should create student without optional school slots on create" do
     assert_difference("Student.count", 1) do
       post api_v1_students_url,
            params: {
@@ -129,7 +128,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     created_student = Student.order(:id).last
     assert_equal "2026000000002", created_student.auth_id
-    assert_equal 0, created_student.student_profile.previous_schools.count
+    assert_nil created_student.student_profile.current_senior_high_school_name
   end
 
   test "should return unprocessable_entity when auth_id format is invalid on create" do
@@ -205,30 +204,28 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_not_equal "09119998888", @student_one_profile.contact_number
   end
 
-  test "should destroy previous school via nested attributes on update" do
-    previous_school = @student_two_profile.previous_schools.first
+  test "should update school slot fields" do
     sign_in_as(@student_one)
 
-    assert_difference("PreviousSchool.count", -1) do
-      patch api_v1_student_url(@student_two),
-            params: {
-              student: {
-                student_profile_attributes: {
-                  id: @student_two_profile.id,
-                  previous_schools_attributes: [
-                    {
-                      id: previous_school.id,
-                      _destroy: true
-                    }
-                  ]
-                }
+    patch api_v1_student_url(@student_two),
+          params: {
+            student: {
+              student_profile_attributes: {
+                id: @student_two_profile.id,
+                prev_college_school_name: "Transfer College",
+                prev_college_program: "bachelor_of_science_in_information_technology",
+                prev_college_level: "1st",
+                prev_college_year_from: 2023,
+                prev_college_year_to: 2024,
+                prev_college_department_track: "computer_studies"
               }
-            },
-            as: :json
-    end
+            }
+          },
+          as: :json
 
     assert_response :success
-    assert_not PreviousSchool.exists?(previous_school.id)
+    @student_two_profile.reload
+    assert_equal "Transfer College", @student_two_profile.prev_college_school_name
   end
 
   test "should filter credential updates when current user is not target student" do

@@ -187,16 +187,29 @@ export default function StudentRegistrationForm() {
         return { error: "Please provide your previous school academic year range." };
       }
 
-      profile.previous_schools_attributes = [
-        {
-          school_type: schoolLevel,
-          school_name: "Previous School",
-          academic_year_from: Number(formValues.graduated_from),
-          academic_year_to: Number(formValues.graduated_to),
-          program: schoolLevel === "college" ? profile.course : profile.strand,
-          completed: true,
-        },
-      ];
+      if (schoolLevel === "college") {
+        profile.prev_college_school_name = "ACLC";
+        profile.prev_college_program = profile.course;
+        profile.prev_college_year_from = Number(formValues.graduated_from);
+        profile.prev_college_year_to = Number(formValues.graduated_to);
+        profile.prev_college_department_track = profile.department;
+      } else {
+        profile.prev_senior_high_school_name = "ACLC";
+        profile.prev_senior_high_program = profile.strand;
+        profile.prev_senior_high_year_from = Number(formValues.graduated_from);
+        profile.prev_senior_high_year_to = Number(formValues.graduated_to);
+        profile.prev_senior_high_department_track = profile.track;
+      }
+    } else if (schoolLevel === "college") {
+      profile.current_college_school_name = "ACLC";
+      profile.current_college_program = profile.course;
+      profile.current_college_level = profile.year_level;
+      profile.current_college_department_track = profile.department;
+    } else {
+      profile.current_senior_high_school_name = "ACLC";
+      profile.current_senior_high_program = profile.strand;
+      profile.current_senior_high_level = profile.year_level;
+      profile.current_senior_high_department_track = profile.track;
     }
 
     return { profile };

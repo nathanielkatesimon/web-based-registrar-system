@@ -43,12 +43,16 @@ All write requests require top-level key: `student`.
       "year_level": "1st",
       "department": "computer_studies",
       "course": "bachelor_of_science_in_information_technology",
-      "previous_schools_attributes": [
-        {
-          "id": 30,
-          "_destroy": true
-        }
-      ]
+      "current_college_school_name": "ACLC",
+      "current_college_program": "bachelor_of_science_in_information_technology",
+      "current_college_level": "1st",
+      "current_college_department_track": "computer_studies",
+      "current_senior_high_school_name": "Sample SHS",
+      "current_senior_high_program": "STEM",
+      "current_senior_high_level": "12",
+      "current_senior_high_year_from": 2022,
+      "current_senior_high_year_to": 2024,
+      "current_senior_high_department_track": "academic_track"
     }
   }
 }
@@ -86,17 +90,30 @@ All write requests require top-level key: `student`.
 - `department`
 - `strand`
 - `track`
-- `previous_schools_attributes`
-
-### Allowed Fields (`previous_schools_attributes[]`)
-- `id`
-- `school_type`
-- `school_name`
-- `academic_year_from`
-- `academic_year_to`
-- `program`
-- `completed`
-- `_destroy`
+- `current_college_school_name`
+- `current_college_program`
+- `current_college_level`
+- `current_college_year_from`
+- `current_college_year_to`
+- `current_college_department_track`
+- `prev_college_school_name`
+- `prev_college_program`
+- `prev_college_level`
+- `prev_college_year_from`
+- `prev_college_year_to`
+- `prev_college_department_track`
+- `current_senior_high_school_name`
+- `current_senior_high_program`
+- `current_senior_high_level`
+- `current_senior_high_year_from`
+- `current_senior_high_year_to`
+- `current_senior_high_department_track`
+- `prev_senior_high_school_name`
+- `prev_senior_high_program`
+- `prev_senior_high_level`
+- `prev_senior_high_year_from`
+- `prev_senior_high_year_to`
+- `prev_senior_high_department_track`
 
 ## Server-Enforced Behavior (Current)
 - `authenticate_user!` protects `show`, `update`, and `destroy`.
@@ -106,8 +123,7 @@ All write requests require top-level key: `student`.
 - `show` renders the resolved target student.
 - `update` updates the resolved target student.
 - `destroy` destroys the resolved target student.
-- Nested `student_profile_attributes` and nested `previous_schools_attributes` are accepted on update.
-- Nested previous schools can be deleted using `id` + `_destroy: true`.
+- Nested `student_profile_attributes` are accepted on update.
 - Credential fields are filtered out during update when:
   - `current_user` is not a `Student`, or
   - resolved `@student` does not equal `current_user`.
@@ -145,7 +161,7 @@ Typical response shape:
 ```
 
 ### `422 Unprocessable Entity` (Update)
-Returned when validations fail for `Student`, `StudentProfile`, or nested `PreviousSchool`.
+Returned when validations fail for `Student` or `StudentProfile`.
 
 ```json
 {
