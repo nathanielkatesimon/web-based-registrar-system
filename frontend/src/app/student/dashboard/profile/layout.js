@@ -7,7 +7,7 @@ const menuItems = [
   { label: "Personal Info", href: "/student/dashboard/profile/personal_info", alert: true },
   { label: "Family Info", href: "/student/dashboard/profile/family_info", alert: true },
   { label: "Academic Info", href: "/student/dashboard/profile/academic_info", alert: true },
-  { label: "Deficiencies", href: "#" },
+  { label: "Deficiencies", href: "/student/dashboard/profile/deficiencies" },
   { label: "Account", href: "#" },
 ];
 
@@ -28,7 +28,7 @@ export default function ProfileLayout({ children }) {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`d-flex align-items-center justify-content-between text-decoration-none px-2 py-2 small mb-1 ${
+                    className={`d-flex align-items-center justify-content-between text-decoration-none px-3 py-2 mb-1 ${
                       isActive ? "text-white fw-semibold" : "text-dark"
                     }`}
                     style={isActive ? { backgroundColor: "#102f95" } : {}}
@@ -37,7 +37,7 @@ export default function ProfileLayout({ children }) {
                     {item.alert ? (
                       <span
                         className="d-inline-flex align-items-center justify-content-center text-white"
-                        style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#ef1f23", fontSize: "10px" }}
+                        style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#ef1f23", fontSize: "11px" }}
                       >
                         !
                       </span>

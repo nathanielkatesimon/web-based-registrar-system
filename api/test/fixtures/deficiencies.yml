@@ -1,0 +1,23 @@
+one:
+  student: student_one
+  enrollment_form: complied
+  form_138: lacking
+  form_137: complied
+  certificate_of_good_moral_character: not_included
+  id_pictures: not_included
+  birth_certificate: lacking
+  senior_high_school_diploma: complied
+  honorable_dismissal: not_included
+  transcript_of_records: lacking
+
+two:
+  student: student_two
+  enrollment_form: not_included
+  form_138: not_included
+  form_137: not_included
+  certificate_of_good_moral_character: not_included
+  id_pictures: not_included
+  birth_certificate: not_included
+  senior_high_school_diploma: not_included
+  honorable_dismissal: not_included
+  transcript_of_records: not_included

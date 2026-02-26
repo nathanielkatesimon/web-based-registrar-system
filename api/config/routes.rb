@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       resources :students
       resources :staffs
       resources :family_infos, only: [:show, :update]
+      resources :deficiencies, only: [:show, :update]
       resources :document_request_items
       resources :document_types
       resources :document_requests

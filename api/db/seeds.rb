@@ -2,6 +2,7 @@
 
 puts "Cleaning database..."
 StudentProfile.destroy_all
+Deficiency.destroy_all
 Student.destroy_all
 Staff.destroy_all
 User.destroy_all
@@ -27,6 +28,18 @@ seed_students = [
     middle_name: "Santos",
     last_name: "Garcia",
     profile: {
+      civil_status: "single",
+      sex: "female",
+      contact_number: "09171234561",
+      birthday: Date.new(2006, 2, 10),
+      place_of_birth: "Cebu City",
+      citizenship: "Filipino",
+      religion: "Roman Catholic",
+      house_number: "123",
+      street_name: "Mango Avenue",
+      barangay_name: "Lahug",
+      city_municipality: "Cebu City",
+      province: "Cebu",
       status: "currently_enrolled",
       school_level: "college",
       year_level: "1st",
@@ -42,6 +55,17 @@ seed_students = [
       current_senior_high_year_from: 2022,
       current_senior_high_year_to: 2024,
       current_senior_high_department_track: "academic_track"
+    },
+    deficiency: {
+      enrollment_form: "complied",
+      form_138: "complied",
+      form_137: "lacking",
+      certificate_of_good_moral_character: "complied",
+      id_pictures: "complied",
+      birth_certificate: "lacking",
+      senior_high_school_diploma: "not_included",
+      honorable_dismissal: "not_included",
+      transcript_of_records: "not_included"
     }
   },
   {
@@ -51,6 +75,18 @@ seed_students = [
     middle_name: "Reyes",
     last_name: "Mendoza",
     profile: {
+      civil_status: "single",
+      sex: "male",
+      contact_number: "09171234562",
+      birthday: Date.new(2007, 7, 21),
+      place_of_birth: "Danao City",
+      citizenship: "Filipino",
+      religion: "Christian",
+      house_number: "45",
+      street_name: "Rizal Street",
+      barangay_name: "Poblacion",
+      city_municipality: "Mandaue City",
+      province: "Cebu",
       status: "currently_enrolled",
       school_level: "senior_high",
       year_level: "11",
@@ -59,7 +95,20 @@ seed_students = [
       current_senior_high_school_name: "ACLC",
       current_senior_high_program: "STEM",
       current_senior_high_level: "11",
+      current_senior_high_year_from: 2025,
+      current_senior_high_year_to: 2026,
       current_senior_high_department_track: "academic_track"
+    },
+    deficiency: {
+      enrollment_form: "complied",
+      form_138: "lacking",
+      form_137: "not_included",
+      certificate_of_good_moral_character: "lacking",
+      id_pictures: "complied",
+      birth_certificate: "complied",
+      senior_high_school_diploma: "not_included",
+      honorable_dismissal: "not_included",
+      transcript_of_records: "not_included"
     }
   },
   {
@@ -69,6 +118,18 @@ seed_students = [
     middle_name: "Lopez",
     last_name: "Villanueva",
     profile: {
+      civil_status: "single",
+      sex: "female",
+      contact_number: "09171234563",
+      birthday: Date.new(2005, 11, 3),
+      place_of_birth: "Bogo City",
+      citizenship: "Filipino",
+      religion: "Roman Catholic",
+      house_number: "78",
+      street_name: "Colon Street",
+      barangay_name: "Parian",
+      city_municipality: "Cebu City",
+      province: "Cebu",
       status: "transferee",
       school_level: "college",
       year_level: "2nd",
@@ -90,6 +151,17 @@ seed_students = [
       current_senior_high_year_from: 2020,
       current_senior_high_year_to: 2022,
       current_senior_high_department_track: "academic_track"
+    },
+    deficiency: {
+      enrollment_form: "complied",
+      form_138: "complied",
+      form_137: "complied",
+      certificate_of_good_moral_character: "complied",
+      id_pictures: "lacking",
+      birth_certificate: "complied",
+      senior_high_school_diploma: "complied",
+      honorable_dismissal: "lacking",
+      transcript_of_records: "lacking"
     }
   },
   {
@@ -99,6 +171,18 @@ seed_students = [
     middle_name: "Torres",
     last_name: "Ramos",
     profile: {
+      civil_status: "single",
+      sex: "male",
+      contact_number: "09171234564",
+      birthday: Date.new(2006, 9, 15),
+      place_of_birth: "Toledo City",
+      citizenship: "Filipino",
+      religion: "Christian",
+      house_number: "102",
+      street_name: "Osmena Boulevard",
+      barangay_name: "Carreta",
+      city_municipality: "Cebu City",
+      province: "Cebu",
       status: "transferee",
       school_level: "senior_high",
       year_level: "12",
@@ -114,6 +198,17 @@ seed_students = [
       prev_senior_high_year_from: 2023,
       prev_senior_high_year_to: 2024,
       prev_senior_high_department_track: "technical_vocational_livelihood"
+    },
+    deficiency: {
+      enrollment_form: "lacking",
+      form_138: "complied",
+      form_137: "not_included",
+      certificate_of_good_moral_character: "lacking",
+      id_pictures: "lacking",
+      birth_certificate: "complied",
+      senior_high_school_diploma: "lacking",
+      honorable_dismissal: "not_included",
+      transcript_of_records: "not_included"
     }
   }
 ]
@@ -129,7 +224,8 @@ seed_students.each do |attrs|
     last_name: attrs[:last_name]
   )
 
-  student.create_student_profile!(attrs[:profile])
+  student.student_profile.update!(attrs[:profile])
+  student.deficiency.update!(attrs[:deficiency]) if attrs[:deficiency].present?
 end
 
 [
@@ -161,3 +257,4 @@ puts "  - Staff: #{Staff.count}"
 puts "  - Students: #{Student.count}"
 puts "Total Document Types: #{DocumentType.count}"
 puts "Total Student Profiles: #{StudentProfile.count}"
+puts "Total Deficiencies: #{Deficiency.count}"

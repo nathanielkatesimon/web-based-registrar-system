@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_010000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "deficiencies", force: :cascade do |t|
+    t.integer "birth_certificate", default: 2, null: false
+    t.integer "certificate_of_good_moral_character", default: 2, null: false
+    t.datetime "created_at", null: false
+    t.integer "enrollment_form", default: 2, null: false
+    t.integer "form_137", default: 2, null: false
+    t.integer "form_138", default: 2, null: false
+    t.integer "honorable_dismissal", default: 2, null: false
+    t.integer "id_pictures", default: 2, null: false
+    t.integer "senior_high_school_diploma", default: 2, null: false
+    t.integer "transcript_of_records", default: 2, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_deficiencies_on_user_id", unique: true
   end
 
   create_table "document_request_items", force: :cascade do |t|
@@ -185,6 +201,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_010000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "deficiencies", "users"
   add_foreign_key "document_request_items", "document_requests"
   add_foreign_key "document_request_items", "document_types"
   add_foreign_key "document_requests", "users"
