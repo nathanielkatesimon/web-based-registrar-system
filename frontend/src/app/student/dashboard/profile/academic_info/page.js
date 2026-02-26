@@ -397,6 +397,11 @@ export default function AcademicInfoPage() {
     setFormData((prev) => ({ ...prev, status }));
   };
 
+  const handleDiscard = () => {
+    setFormData(initialFormData);
+    setSaveMessage("");
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -611,7 +616,15 @@ export default function AcademicInfoPage() {
           <h3 className="text-primary fw-bold m-0">Academic Information</h3>
           {!isLoading && hasChanges && (
             <div className="mb-3 d-flex align-items-center gap-2">
-              <button type="button" className="btn btn-info text-white" onClick={handleSave} disabled={isSaving}>
+              <button
+                type="button"
+                className="btn btn-outline-danger rounded-pill"
+                onClick={handleDiscard}
+                disabled={isSaving}
+              >
+                Discard
+              </button>
+              <button type="button" className="btn btn-info text-white rounded-pill" onClick={handleSave} disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save"}
               </button>
               {saveMessage && <span className="small text-success">{saveMessage}</span>}

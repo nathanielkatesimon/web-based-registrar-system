@@ -120,6 +120,13 @@ export default function PersonalInfoPage() {
     [formData, initialFormData]
   );
 
+  const handleDiscard = () => {
+    setFormData(initialFormData);
+    setIsValidated(false);
+    setSaveError("");
+    setSaveMessage("");
+  };
+
   const handleSave = async () => {
     try {
       const form = formRef.current;
@@ -207,7 +214,15 @@ export default function PersonalInfoPage() {
             <div className="mb-3 d-flex align-items-center gap-2">
               <button
                 type="button"
-                className="btn btn-info text-white"
+                className="btn btn-outline-danger rounded-pill"
+                onClick={handleDiscard}
+                disabled={isSaving}
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                className="btn btn-info text-white rounded-pill"
                 onClick={handleSave}
                 disabled={isSaving}
               >

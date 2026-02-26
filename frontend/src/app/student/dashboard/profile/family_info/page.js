@@ -231,6 +231,12 @@ export default function FamilyInfoPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDiscard = () => {
+    setFormData(initialFormData);
+    setSaveError("");
+    setSaveMessage("");
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -282,7 +288,15 @@ export default function FamilyInfoPage() {
             <div className="mb-3 d-flex align-items-center gap-2">
               <button
                 type="button"
-                className="btn btn-info text-white"
+                className="btn btn-outline-danger rounded-pill"
+                onClick={handleDiscard}
+                disabled={isSaving}
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                className="btn btn-info text-white rounded-pill"
                 onClick={handleSave}
                 disabled={isSaving}
               >
