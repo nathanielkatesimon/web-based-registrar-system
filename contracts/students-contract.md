@@ -5,18 +5,20 @@
 - Controller: `Api::V1::StudentsController`
 - Auth required:
   - `GET /api/v1/students/personal_info`: `Yes`
-  - `PATCH|PUT /api/v1/students`: `Yes`
-  - `DELETE /api/v1/students`: `Yes`
+  - `GET /api/v1/students/:id`: `Yes`
+  - `PATCH|PUT /api/v1/students/:id`: `Yes`
+  - `DELETE /api/v1/students/:id`: `Yes`
   - `POST /api/v1/students`: excluded from this contract (covered by student registration contract)
 
 ## Purpose
-Returns, updates, and deletes the authenticated student account.
+Returns, updates, and deletes a student resource resolved from `:id`, with support for current-user aliasing via `personal_info`.
 
 ## Endpoints (Covered)
 - `GET /api/v1/students/personal_info` (show)
-- `PATCH /api/v1/students` (update)
-- `PUT /api/v1/students` (update)
-- `DELETE /api/v1/students` (destroy)
+- `GET /api/v1/students/:id` (show)
+- `PATCH /api/v1/students/:id` (update)
+- `PUT /api/v1/students/:id` (update)
+- `DELETE /api/v1/students/:id` (destroy)
 
 ## Request
 ### Headers
@@ -98,23 +100,36 @@ All write requests require top-level key: `student`.
 
 ## Server-Enforced Behavior (Current)
 - `authenticate_user!` protects `show`, `update`, and `destroy`.
-- For covered endpoints, `current_user` is used.
-  - `GET /api/v1/students` returns `current_user`.
-  - `PATCH|PUT /api/v1/students` updates `current_user`.
-  - `DELETE /api/v1/students` destroys `current_user`.
+- `set_student` resolution for `show`, `update`, and `destroy`:
+  - If `params[:id] == "personal_info"`, target is `current_user`.
+  - Otherwise, target is `Student.find(params[:id])`.
+- `show` renders the resolved target student.
+- `update` updates the resolved target student.
+- `destroy` destroys the resolved target student.
 - Nested `student_profile_attributes` and nested `previous_schools_attributes` are accepted on update.
 - Nested previous schools can be deleted using `id` + `_destroy: true`.
+- Credential fields are filtered out during update when:
+  - `current_user` is not a `Student`, or
+  - resolved `@student` does not equal `current_user`.
+- Filtered credential fields:
+  - `email`
+  - `password`
+  - `password_confirmation`
 
 ## Success Responses
 ### `GET /api/v1/students/personal_info`
 - Status: `200 OK`
 - Body: JSON of the authenticated student (includes nested `student_profile` data).
 
-### `PATCH|PUT /api/v1/students`
+### `GET /api/v1/students/:id`
 - Status: `200 OK`
-- Body: currently renders `null` in the current controller implementation.
+- Body: JSON of the resolved student.
 
-### `DELETE /api/v1/students`
+### `PATCH|PUT /api/v1/students/:id`
+- Status: `200 OK`
+- Body: JSON of the updated resolved student.
+
+### `DELETE /api/v1/students/:id`
 - Status: `204 No Content`
 - Body: empty.
 
@@ -140,7 +155,11 @@ Returned when validations fail for `Student`, `StudentProfile`, or nested `Previ
 }
 ```
 
+### `404 Not Found`
+Returned when `:id` is not `"personal_info"` and no matching `Student` exists.
+
 ## Frontend Integration Notes
-- Treat `/api/v1/students` protected routes as "current account" endpoints.
+- Use `/api/v1/students/personal_info` for current account operations.
+- Use `/api/v1/students/:id` for ID-based student operations.
 - Send requests with cookies enabled (for example, `credentials: "include"` in `fetch`).
 - For update errors, read `errors[]` and map directly to form validation messages.

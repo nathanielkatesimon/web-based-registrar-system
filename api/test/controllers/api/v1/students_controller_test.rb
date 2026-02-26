@@ -4,6 +4,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @student_one = students(:student_one)
     @student_two = students(:student_two)
+    @staff_one = staffs(:staff_one)
     @student_one_profile = student_profiles(:one)
     @student_two_profile = student_profiles(:two)
   end
@@ -21,7 +22,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "should show current_user regardless of requested id" do
+  test "should show the student matching requested id" do
     sign_in_as(@student_one)
 
     get api_v1_student_url(@student_two), as: :json
@@ -29,12 +30,25 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     json_response = JSON.parse(response.body)
-    assert_equal @student_one.id, json_response["id"]
-    assert_equal @student_one.auth_id, json_response["auth_id"]
-    assert_equal @student_one.first_name, json_response["first_name"]
-    assert_equal @student_one.last_name, json_response["last_name"]
+    assert_equal @student_two.id, json_response["id"]
+    assert_equal @student_two.auth_id, json_response["auth_id"]
+    assert_equal @student_two.first_name, json_response["first_name"]
+    assert_equal @student_two.last_name, json_response["last_name"]
 
     assert json_response.key?("student_profile")
+    assert_equal @student_two_profile.id, json_response["student_profile"]["id"]
+  end
+
+  test "should show current_user when id is personal_info" do
+    sign_in_as(@student_one)
+
+    get api_v1_student_url(id: "personal_info"), as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    assert_equal @student_one.id, json_response["id"]
+    assert_equal @student_one.auth_id, json_response["auth_id"]
     assert_equal @student_one_profile.id, json_response["student_profile"]["id"]
   end
 
@@ -158,16 +172,16 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     @student_one.reload
     @student_two.reload
-    assert_equal "Updated", @student_one.first_name
-    assert_equal "Middle", @student_one.middle_name
-    assert_equal "Jr", @student_one.extension
-    assert_not_equal "Updated", @student_two.first_name
+    assert_equal "Updated", @student_two.first_name
+    assert_equal "Middle", @student_two.middle_name
+    assert_equal "Jr", @student_two.extension
+    assert_not_equal "Updated", @student_one.first_name
   end
 
   test "should update nested student_profile fields" do
     sign_in_as(@student_two)
 
-    patch api_v1_student_url(@student_one),
+    patch api_v1_student_url(@student_two),
           params: {
             student: {
               student_profile_attributes: {
@@ -192,7 +206,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy previous school via nested attributes on update" do
-    previous_school = previous_schools(:three)
+    previous_school = @student_two_profile.previous_schools.first
     sign_in_as(@student_one)
 
     assert_difference("PreviousSchool.count", -1) do
@@ -200,7 +214,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
             params: {
               student: {
                 student_profile_attributes: {
-                  id: @student_one_profile.id,
+                  id: @student_two_profile.id,
                   previous_schools_attributes: [
                     {
                       id: previous_school.id,
@@ -224,7 +238,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
           params: {
             student: {
               student_profile_attributes: {
-                id: @student_one_profile.id,
+                id: @student_two_profile.id,
                 school_level: "college",
                 year_level: "11",
                 status: "currently_enrolled",
@@ -242,7 +256,55 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes json_response["errors"].join(" "), "must be 1st, 2nd, 3rd, or 4th for college"
   end
 
-  test "should destroy current user regardless of requested id" do
+  test "should filter credential updates when current user is not target student" do
+    sign_in_as(@student_one)
+
+    original_email = @student_two.email
+    patch api_v1_student_url(@student_two),
+          params: {
+            student: {
+              email: "blocked-change@example.com",
+              password: "newpassword123",
+              password_confirmation: "newpassword123",
+              first_name: "AllowedUpdate"
+            }
+          },
+          as: :json
+
+    assert_response :success
+
+    @student_two.reload
+    assert_equal original_email, @student_two.email
+    assert_equal "AllowedUpdate", @student_two.first_name
+    assert @student_two.valid_password?("password123")
+    assert_not @student_two.valid_password?("newpassword123")
+  end
+
+  test "should filter credential updates when current user is not a student" do
+    sign_in_as(@staff_one)
+
+    original_email = @student_one.email
+    patch api_v1_student_url(@student_one),
+          params: {
+            student: {
+              email: "blocked-by-staff@example.com",
+              password: "newpassword123",
+              password_confirmation: "newpassword123",
+              first_name: "UpdatedByStaff"
+            }
+          },
+          as: :json
+
+    assert_response :success
+
+    @student_one.reload
+    assert_equal original_email, @student_one.email
+    assert_equal "UpdatedByStaff", @student_one.first_name
+    assert @student_one.valid_password?("password123")
+    assert_not @student_one.valid_password?("newpassword123")
+  end
+
+  test "should destroy student matching requested id" do
     student = Student.create!(
       auth_id: "2026000000099",
       email: "to-delete@example.com",
@@ -255,11 +317,12 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(student)
 
     assert_difference("Student.count", -1) do
-      delete api_v1_student_url(id: 999_999), as: :json
+      delete api_v1_student_url(@student_one), as: :json
     end
 
     assert_response :no_content
-    assert_not Student.exists?(student.id)
+    assert_not Student.exists?(@student_one.id)
+    assert Student.exists?(student.id)
   end
 
   private
