@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const menuItems = [
-  { label: "Personal Info", href: "/student/dashboard/profile/personal_info", alert: true, active: true },
-  { label: "Family Info", href: "#", alert: true },
+  { label: "Personal Info", href: "/student/dashboard/profile/personal_info", alert: true },
+  { label: "Family Info", href: "/student/dashboard/profile/family_info", alert: true },
   { label: "Academic Info", href: "#", alert: true },
   { label: "Deficiencies", href: "#" },
   { label: "Account", href: "#" },
 ];
 
 export default function ProfileLayout({ children }) {
+  const pathname = usePathname();
+
   return (
     <div style={{ backgroundColor: "#eef0f6", minHeight: "100vh" }}>
       <div className="container-fluid px-0">
@@ -17,26 +22,29 @@ export default function ProfileLayout({ children }) {
             style={{ width: "220px", minHeight: "100vh", backgroundColor: "#9bb2e7", borderRight: "1px solid #8da3d4" }}
           >
             <nav>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`d-flex align-items-center justify-content-between text-decoration-none px-2 py-2 small mb-1 ${
-                    item.active ? "text-white fw-semibold" : "text-dark"
-                  }`}
-                  style={item.active ? { backgroundColor: "#102f95" } : {}}
-                >
-                  <span>{item.active ? `→ ${item.label}` : item.label}</span>
-                  {item.alert ? (
-                    <span
-                      className="d-inline-flex align-items-center justify-content-center text-white"
-                      style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#ef1f23", fontSize: "10px" }}
-                    >
-                      !
-                    </span>
-                  ) : null}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={`d-flex align-items-center justify-content-between text-decoration-none px-2 py-2 small mb-1 ${
+                      isActive ? "text-white fw-semibold" : "text-dark"
+                    }`}
+                    style={isActive ? { backgroundColor: "#102f95" } : {}}
+                  >
+                    <span>{isActive ? `→ ${item.label}` : item.label}</span>
+                    {item.alert ? (
+                      <span
+                        className="d-inline-flex align-items-center justify-content-center text-white"
+                        style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#ef1f23", fontSize: "10px" }}
+                      >
+                        !
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
             </nav>
           </aside>
 

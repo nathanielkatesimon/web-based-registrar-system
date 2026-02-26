@@ -1,10 +1,12 @@
 class Student < User
   has_one :student_profile, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
+  has_one :family_info, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_many :document_requests, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
 
   accepts_nested_attributes_for :student_profile
 
   after_create :build_default_profile
+  after_create :build_default_family_info
 
   delegate :civil_status, :contact_number, :sex, :birthday, :place_of_birth,
            :citizenship, :religion, :house_number, :street_name, :barangay_name,
@@ -16,5 +18,9 @@ class Student < User
 
   def build_default_profile
     create_student_profile unless student_profile
+  end
+
+  def build_default_family_info
+    create_family_info unless family_info
   end
 end

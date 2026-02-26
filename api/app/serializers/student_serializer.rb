@@ -3,4 +3,5 @@ class StudentSerializer < ActiveModel::Serializer
              :last_name, :extension, :full_name, :created_at, :updated_at
 
   has_one :student_profile
+  has_one :family_info
 end

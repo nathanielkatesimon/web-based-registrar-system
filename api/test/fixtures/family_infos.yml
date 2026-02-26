@@ -1,0 +1,65 @@
+one:
+  student: student_one
+  father_first_name: "Pedro"
+  father_middle_name: "Dela"
+  father_last_name: "Cruz"
+  father_extension: "Sr."
+  father_home_address: "123 Main Street, Cebu City"
+  father_occupation: "Engineer"
+  father_office_company_name: "ABC Engineering"
+  father_company_address: "Cebu IT Park, Cebu City"
+  father_contact_number: "09171234567"
+  father_email_address: "pedro.cruz@example.com"
+  mother_first_name: "Maria"
+  mother_middle_name: "Santos"
+  mother_last_name: "Cruz"
+  mother_extension:
+  mother_home_address: "123 Main Street, Cebu City"
+  mother_occupation: "Teacher"
+  mother_office_company_name: "XYZ Academy"
+  mother_company_address: "Mandaue City"
+  mother_contact_number: "09179876543"
+  mother_email_address: "maria.cruz@example.com"
+  guardian_first_name: "Juan"
+  guardian_middle_name: "Perez"
+  guardian_last_name: "Reyes"
+  guardian_extension:
+  guardian_home_address: "456 Second Street, Mandaue City"
+  guardian_occupation: "Business Owner"
+  guardian_office_company_name: "Reyes Trading"
+  guardian_company_address: "Lapu-Lapu City"
+  guardian_contact_number: "09170001111"
+  guardian_email_address: "juan.reyes@example.com"
+
+two:
+  student: student_two
+  father_first_name:
+  father_middle_name:
+  father_last_name:
+  father_extension:
+  father_home_address:
+  father_occupation:
+  father_office_company_name:
+  father_company_address:
+  father_contact_number:
+  father_email_address:
+  mother_first_name:
+  mother_middle_name:
+  mother_last_name:
+  mother_extension:
+  mother_home_address:
+  mother_occupation:
+  mother_office_company_name:
+  mother_company_address:
+  mother_contact_number:
+  mother_email_address:
+  guardian_first_name:
+  guardian_middle_name:
+  guardian_last_name:
+  guardian_extension:
+  guardian_home_address:
+  guardian_occupation:
+  guardian_office_company_name:
+  guardian_company_address:
+  guardian_contact_number:
+  guardian_email_address:

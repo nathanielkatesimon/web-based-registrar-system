@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_095504) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,6 +74,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_095504) do
     t.string "name"
     t.integer "price_cents"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "family_infos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "father_company_address"
+    t.string "father_contact_number"
+    t.string "father_email_address"
+    t.string "father_extension"
+    t.string "father_first_name"
+    t.string "father_home_address"
+    t.string "father_last_name"
+    t.string "father_middle_name"
+    t.string "father_occupation"
+    t.string "father_office_company_name"
+    t.string "guardian_company_address"
+    t.string "guardian_contact_number"
+    t.string "guardian_email_address"
+    t.string "guardian_extension"
+    t.string "guardian_first_name"
+    t.string "guardian_home_address"
+    t.string "guardian_last_name"
+    t.string "guardian_middle_name"
+    t.string "guardian_occupation"
+    t.string "guardian_office_company_name"
+    t.string "mother_company_address"
+    t.string "mother_contact_number"
+    t.string "mother_email_address"
+    t.string "mother_extension"
+    t.string "mother_first_name"
+    t.string "mother_home_address"
+    t.string "mother_last_name"
+    t.string "mother_middle_name"
+    t.string "mother_occupation"
+    t.string "mother_office_company_name"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_family_infos_on_user_id", unique: true
   end
 
   create_table "previous_schools", force: :cascade do |t|
@@ -141,6 +178,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_095504) do
   add_foreign_key "document_request_items", "document_requests"
   add_foreign_key "document_request_items", "document_types"
   add_foreign_key "document_requests", "users"
+  add_foreign_key "family_infos", "users"
   add_foreign_key "previous_schools", "student_profiles"
   add_foreign_key "student_profiles", "users"
 end
