@@ -8,7 +8,7 @@ const menuItems = [
   { label: "Family Info", href: "/student/dashboard/profile/family_info", alert: true },
   { label: "Academic Info", href: "/student/dashboard/profile/academic_info", alert: true },
   { label: "Deficiencies", href: "/student/dashboard/profile/deficiencies" },
-  { label: "Account", href: "#" },
+  { label: "Account", href: "/student/dashboard/profile/account" },
 ];
 
 export default function ProfileLayout({ children }) {

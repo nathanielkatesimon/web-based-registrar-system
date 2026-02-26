@@ -21,6 +21,7 @@ class Api::V1::StudentsController < ApplicationController
   # PATCH/PUT /api/v1/students/personal_info
   def update
     if @student.update(filtered_student_params)
+      refresh_session_for_self_update!
       render json: @student
     else
       render json: { errors: @student.errors.full_messages }, status: :unprocessable_entity
@@ -51,6 +52,15 @@ class Api::V1::StudentsController < ApplicationController
     end
 
     attrs
+  end
+
+  def refresh_session_for_self_update!
+    return unless current_user.is_a?(Student)
+    return unless current_user == @student
+
+    # Devise stores auth-related salt in session. Password updates change this salt,
+    # so refresh the signed-in session to avoid immediate logout.
+    bypass_sign_in(@student, scope: :user)
   end
 
   def student_params
