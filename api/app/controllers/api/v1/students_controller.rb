@@ -1,9 +1,9 @@
 class Api::V1::StudentsController < ApplicationController
-  before_action :set_student, only: [:show, :update, :destroy]
+  before_action :authenticate_user!, only: [:show, :update, :destroy]
 
-  # GET /api/v1/students/:id
+  # GET /api/v1/students/personal_info
   def show
-    render json: @student
+    render json: current_user
   end
 
   # POST /api/v1/students
@@ -17,28 +17,22 @@ class Api::V1::StudentsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /api/v1/students/:id
+  # PATCH/PUT /api/v1/students/personal_info
   def update
-    if @student.update(student_params)
+    if current_user.update(student_params)
       render json: @student
     else
-      render json: { errors: @student.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
-  # DELETE /api/v1/students/:id
+  # DELETE /api/v1/students
   def destroy
-    @student.destroy
+    current_user.destroy
     head :no_content
   end
 
   private
-
-  def set_student
-    @student = Student.includes(student_profile: :previous_schools).find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Student not found' }, status: :not_found
-  end
 
   def student_params
     params.require(:student).permit(

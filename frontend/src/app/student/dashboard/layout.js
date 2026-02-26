@@ -32,6 +32,12 @@ export default function StudentDashboardLayout({children}) {
                     <div className="text-truncate" data-i18n="Dashboards">Requests</div>
                   </Link>
                 </li>
+                <li className="menu-item">
+                  <Link href="/student/dashboard/profile/personal_info" className="menu-link fs-5">
+                    <i className="menu-icon tf-icons pb-1 bx bx-user"></i>
+                    <div className="text-truncate" data-i18n="Dashboards">Profile</div>
+                  </Link>
+                </li>
               </ul>
             </aside>
     

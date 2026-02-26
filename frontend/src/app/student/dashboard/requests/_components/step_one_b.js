@@ -122,14 +122,14 @@ export default function StepOneB() {
                   </div><br/>
                   <div className={document.other_purpose ? "" : "d-none"}>
                     <label className="text-danger">Indicate Purpose*</label>
-                    <textarea className="form-control border-none shadow-none" rows="3" onChange={(e) => handleOtherPurpose(e, document)} value={document.purpose} />
+                    <textarea className="form-control shadow-none" rows="3" onChange={(e) => handleOtherPurpose(e, document)} value={document.purpose} />
                     <div className="text-end text-secondary user-select-none">
                       <span>0/100</span>
                     </div>
                   </div>
                   <div className="">
                     <label className="fs-bold">Additional Remarks:</label>
-                    <textarea className="form-control border-none shadow-none" rows="3" onChange={(e) => handleRemarks(e, document)} value={document.remarks} />
+                    <textarea className="form-control shadow-none" rows="3" onChange={(e) => handleRemarks(e, document)} value={document.remarks} />
                     <div className="text-end text-secondary user-select-none">
                       <span>0/300</span>
                     </div>
@@ -139,7 +139,7 @@ export default function StepOneB() {
                       <label>Copies:</label>
                       <input
                         type="number"
-                        className="form-control border-none shadow-none ms-3"
+                        className="form-control shadow-none ms-3"
                         style={{width: "7ch"}}
                         min={1}
                         value={document.quantity}

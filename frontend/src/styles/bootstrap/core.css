@@ -2518,7 +2518,7 @@ progress {
           appearance: none;
   background-color: #fffefe;
   background-clip: padding-box;
-  border: var(--bs-border-width) solid #cacbcb;
+  border: var(--bs-border-width) solid white;
   border-radius: var(--bs-border-radius);
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
@@ -2679,7 +2679,7 @@ textarea.form-control-lg {
   background-repeat: no-repeat;
   background-position: right 0.9375rem center;
   background-size: 22px 24px;
-  border: var(--bs-border-width) solid #cacbcb;
+  border: var(--bs-border-width) solid white;
   border-radius: var(--bs-border-radius);
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
@@ -3095,7 +3095,7 @@ textarea.form-control-lg {
   text-align: center;
   white-space: nowrap;
   background-color: #fffefe;
-  border: var(--bs-border-width) solid #cacbcb;
+  border: var(--bs-border-width) solid white;
   border-radius: var(--bs-border-radius);
 }
 

@@ -8,8 +8,23 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     @student_two_profile = student_profiles(:two)
   end
 
-  test "should show student" do
+  test "should require authentication for protected actions" do
     get api_v1_student_url(@student_one), as: :json
+    assert_response :unauthorized
+
+    patch api_v1_student_url(@student_one),
+          params: { student: { first_name: "Nope" } },
+          as: :json
+    assert_response :unauthorized
+
+    delete api_v1_student_url(@student_one), as: :json
+    assert_response :unauthorized
+  end
+
+  test "should show current_user regardless of requested id" do
+    sign_in_as(@student_one)
+
+    get api_v1_student_url(@student_two), as: :json
 
     assert_response :success
 
@@ -21,15 +36,6 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     assert json_response.key?("student_profile")
     assert_equal @student_one_profile.id, json_response["student_profile"]["id"]
-  end
-
-  test "should return not found for show when student does not exist" do
-    get api_v1_student_url(id: 999_999), as: :json
-
-    assert_response :not_found
-
-    json_response = JSON.parse(response.body)
-    assert_equal "Student not found", json_response["error"]
   end
 
   test "should create student with nested profile and previous schools" do
@@ -136,7 +142,9 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update student basic fields" do
-    patch api_v1_student_url(@student_one),
+    sign_in_as(@student_one)
+
+    patch api_v1_student_url(@student_two),
           params: {
             student: {
               first_name: "Updated",
@@ -149,16 +157,17 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     @student_one.reload
+    @student_two.reload
     assert_equal "Updated", @student_one.first_name
     assert_equal "Middle", @student_one.middle_name
     assert_equal "Jr", @student_one.extension
-
-    json_response = JSON.parse(response.body)
-    assert_equal "Updated", json_response["first_name"]
+    assert_not_equal "Updated", @student_two.first_name
   end
 
   test "should update nested student_profile fields" do
-    patch api_v1_student_url(@student_two),
+    sign_in_as(@student_two)
+
+    patch api_v1_student_url(@student_one),
           params: {
             student: {
               student_profile_attributes: {
@@ -175,16 +184,19 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     @student_two_profile.reload
+    @student_one_profile.reload
     assert_equal "09119998888", @student_two_profile.contact_number
     assert_equal "Lapu-Lapu City", @student_two_profile.city_municipality
     assert_equal "ABM", @student_two_profile.strand
+    assert_not_equal "09119998888", @student_one_profile.contact_number
   end
 
   test "should destroy previous school via nested attributes on update" do
     previous_school = previous_schools(:three)
+    sign_in_as(@student_one)
 
     assert_difference("PreviousSchool.count", -1) do
-      patch api_v1_student_url(@student_one),
+      patch api_v1_student_url(@student_two),
             params: {
               student: {
                 student_profile_attributes: {
@@ -206,7 +218,9 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should return unprocessable_entity for invalid nested update" do
-    patch api_v1_student_url(@student_one),
+    sign_in_as(@student_one)
+
+    patch api_v1_student_url(@student_two),
           params: {
             student: {
               student_profile_attributes: {
@@ -228,22 +242,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes json_response["errors"].join(" "), "must be 1st, 2nd, 3rd, or 4th for college"
   end
 
-  test "should return not found for update when student does not exist" do
-    patch api_v1_student_url(id: 999_999),
-          params: {
-            student: {
-              first_name: "Nope"
-            }
-          },
-          as: :json
-
-    assert_response :not_found
-
-    json_response = JSON.parse(response.body)
-    assert_equal "Student not found", json_response["error"]
-  end
-
-  test "should destroy student" do
+  test "should destroy current user regardless of requested id" do
     student = Student.create!(
       auth_id: "2026000000099",
       email: "to-delete@example.com",
@@ -253,20 +252,28 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
       last_name: "Me",
       type: "Student"
     )
+    sign_in_as(student)
 
     assert_difference("Student.count", -1) do
-      delete api_v1_student_url(student), as: :json
+      delete api_v1_student_url(id: 999_999), as: :json
     end
 
     assert_response :no_content
+    assert_not Student.exists?(student.id)
   end
 
-  test "should return not found for destroy when student does not exist" do
-    delete api_v1_student_url(id: 999_999), as: :json
+  private
 
-    assert_response :not_found
+  def sign_in_as(user)
+    post "/api/v1/users/sign_in",
+         params: {
+           user: {
+             auth_id: user.auth_id,
+             password: "password123"
+           }
+         },
+         as: :json
 
-    json_response = JSON.parse(response.body)
-    assert_equal "Student not found", json_response["error"]
+    assert_response :success
   end
 end
