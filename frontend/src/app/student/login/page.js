@@ -1,7 +1,6 @@
 import AuthLayout from "@/components/features/auth/auth-layout";
 import AuthCard from "@/components/features/auth/auth-card";
 import CopyrightNotice from "@/components/ui/copyright-notice";
-import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import GuestOnlyGuard from "@/components/features/auth/guest-only-guard";
 import Link from "next/link";
 import StudentLoginForm from "./components/form";

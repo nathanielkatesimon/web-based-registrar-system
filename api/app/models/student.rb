@@ -1,5 +1,7 @@
 class Student < User
   has_one :student_profile, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
+  has_many :document_requests, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
+
   accepts_nested_attributes_for :student_profile
 
   after_create :build_default_profile

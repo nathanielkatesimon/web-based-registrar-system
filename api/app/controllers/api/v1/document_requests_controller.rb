@@ -1,10 +1,11 @@
 class Api::V1::DocumentRequestsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_document_request, only: %i[ show update destroy ]
 
   # GET /document_requests
   def index
-    @document_requests = DocumentRequest.all
-
+    @document_requests = current_user.document_requests
+  
     render json: @document_requests
   end
 
@@ -18,7 +19,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
     @document_request = DocumentRequest.new(document_request_params)
 
     if @document_request.save
-      render json: @document_request, status: :created, location: @document_request
+      render json: @document_request, status: :created
     else
       render json: @document_request.errors, status: :unprocessable_content
     end
@@ -46,6 +47,24 @@ class Api::V1::DocumentRequestsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def document_request_params
-      params.expect(document_request: [ :user_id, :status, :delivery_method, :payment_method, :payment_status, :payment_verified_at, :shipping_fee_cents ])
+      params.require(:document_request).permit([
+        :user_id,
+        :status,
+        :delivery_method,
+        :payment_method,
+        :payment_status,
+        :payment_verified_at,
+        :shipping_fee_cents,
+        document_request_items_attributes: [
+            :id,
+            :document_type_id,
+            :quantity,
+            :purpose,
+            :destination,
+            :remarks,
+            :unit_price_cents,
+            :_destroy
+        ]
+      ])
     end
 end

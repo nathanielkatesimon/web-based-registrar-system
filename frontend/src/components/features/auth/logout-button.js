@@ -60,8 +60,11 @@ export default function LogoutButton({ className = "btn btn-danger" }) {
   };
 
   return (
-    <button type="button" className={className} onClick={handleLogout} disabled={isLoggingOut}>
-      {isLoggingOut ? "Signing out..." : "Logout"}
+    <button type="button" className="dropdown-item" onClick={handleLogout} disabled={isLoggingOut}>
+      <i className="bx bx-power-off bx-md me-3"></i>
+      <span>
+        {isLoggingOut ? "Signing out..." : "Logout"}
+      </span>
     </button>
   );
 }
