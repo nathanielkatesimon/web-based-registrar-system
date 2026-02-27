@@ -21,6 +21,11 @@ const YEAR_LEVEL_OPTIONS = [
   { value: "4th", label: "4th Year", schoolLevel: "college" },
 ];
 
+const GRADUATED_YEAR_OPTIONS = [
+  { value: "12", label: "Senior High", schoolLevel: "senior_high" },
+  { value: "4th", label: "College", schoolLevel: "college" },
+];
+
 const DEPARTMENT_OPTIONS = [
   { value: "computer_studies", label: "Computer Studies", schoolLevel: "college" },
   { value: "business", label: "Business", schoolLevel: "college" },
@@ -157,7 +162,10 @@ const mapPayloadToForm = (payload) => {
     email: payload?.email || "",
     usn: payload?.auth_id || "",
     status: profile?.status || "currently_enrolled",
-    year_level: yearLevel,
+    year_level:
+      profile?.status === "graduated" && !["12", "4th"].includes(yearLevel)
+        ? ""
+        : yearLevel,
     program: resolvedProgram?.value || profileProgram,
     department: resolvedDepartment?.value || profileDepartment,
   };
@@ -231,6 +239,11 @@ export default function PersonalInfoForm() {
     return PROGRAM_OPTIONS.filter((option) => option.schoolLevel === schoolLevel);
   }, [formData.department, schoolLevel]);
 
+  const yearLevelOptions = useMemo(() => {
+    if (formData.status === "graduated") return GRADUATED_YEAR_OPTIONS;
+    return YEAR_LEVEL_OPTIONS;
+  }, [formData.status]);
+
   const hasChanges = useMemo(
     () => JSON.stringify(formData) !== JSON.stringify(initialFormData),
     [formData, initialFormData]
@@ -274,7 +287,15 @@ export default function PersonalInfoForm() {
   };
 
   const handleStatusChange = (status) => {
-    setFormData((prev) => ({ ...prev, status }));
+    setFormData((prev) => {
+      const next = { ...prev, status };
+      if (status === "graduated" && !["12", "4th"].includes(next.year_level)) {
+        next.year_level = "";
+        next.program = "";
+        next.department = "";
+      }
+      return next;
+    });
   };
 
   const handleEdit = () => {
@@ -581,7 +602,7 @@ export default function PersonalInfoForm() {
               disabled={isReadOnly}
             >
               <option value="">Year Level</option>
-              {YEAR_LEVEL_OPTIONS.map((option) => (
+              {yearLevelOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
