@@ -1,12 +1,14 @@
 "use client"
 
 import InitDropzone from "@/components/initializer/init-dropzone"
+import PersonalInfoForm from "./personal_info_form"
 
 export default function StepTwo() {
   return <div className="p-5">
     <div className="card mx-auto p-12" style={{ maxWidth: 1072 }}>
       
-      
+      <PersonalInfoForm />
+      <hr className="my-12"/>
       <h4 className="fw-bold text-primary">Attachments<span className="text-danger">*</span></h4>
       <h4 className="text-primary">Upload a photo of you holding any valid ID.</h4>
       <label className="mb-5 text-primary"><strong>Note: </strong>Please make sure the photo / image uploaded is clear.</label>
@@ -19,6 +21,7 @@ export default function StepTwo() {
         </form>
         <span className="text-secondary">Only png, jpeg, jpg are allowed file types</span>
       </div>
+      <hr className="my-12"/>
 
 
       <InitDropzone />
