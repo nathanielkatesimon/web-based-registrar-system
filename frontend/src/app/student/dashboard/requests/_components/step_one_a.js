@@ -10,10 +10,6 @@ export default function StepOneA() {
   const toggleDocument = useStudentDocumentRequestStore((state) => state.toggleDocument);
   const next = useStudentDocumentRequestStore((state) => state.next);
   
-  useEffect(() => {
-    console.log(Object.keys(documents).length < 1)
-  }, [documents]);
-  
   return <div className="p-5">    
     <div className="card mx-auto" style={{maxWidth: 1072}}>
       <div className="card-body p-12">
