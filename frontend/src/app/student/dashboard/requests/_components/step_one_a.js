@@ -2,12 +2,17 @@
 
 import formatMoney from "@/lib/formatMoney";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
+import { useEffect } from "react";
 
 export default function StepOneA() {
   const document_types = useStudentDocumentRequestStore((state) => state.document_types);
   const documents = useStudentDocumentRequestStore((state) => state.documents);
   const toggleDocument = useStudentDocumentRequestStore((state) => state.toggleDocument);
   const next = useStudentDocumentRequestStore((state) => state.next);
+  
+  useEffect(() => {
+    console.log(Object.keys(documents).length < 1)
+  }, [documents]);
   
   return <div className="p-5">    
     <div className="card mx-auto" style={{maxWidth: 1072}}>
@@ -28,7 +33,7 @@ export default function StepOneA() {
             </div>
           )}
         </div>
-        <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button" onClick={next}>Proceed</a>
+        <a href="#" className={`btn btn-primary btn-lg w-100 mt-12 ${Object.keys(documents).length < 1 ? 'disabled' : ''}`} role="button" onClick={next}>Proceed</a>
       </div>
     </div>
   </div>

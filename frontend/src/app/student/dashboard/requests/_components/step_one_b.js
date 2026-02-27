@@ -12,24 +12,24 @@ export default function StepOneB() {
 
   const handlePurposeChange = (event, documentt) => {
     const purpose = event.target.value;
-  
+
     if(purpose == "Others") {
       updateDocument({...documentt, other_purpose: true})
     } else {
       updateDocument({...documentt, purpose, other_purpose: false})
     }
   }
-  
+
   const handleOtherPurpose = (event, document) => {
     const purpose = event.target.value;
     updateDocument({...document, purpose})
   }
-  
+
   const handleRemarks = (event, document) => {
     const remarks = event.target.value;
     updateDocument({...document, remarks})
   }
-  
+
   const handleDestinationChange = (event, documentt) => {
     const destination = event.target.value;
     updateDocument({...documentt, destination })
@@ -38,7 +38,7 @@ export default function StepOneB() {
   const updateQuantity = (value, documentt) => {
     updateDocument({...documentt, quantity: value})
   }
-  
+
   const validateRequiredFields = () => {
     let allValid = true;
     Object.keys(documents).forEach(key => {
@@ -48,18 +48,18 @@ export default function StepOneB() {
         errors.purpose = "Purpose is required"
         allValid = false;
       }
-      
+
       if(!document.destination) {
         errors.destination = "Destination is required"
         allValid = false;
       }
-      
+
       updateDocument({...document, errors})
     });
-    
+
     return allValid;
   }
-  
+
   return <div className="p-5">
     <div className="card mx-auto" style={{maxWidth: 1072}}>
       <div className="card-body p-12">
@@ -152,8 +152,8 @@ export default function StepOneB() {
               </div>
             })
           }
-          
-          
+
+
           <div className="p-8" style={{ backgroundColor: "#F0F0F0" }}>
             <h3 className="text-end text-info m-0 fw-bold">*Total: {
               formatMoney(
@@ -165,8 +165,8 @@ export default function StepOneB() {
             }</h3>
             <h5 className="text-end text-primary">Estimated amount. The final bill will be reflected after verification and choosing delivery method.</h5>
           </div>
-          
-          
+
+
           <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button" onClick={validateRequiredFields}>Submit</a>
         </div>
       </div>
