@@ -6,6 +6,7 @@ import "@/styles/animate.css";
 import "@/styles/spinkit.css";
 import "@/styles/boxicons.css";
 import "@/styles/custom.css";
+import "cropperjs/dist/cropper.css";
 
 import ScriptsLoader from "@/lib/scripts-loader";
 import SessionProvider from "@/components/initializer/session-provider";

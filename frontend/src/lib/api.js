@@ -54,11 +54,16 @@ export function parseError(response) {
 export function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const csrf = getCsrfToken();
+  const isFormDataBody =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
 
   const headers = {
-    "Content-Type": "application/json",
     ...(options.headers || {}),
   };
+
+  if (!isFormDataBody) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (method !== "GET" && method !== "HEAD" && csrf) {
     headers["X-CSRF-Token"] = csrf;

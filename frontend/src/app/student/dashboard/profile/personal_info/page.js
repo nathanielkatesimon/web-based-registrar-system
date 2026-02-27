@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
 import useSessionStore from "@/store/session-store";
+import Cropper from "react-cropper";
 
 const INITIAL_FORM = {
   first_name: "",
@@ -37,17 +38,39 @@ const normalizeAvatarUrl = (value) => {
 
 export default function PersonalInfoPage() {
   const formRef = useRef(null);
+  const avatarInputRef = useRef(null);
+  const cropperRef = useRef(null);
+  const avatarObjectUrlRef = useRef("");
   const { saveCurrentUser } = useSessionStore();
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
   const [profileId, setProfileId] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarCropSource, setAvatarCropSource] = useState("");
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
   const [error, setError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+
+  const syncCurrentUser = useCallback((payload) => {
+    if (!payload) return;
+
+    saveCurrentUser({
+      id: payload?.id,
+      auth_id: payload?.auth_id,
+      type: payload?.type || "Student",
+      first_name: payload?.first_name || "",
+      middle_name: payload?.middle_name || "",
+      last_name: payload?.last_name || "",
+      extension: payload?.extension || "",
+      full_name: payload?.full_name || "",
+      avatar_url: payload?.avatar_url || null,
+    });
+  }, [saveCurrentUser]);
 
   useEffect(() => {
     let isMounted = true;
@@ -93,17 +116,7 @@ export default function PersonalInfoPage() {
           city_municipality: profile?.city_municipality || "",
           province: profile?.province || "",
         };
-        saveCurrentUser({
-          id: payload?.id,
-          auth_id: payload?.auth_id,
-          type: payload?.type || "Student",
-          first_name: payload?.first_name || "",
-          middle_name: payload?.middle_name || "",
-          last_name: payload?.last_name || "",
-          extension: payload?.extension || "",
-          full_name: payload?.full_name || "",
-          avatar_url: payload?.avatar_url || null,
-        });
+        syncCurrentUser(payload);
         setProfileId(profile?.id || null);
         setAvatarUrl(nextAvatarUrl);
         setFormData(nextFormData);
@@ -120,15 +133,12 @@ export default function PersonalInfoPage() {
 
     return () => {
       isMounted = false;
+      if (avatarObjectUrlRef.current) {
+        URL.revokeObjectURL(avatarObjectUrlRef.current);
+        avatarObjectUrlRef.current = "";
+      }
     };
-  }, [saveCurrentUser]);
-
-  const initials = useMemo(() => {
-    const first = formData.first_name?.trim()?.[0] || "";
-    const last = formData.last_name?.trim()?.[0] || "";
-    const value = `${first}${last}`.toUpperCase();
-    return value || "ST";
-  }, [formData.first_name, formData.last_name]);
+  }, [syncCurrentUser]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -147,6 +157,112 @@ export default function PersonalInfoPage() {
     setIsValidated(false);
     setSaveError("");
     setSaveMessage("");
+  };
+
+  const closeAvatarCropper = () => {
+    if (avatarObjectUrlRef.current) {
+      URL.revokeObjectURL(avatarObjectUrlRef.current);
+      avatarObjectUrlRef.current = "";
+    }
+    setAvatarCropSource("");
+    setIsCropperOpen(false);
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = "";
+    }
+  };
+
+  const handleAvatarFileChange = async (event) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!file.type?.startsWith("image/")) {
+        await ShowAlert({
+          icon: "error",
+          title: "Invalid File",
+          text: "Please select an image file.",
+        });
+        return;
+      }
+
+      if (avatarObjectUrlRef.current) {
+        URL.revokeObjectURL(avatarObjectUrlRef.current);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      avatarObjectUrlRef.current = objectUrl;
+      setAvatarCropSource(objectUrl);
+      setIsCropperOpen(true);
+      setSaveMessage("");
+      setSaveError("");
+    } catch (err) {
+      setSaveError(err?.message || "Failed to read selected image.");
+    }
+  };
+
+  const uploadCroppedAvatar = async (blob) => {
+    const formDataPayload = new FormData();
+    formDataPayload.append("student[avatar]", blob, "avatar.jpg");
+
+    const response = await api("/api/v1/students/personal_info", {
+      method: "PATCH",
+      body: formDataPayload,
+    });
+
+    let responseJson = null;
+    try {
+      responseJson = await response.json();
+    } catch {
+      responseJson = null;
+    }
+
+    if (!response.ok) {
+      const backendError =
+        (responseJson?.errors instanceof Array && responseJson.errors[0]) ||
+        responseJson?.error ||
+        "Failed to update avatar.";
+      throw new Error(backendError);
+    }
+
+    syncCurrentUser(responseJson);
+    setAvatarUrl(normalizeAvatarUrl(responseJson?.avatar_url));
+    setSaveMessage("Avatar updated.");
+  };
+
+  const handleApplyAvatarCrop = async () => {
+    try {
+      const cropper = cropperRef.current?.cropper;
+      if (!cropper) {
+        throw new Error("Cropper is not ready.");
+      }
+
+      const canvas = cropper.getCroppedCanvas({
+        width: 512,
+        height: 512,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: "high",
+      });
+
+      if (!canvas) {
+        throw new Error("Could not crop image.");
+      }
+
+      setIsUploadingAvatar(true);
+
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, "image/jpeg", 0.9);
+      });
+
+      if (!blob) {
+        throw new Error("Could not process cropped image.");
+      }
+
+      await uploadCroppedAvatar(blob);
+      closeAvatarCropper();
+    } catch (err) {
+      setSaveError(err?.message || "Failed to update avatar.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   const handleSave = async () => {
@@ -214,17 +330,7 @@ export default function PersonalInfoPage() {
       }
 
       if (responseJson) {
-        saveCurrentUser({
-          id: responseJson?.id,
-          auth_id: responseJson?.auth_id,
-          type: responseJson?.type || "Student",
-          first_name: responseJson?.first_name || "",
-          middle_name: responseJson?.middle_name || "",
-          last_name: responseJson?.last_name || "",
-          extension: responseJson?.extension || "",
-          full_name: responseJson?.full_name || "",
-          avatar_url: responseJson?.avatar_url || null,
-        });
+        syncCurrentUser(responseJson);
         setAvatarUrl(
           normalizeAvatarUrl(responseJson?.avatar_url)
         );
@@ -274,21 +380,30 @@ export default function PersonalInfoPage() {
         </div>
         <hr/>
         <div className="mb-3">
-          {avatarUrl ? (
+          <button
+            type="button"
+            className="avatar-edit-trigger"
+            onClick={() => avatarInputRef.current?.click()}
+            aria-label="Change avatar"
+            disabled={isUploadingAvatar}
+          >
             <img
-              src={avatarUrl}
+              src={avatarUrl || "/avatar_placeholder.webp"}
               alt="Student avatar"
               className="rounded-circle object-fit-cover"
               style={{ width: "72px", height: "72px" }}
             />
-          ) : (
-            <img
-              src="/avatar_placeholder.webp"
-              alt="Student avatar"
-              className="rounded-circle object-fit-cover"
-              style={{ width: "72px", height: "72px" }}
-            />
-          )}
+            <span className="avatar-edit-overlay">
+              <i className="bx bx-camera fs-4"></i>
+            </span>
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            className="d-none"
+            onChange={handleAvatarFileChange}
+          />
         </div>
 
         {isLoading && <p className="small text-muted mb-3">Loading personal information...</p>}
@@ -597,6 +712,83 @@ export default function PersonalInfoPage() {
           </div>
         </form>
       </div>
+
+      {isCropperOpen && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{ backgroundColor: "rgba(17, 24, 39, 0.72)", zIndex: 1080 }}
+        >
+          <div className="bg-white rounded-3 shadow-lg w-100" style={{ maxWidth: "560px" }}>
+            <div className="p-3 border-bottom">
+              <h5 className="m-0 fw-semibold">Crop Avatar</h5>
+            </div>
+            <div className="p-3">
+              <div style={{ height: "360px" }}>
+                <Cropper
+                  ref={cropperRef}
+                  src={avatarCropSource}
+                  style={{ height: "100%", width: "100%" }}
+                  viewMode={1}
+                  aspectRatio={1}
+                  autoCropArea={1}
+                  background={false}
+                  responsive
+                  guides={false}
+                  dragMode="move"
+                  checkOrientation={false}
+                />
+              </div>
+            </div>
+            <div className="p-3 border-top d-flex justify-content-end gap-2">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={closeAvatarCropper}
+                disabled={isUploadingAvatar}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary text-white"
+                onClick={handleApplyAvatarCrop}
+                disabled={isUploadingAvatar}
+              >
+                {isUploadingAvatar ? "Uploading..." : "Apply"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .avatar-edit-trigger {
+          position: relative;
+          border: 0;
+          background: transparent;
+          border-radius: 50%;
+          padding: 0;
+          cursor: pointer;
+          overflow: hidden;
+          width: 72px;
+          height: 72px;
+        }
+        .avatar-edit-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          background: rgba(2, 132, 199, 0.55);
+          opacity: 0;
+          transition: opacity 0.15s ease;
+        }
+        .avatar-edit-trigger:hover .avatar-edit-overlay,
+        .avatar-edit-trigger:focus-visible .avatar-edit-overlay {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }
