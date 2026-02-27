@@ -1,4 +1,5 @@
 require "test_helper"
+require "stringio"
 
 class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -50,6 +51,24 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @student_one.id, json_response["id"]
     assert_equal @student_one.auth_id, json_response["auth_id"]
     assert_equal @student_one_profile.id, json_response["student_profile"]["id"]
+    assert_nil json_response["avatar_url"]
+  end
+
+  test "should include avatar_url when student has avatar attached" do
+    @student_two.avatar.attach(
+      io: StringIO.new("fake-avatar-content"),
+      filename: "student-two-avatar.png",
+      content_type: "image/png"
+    )
+    sign_in_as(@student_one)
+
+    get api_v1_student_url(@student_two), as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    assert json_response["avatar_url"].present?
+    assert_includes json_response["avatar_url"], "/rails/active_storage"
   end
 
   test "should create student with nested profile and school slots" do

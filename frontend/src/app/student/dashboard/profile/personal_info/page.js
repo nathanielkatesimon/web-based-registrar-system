@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
+import useSessionStore from "@/store/session-store";
 
 const INITIAL_FORM = {
   first_name: "",
@@ -28,11 +29,19 @@ const toInputDate = (value) => {
   return String(value).split("T")[0];
 };
 
+const normalizeAvatarUrl = (value) => {
+  if (!value) return "";
+  if (String(value).startsWith("http")) return value;
+  return `${process.env.NEXT_PUBLIC_API_URL || ""}${value}`;
+};
+
 export default function PersonalInfoPage() {
   const formRef = useRef(null);
+  const { saveCurrentUser } = useSessionStore();
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
   const [profileId, setProfileId] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
@@ -65,6 +74,7 @@ export default function PersonalInfoPage() {
         if (!isMounted) return;
 
         const profile = payload?.student_profile || {};
+        const nextAvatarUrl = normalizeAvatarUrl(payload?.avatar_url);
         const nextFormData = {
           first_name: payload?.first_name || "",
           middle_name: payload?.middle_name || "",
@@ -83,7 +93,19 @@ export default function PersonalInfoPage() {
           city_municipality: profile?.city_municipality || "",
           province: profile?.province || "",
         };
+        saveCurrentUser({
+          id: payload?.id,
+          auth_id: payload?.auth_id,
+          type: payload?.type || "Student",
+          first_name: payload?.first_name || "",
+          middle_name: payload?.middle_name || "",
+          last_name: payload?.last_name || "",
+          extension: payload?.extension || "",
+          full_name: payload?.full_name || "",
+          avatar_url: payload?.avatar_url || null,
+        });
         setProfileId(profile?.id || null);
+        setAvatarUrl(nextAvatarUrl);
         setFormData(nextFormData);
         setInitialFormData(nextFormData);
       } catch (err) {
@@ -99,7 +121,7 @@ export default function PersonalInfoPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [saveCurrentUser]);
 
   const initials = useMemo(() => {
     const first = formData.first_name?.trim()?.[0] || "";
@@ -191,6 +213,23 @@ export default function PersonalInfoPage() {
         throw new Error(backendError);
       }
 
+      if (responseJson) {
+        saveCurrentUser({
+          id: responseJson?.id,
+          auth_id: responseJson?.auth_id,
+          type: responseJson?.type || "Student",
+          first_name: responseJson?.first_name || "",
+          middle_name: responseJson?.middle_name || "",
+          last_name: responseJson?.last_name || "",
+          extension: responseJson?.extension || "",
+          full_name: responseJson?.full_name || "",
+          avatar_url: responseJson?.avatar_url || null,
+        });
+        setAvatarUrl(
+          normalizeAvatarUrl(responseJson?.avatar_url)
+        );
+      }
+
       setInitialFormData(formData);
       setSaveMessage("Changes saved.");
       await ShowAlert({
@@ -235,12 +274,21 @@ export default function PersonalInfoPage() {
         </div>
         <hr/>
         <div className="mb-3">
-          <div
-            className="rounded-circle d-flex align-items-center justify-content-center text-white fw-semibold"
-            style={{ width: "72px", height: "72px", backgroundColor: "#7b8ba8" }}
-          >
-            {initials}
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Student avatar"
+              className="rounded-circle object-fit-cover"
+              style={{ width: "72px", height: "72px" }}
+            />
+          ) : (
+            <img
+              src="/avatar_placeholder.webp"
+              alt="Student avatar"
+              className="rounded-circle object-fit-cover"
+              style={{ width: "72px", height: "72px" }}
+            />
+          )}
         </div>
 
         {isLoading && <p className="small text-muted mb-3">Loading personal information...</p>}

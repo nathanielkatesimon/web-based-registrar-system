@@ -10,6 +10,8 @@ class User < ApplicationRecord
   # Validation for auth_id format based on type
   validate :auth_id_format
   
+  has_one_attached :avatar
+  
   def auth_id_format
     if type == 'Student' && auth_id.present? && auth_id !~ /^(\d{11}|\d{12}|\d{13})$/
       errors.add(:student, 'USN must be 11 to 13 characters')

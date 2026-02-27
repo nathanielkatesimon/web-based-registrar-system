@@ -11,7 +11,7 @@ export default function SessionInitializer() {
     async function fetchSessionData() {
       const session = await api("/api/v1/auth/session");
       const { csrf_token, user } = await session.json();
-      saveSession(user?.type || "Guess", csrf_token);
+      saveSession(user?.type || "Guess", csrf_token, user || null);
     }
     fetchSessionData();
   }, [userType, saveSession])

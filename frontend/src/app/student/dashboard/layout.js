@@ -1,9 +1,24 @@
+"use client";
+
 import AuthRequiredGuard from "@/components/features/auth/auth-required-guard";
 import LogoutButton from "@/components/features/auth/logout-button";
 import Link from "next/link";
 import Image from "next/image";
+import { useMemo } from "react";
+import useSessionStore from "@/store/session-store";
 
 export default function StudentDashboardLayout({children}) {
+  const { currentUser } = useSessionStore();
+
+  const avatarSrc = useMemo(() => {
+    const source = currentUser?.avatar_url;
+    if (!source) return "/avatar_placeholder.webp";
+    if (source.startsWith("http")) return source;
+    return `${process.env.NEXT_PUBLIC_API_URL || ""}${source}`;
+  }, [currentUser?.avatar_url]);
+
+  const displayName = currentUser?.full_name || "Student";
+
   return (
     <AuthRequiredGuard requiredType="Student">
     <div className="layout-wrapper layout-content-navbar">
@@ -52,7 +67,7 @@ export default function StudentDashboardLayout({children}) {
     
                 <div className="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
                   <div className="d-none d-md-block">
-                    <h3 className="m-0 p-0 text-info fw-bold">Hello Stephanie!</h3>
+                    <h3 className="m-0 p-0 text-info fw-bold">Hello {displayName}!</h3>
                     <p className="m-0 p-0">How can we help you today?</p>
                   </div>
     
@@ -79,7 +94,7 @@ export default function StudentDashboardLayout({children}) {
                     <li className="nav-item navbar-dropdown dropdown-user dropdown">
                       <a className="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
                         <div className="avatar" style={{bottom: "0.4rem"}}>
-                          <img src="https://cdn.pixabay.com/photo/2018/11/13/22/01/avatar-3814081_1280.png" alt="" className="w-px-52 h-auto rounded-circle" />
+                          <img src={avatarSrc} alt="User avatar" className="w-px-52 h-auto rounded-circle" />
                         </div>
                       </a>
                       <ul className="dropdown-menu dropdown-menu-end">
@@ -88,12 +103,12 @@ export default function StudentDashboardLayout({children}) {
                             <div className="d-flex">
                               <div className="flex-shrink-0 me-3">
                                 <div className="avatar avatar-online">
-                                  <img src="https://cdn.pixabay.com/photo/2018/11/13/22/01/avatar-3814081_1280.png" />
+                                  <img src={avatarSrc} alt="User avatar" />
                                 </div>
                               </div>
                               <div className="flex-grow-1">
-                                <h6 className="mb-0">John Doe</h6>
-                                <small className="text-muted">Admin</small>
+                                <h6 className="mb-0">{displayName}</h6>
+                                <small className="text-muted">{currentUser?.type || "Student"}</small>
                               </div>
                             </div>
                           </a>
@@ -102,35 +117,9 @@ export default function StudentDashboardLayout({children}) {
                           <div className="dropdown-divider my-1"></div>
                         </li>
                         <li>
-                          <a className="dropdown-item" href="pages-profile-user.html">
+                          <Link className="dropdown-item" href="/student/dashboard/profile/personal_info">
                             <i className="bx bx-user bx-md me-3"></i><span>My Profile</span>
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="pages-account-settings-account.html">
-                            <i className="bx bx-cog bx-md me-3"></i><span>Settings</span>
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="pages-account-settings-billing.html">
-                            <span className="d-flex align-items-center align-middle">
-                              <i className="flex-shrink-0 bx bx-credit-card bx-md me-3"></i><span className="flex-grow-1 align-middle">Billing Plan</span>
-                              <span className="flex-shrink-0 badge rounded-pill bg-danger">4</span>
-                            </span>
-                          </a>
-                        </li>
-                        <li>
-                          <div className="dropdown-divider my-1"></div>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="pages-pricing.html">
-                            <i className="bx bx-dollar bx-md me-3"></i><span>Pricing</span>
-                          </a>
-                        </li>
-                        <li>
-                          <a className="dropdown-item" href="pages-faq.html">
-                            <i className="bx bx-help-circle bx-md me-3"></i><span>FAQ</span>
-                          </a>
+                          </Link>
                         </li>
                         <li>
                           <div className="dropdown-divider my-1"></div>

@@ -68,6 +68,7 @@ class Api::V1::StudentsController < ApplicationController
       :email,
       :password,
       :password_confirmation,
+      :avatar,
       :auth_id,
       :first_name,
       :middle_name,
