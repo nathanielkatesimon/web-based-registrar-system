@@ -2,7 +2,6 @@
 
 import formatMoney from "@/lib/formatMoney";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
-import { useEffect } from "react";
 
 export default function StepOneA() {
   const document_types = useStudentDocumentRequestStore((state) => state.document_types);

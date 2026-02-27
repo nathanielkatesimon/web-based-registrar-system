@@ -21,6 +21,10 @@ export default function ScriptsLoader() {
         strategy="beforeInteractive"
       />
       <Script
+        src="/assets/vendor/libs/dropzone.js"
+        strategy="beforeInteractive"
+      />
+      <Script
         src="/assets/scripts/main.js"
         strategy="beforeInteractive"
       />

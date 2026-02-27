@@ -8,9 +8,9 @@ const useStudentDocumentRequestStore = create((set, get) => ({
   
   next: () => {
     const current = get().step;
-    if (current === 1) {
+    if (current === 1 || current == 1.5) {
       set({ step: current + 0.5 });
-    } else if (current === 1.5) {
+    } else {
       set({ step: current + 1 });
     }
   },

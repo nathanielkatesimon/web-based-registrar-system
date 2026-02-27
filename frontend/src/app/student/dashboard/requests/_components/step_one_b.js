@@ -3,12 +3,14 @@
 import formatMoney from "@/lib/formatMoney";
 import InitBootstrapSelect from "@/components/initializer/init-bootstrap-select";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
+import next from "next";
 
 export default function StepOneB() {
   const documents = useStudentDocumentRequestStore((state) => state.documents);
   const toggleDocument = useStudentDocumentRequestStore((state) => state.toggleDocument);
   const updateDocument = useStudentDocumentRequestStore((state) => state.updateDocument);
   const prev = useStudentDocumentRequestStore((state) => state.prev);
+  const next = useStudentDocumentRequestStore((state) => state.next);
 
   const handlePurposeChange = (event, documentt) => {
     const purpose = event.target.value;
@@ -41,6 +43,7 @@ export default function StepOneB() {
 
   const validateRequiredFields = () => {
     let allValid = true;
+
     Object.keys(documents).forEach(key => {
       const document = documents[key];
       let errors = {}
@@ -56,8 +59,10 @@ export default function StepOneB() {
 
       updateDocument({...document, errors})
     });
-
-    return allValid;
+    
+    if (allValid) {
+      next();
+    }
   }
 
   return <div className="p-5">

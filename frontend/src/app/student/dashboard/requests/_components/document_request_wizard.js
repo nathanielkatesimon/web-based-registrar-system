@@ -4,10 +4,12 @@ import useStudentDocumentRequestStore from "@/store/student/requests/document_re
 import StepOneA from "./step_one_a";
 import StepOneB from "./step_one_b";
 import { useEffect } from "react";
+import StepTwo from "./step_two";
 
 const STEPS = {
   1: <StepOneA></StepOneA>,
-  1.5: <StepOneB></StepOneB>
+  1.5: <StepOneB></StepOneB>,
+  2: <StepTwo></StepTwo>
 }
 
 export default function DocumentRequestWizard({ document_types }) {
