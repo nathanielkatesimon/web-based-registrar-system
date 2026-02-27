@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
 
 const TIMELINE_STEPS = [
@@ -34,7 +35,7 @@ export default function StudentRequestLayout({ children }) {
               const connectorColor = activeStep > timelineStep.key ? "#03045E" : "#A0A0A0";
 
               return (
-                <>
+                <React.Fragment key={timelineStep.key}>
                   <div className="d-flex flex-column align-items-center" style={{ minWidth: 120 }}>
                     <div
                       className="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
@@ -64,7 +65,7 @@ export default function StudentRequestLayout({ children }) {
                       }}
                     />
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </div>
