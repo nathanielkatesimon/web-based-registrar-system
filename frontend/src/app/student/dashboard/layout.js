@@ -37,13 +37,13 @@ export default function StudentDashboardLayout({children}) {
               <ul className="menu-inner py-1 overflow-auto">
                 <li className="menu-item">
                   <Link href="/student/dashboard" className="menu-link fs-5">
-                    <i className="menu-icon tf-icons pb-1 bx bx-tachometer"></i>
+                    <i className="menu-icon tf-icons pb-1 bx bx-dashboard"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Dashboard</div>
                   </Link>
                 </li>
                 <li className="menu-item">
                   <Link href="/student/dashboard/requests" className="menu-link fs-5">
-                    <i className="menu-icon tf-icons pb-1 bx bx-file"></i>
+                    <i className="menu-icon tf-icons pb-1 bx bx-file-detail"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Requests</div>
                   </Link>
                 </li>
@@ -72,7 +72,7 @@ export default function StudentDashboardLayout({children}) {
                   </div>
     
                   <ul className="navbar-nav flex-row align-items-center ms-auto">
-                    <li className="nav-item dropdown-notifications navbar-dropdown dropdown btn-label-info rounded-circle p-1 px-3 px-xl-1 me-4 w-100">
+                    <li className="nav-item dropdown-notifications navbar-dropdown dropdown btn-label-info rounded-circle me-4 w-100" style={{width: 50, height: 40}}>
                       <a className="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                         <span className="position-relative">
                           <i className="bx bx-bell bx-md"></i>
@@ -117,7 +117,7 @@ export default function StudentDashboardLayout({children}) {
                           <div className="dropdown-divider my-1"></div>
                         </li>
                         <li>
-                          <Link className="dropdown-item" href="/student/dashboard/profile/personal_info">
+                          <Link className="dropdown-item d-flex align-items-end" href="/student/dashboard/profile/personal_info">
                             <i className="bx bx-user bx-md me-3"></i><span>My Profile</span>
                           </Link>
                         </li>

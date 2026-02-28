@@ -69,8 +69,8 @@ export default function StepOneB() {
     <div className="card mx-auto" style={{maxWidth: 1072}}>
       <div className="card-body p-12">
         <h5 className="card-title fw-bold text-primary">Choose the document(s) you wish to request and specify how many copies are needed.</h5>
-        <div className="rounded-1 p-5 text-primary" style={{backgroundColor: "#F0F0F0"}}>
-          <i className="bx bx-info-circle fs-4 pb-1 me-1"></i>
+        <div className="rounded-1 p-5 text-primary d-flex align-items-center" style={{backgroundColor: "#F0F0F0"}}>
+          <i className="bx bx-info-circle fs-4 me-1"></i>
           <span><strong>Note:</strong> Please complete the required fields below, then click “Submit” to proceed.</span>
         </div>
         <div className="w-100 d-flex">

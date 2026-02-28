@@ -6,6 +6,7 @@ import useStudentDocumentRequestStore from "@/store/student/requests/document_re
 import PersonalInfoForm from "./personal_info_form"
 
 export default function StepTwo() {
+  const next = useStudentDocumentRequestStore((state) => state.next)
   const prev = useStudentDocumentRequestStore((state) => state.prev)
   const documents = useStudentDocumentRequestStore((state) => state.documents)
   const total = Object.keys(documents).reduce((sum, key) => {
@@ -46,7 +47,7 @@ export default function StepTwo() {
           <span>{formatMoney(total)}</span>
         </div>
       </div>
-      <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button">Proceed</a>
+      <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button" onClick={next}>Proceed</a>
       <a href="#" className="btn btn-secondary btn-lg w-100 mt-5" role="button" onClick={prev}>Back</a>
 
 
