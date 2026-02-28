@@ -19,6 +19,7 @@ export default function ProfileLayout({ children }) {
       <div className="container-fluid px-0">
         <div className="d-flex">
           <aside
+            className="position-fixed"
             style={{ width: "220px", minHeight: "100vh", backgroundColor: "#9bb2e7", borderRight: "1px solid #8da3d4" }}
           >
             <nav>
@@ -48,7 +49,7 @@ export default function ProfileLayout({ children }) {
             </nav>
           </aside>
 
-          <main className="flex-grow-1 px-4 py-3">
+          <main className="flex-grow-1 px-4 py-3" style={{marginLeft: 220}}>
             <div className="pb-4">{children}</div>
           </main>
         </div>

@@ -58,7 +58,7 @@ export default function StudentDashboardLayout({children}) {
     
             <div className="layout-page">
     
-              <nav className="layout-navbar container-fluid navbar navbar-expand-xl w-100 py-12 align-items-center bg-navbar-theme mt-0 mb-0 mx-0 rounded-0" id="layout-navbar">
+              <nav className="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme mt-0 mb-0 rounded-0" id="layout-navbar">
                 <div className="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
                   <a className="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
                     <i className="bx bx-menu bx-md"></i>

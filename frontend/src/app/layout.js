@@ -14,7 +14,7 @@ import SessionProvider from "@/components/initializer/session-provider";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="light-style layout-navbar-fixed layout-menu-fixed layout-compact">
       <body>
         {children}
         <SessionProvider />

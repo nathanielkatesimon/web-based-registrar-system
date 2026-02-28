@@ -497,11 +497,11 @@ export default function StudentRegistrationForm() {
             </select>
           </div>
 
-          <div className="mb-5">
+          <div className="mb-7">
             <label htmlFor="department_display">Department</label>
             <div
               id="department_display"
-              className="form-control form-control-lg d-flex align-items-center mb-0 bg-light border-0"
+              className="form-control d-flex align-items-center mb-0 bg-light border-0"
             >
               {getDepartmentDisplay(formValues.course_track) || "Department"}
             </div>
@@ -511,7 +511,7 @@ export default function StudentRegistrationForm() {
         <p className="text-black fw-semibold">Please check which fits if none leave unchecked:</p>
         <div>
           <input
-            className="form-check-input me-2 my-2"
+            className="form-check-input me-2 my-1"
             type="checkbox"
             id="checkbox1"
             name="academic_status"
@@ -520,10 +520,10 @@ export default function StudentRegistrationForm() {
             required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("current_enrolled")}
           />
-          <label className="my-2" htmlFor="checkbox1">I am currently enrolled</label>
+          <label className="my-1" htmlFor="checkbox1">I am currently enrolled</label>
           <br/>
           <input
-            className="form-check-input me-2 my-2"
+            className="form-check-input me-2 my-1"
             type="checkbox"
             id="checkbox2"
             name="academic_status"
@@ -532,10 +532,10 @@ export default function StudentRegistrationForm() {
             required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("transferee")}
           />
-          <label className="my-2" htmlFor="checkbox2">I am a transferee</label>
+          <label className="my-1" htmlFor="checkbox2">I am a transferee</label>
           <br/>
           <input
-            className="form-check-input me-2 my-2"
+            className="form-check-input me-2 my-1"
             type="checkbox"
             id="checkbox3"
             name="academic_status"
@@ -544,10 +544,10 @@ export default function StudentRegistrationForm() {
             required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("returnee")}
           />
-          <label className="my-2" htmlFor="checkbox3">I am a returnee</label>
+          <label className="my-1" htmlFor="checkbox3">I am a returnee</label>
           <br/>
           <input
-            className="form-check-input me-2 my-2"
+            className="form-check-input me-2 my-1"
             type="checkbox"
             id="checkbox4"
             name="academic_status"
@@ -556,7 +556,7 @@ export default function StudentRegistrationForm() {
             required={academicStatus === ""}
             onChange={() => handleAcademicStatusChange("already_graduated")}
           />
-          <label className="my-2" htmlFor="checkbox4">I already graduated</label>
+          <label className="my-1" htmlFor="checkbox4">I already graduated</label>
         </div>
         <br />
 
@@ -645,7 +645,7 @@ export default function StudentRegistrationForm() {
             <label htmlFor="graduated_department_display">Department</label>
             <div
               id="graduated_department_display"
-              className="form-control form-control-lg d-flex align-items-center mb-0 bg-light border-0"
+              className="form-control d-flex align-items-center mb-0 bg-light border-0"
             >
               {getDepartmentDisplay(formValues.graduated_course_track) || "Department"}
             </div>
