@@ -135,6 +135,12 @@ git pull origin master
 
 ### 3. Run the frontend
 
+#### Local environment variables for Frontend
+```yml
+# frontend/.env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
 ```bash
 cd frontend
 npm i
@@ -144,7 +150,7 @@ npm run dev
 ### 4. Run the API
 
 Open a new terminal in the repository root, then run:
-#### Local environment variables
+#### Local environment variables for API
 ```yml
 # api/config/local_env.yml
 FRONTEND_URL: "localhost:3000"
