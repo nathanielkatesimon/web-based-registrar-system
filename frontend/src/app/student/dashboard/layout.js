@@ -72,8 +72,8 @@ export default function StudentDashboardLayout({children}) {
                   </div>
     
                   <ul className="navbar-nav flex-row align-items-center ms-auto">
-                    <li className="nav-item dropdown-notifications navbar-dropdown dropdown btn-label-info rounded-circle me-4 w-100" style={{width: 50, height: 40}}>
-                      <a className="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <li className="nav-item dropdown-notifications navbar-dropdown dropdown btn-label-info rounded-circle me-4 d-flex" style={{width: 40, height: 40}}>
+                      <a className="nav-link dropdown-toggle hide-arrow mx-auto" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                         <span className="position-relative">
                           <i className="bx bx-bell bx-md"></i>
                           <span className="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
