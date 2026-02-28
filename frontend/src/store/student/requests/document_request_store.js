@@ -4,7 +4,15 @@ const useStudentDocumentRequestStore = create((set, get) => ({
   step: 1,
   document_types: [],
   documents: {},
+  delivery_method: "",
+  payment_method: "",
+  courier_type: {name: "", fee_cents: 0},
+  setPaymentMethod: (method) => set({ payment_method: method }),
+  clearPaymentMethod: () => set({ payment_method: "" }),
   
+  setDeliveryMethod: (method) => set({ delivery_method: method }),
+  
+  setupCourierType: (courier) => set({ courier_type: courier }),
   
   next: () => {
     const current = get().step;
@@ -39,6 +47,7 @@ const useStudentDocumentRequestStore = create((set, get) => ({
     }
     set({ documents: docs });
   },
+  
   
   updateDocument: (document) => {
     const docs = { ...get().documents };
