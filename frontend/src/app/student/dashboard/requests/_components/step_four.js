@@ -21,16 +21,6 @@ export default function StepFour() {
 
   return <div className="p-5">
     <div className="card mx-auto p-12" style={{ maxWidth: 1072 }}>
-      
-      {step == 3 &&
-        <div className="d-flex align-items-center p-5 mb-8" style={{ backgroundColor: "#F0F0F0" }}>
-          <i className="bx bx-info-circle fs-4 text-primary me-2"></i>
-          <span>
-            <strong className="text-primary fw-bold">Note: </strong>
-            Please select your preferred delivery method.
-          </span>
-        </div>
-      }
   
       <div className="row gy-3">
         <div className="col-md">
@@ -70,7 +60,7 @@ export default function StepFour() {
           </span>
         </div> :
         payment_method == "online" && <>
-          <div className="d-flex align-items-center p-8 my-5" style={{ backgroundColor: "#F0F0F0" }}>
+          <div className="d-flex align-items-start p-8 my-5" style={{ backgroundColor: "#F0F0F0" }}>
             <i className="bx bx-info-circle fs-4 text-info me-2"></i>
             <span>
               <strong className="text-info fw-bold">Note: </strong>
