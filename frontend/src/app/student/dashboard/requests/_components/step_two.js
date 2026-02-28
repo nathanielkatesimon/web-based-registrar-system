@@ -24,7 +24,6 @@ export default function StepTwo() {
       <div className="card shadow-none">
         <form action="/upload" className="dropzone needsclick dz-clickable border border-dashed" id="dropzone-basic">
           <div className="dz-message needsclick">
-            <i className="bx bx-image fs-1 d-block text-center"></i>
             Drop image or Click to upload
           </div>
         </form>
