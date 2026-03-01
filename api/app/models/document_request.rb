@@ -38,6 +38,10 @@ class DocumentRequest < ApplicationRecord
 
   after_create_commit :assign_request_id!
 
+  def items
+    document_request_items
+  end
+  
   def user
     student
   end

@@ -76,10 +76,10 @@ export default function StepThree() {
           </span>
         </div>
       </>}
-      
-        
-      <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button" onClick={next}>Proceed</a>
-      
+
+      {delivery_method != "" &&      
+        <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button" onClick={next}>Proceed</a>
+      }
     </div>
   </div>
 }

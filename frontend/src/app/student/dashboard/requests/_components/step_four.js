@@ -1,8 +1,10 @@
 "use client"
 
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store"
-import InitDropzone from "@/components/initializer/init-dropzone"
 import formatMoney from "@/lib/formatMoney"
+import ShowAlert from "@/lib/show-alert"
+import { useState } from "react"
+import InitDropzone from "@/components/initializer/init-dropzone"
 
 export default function StepFour() {
   const courier_type = useStudentDocumentRequestStore((state) => state.courier_type)
@@ -10,14 +12,104 @@ export default function StepFour() {
   const setPaymentMethod = useStudentDocumentRequestStore((state) => state.setPaymentMethod)
   const clearPaymentMethod = useStudentDocumentRequestStore((state) => state.clearPaymentMethod)
   const payment_method = useStudentDocumentRequestStore((state) => state.payment_method)
-  const step = useStudentDocumentRequestStore((state) => state.step)
-  // const next = useStudentDocumentRequestStore((state) => state.next)
   const prev = useStudentDocumentRequestStore((state) => state.prev)
   const documents = useStudentDocumentRequestStore((state) => state.documents)
+  const id_verification_photo = useStudentDocumentRequestStore((state) => state.id_verification_photo)
+  const payment_receipt = useStudentDocumentRequestStore((state) => state.payment_receipt)
+  const setPaymentReceipt = useStudentDocumentRequestStore((state) => state.setPaymentReceipt)
+  const submitRequest = useStudentDocumentRequestStore((state) => state.submitRequest)
+  const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow)
+  const clearPaymentReceipt = useStudentDocumentRequestStore((state) => state.clearPaymentReceipt)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const total = Object.keys(documents).reduce((sum, key) => {
     const item = documents[key]
     return sum + (item.price_cents * item.quantity)
   }, deliver_method == "courier_delivery" ? courier_type.fee_cents || 0 : 0)
+
+  const parseRailsErrors = (payload) => {
+    if (!payload) return "Request failed."
+    if (Array.isArray(payload.errors) && payload.errors.length > 0) return payload.errors[0]
+    if (payload.error) return payload.error
+    if (typeof payload === "string") return payload
+    if (typeof payload === "object") {
+      const firstValue = Object.values(payload)[0]
+      if (Array.isArray(firstValue) && firstValue.length > 0) return firstValue[0]
+    }
+    return "Request failed."
+  }
+
+  const handleProceed = async (event) => {
+    event.preventDefault()
+
+    if (isSubmitting) return
+
+    if (Object.keys(documents).length < 1) {
+      ShowAlert({ icon: "error", title: "No Documents Selected", text: "Please select at least one document request." })
+      return
+    }
+
+    if (!deliver_method) {
+      ShowAlert({ icon: "error", title: "Delivery Method Required", text: "Please select a delivery method." })
+      return
+    }
+
+    if (deliver_method === "courier_delivery" && !courier_type?.name) {
+      ShowAlert({ icon: "error", title: "Courier Required", text: "Please select your courier before submitting." })
+      return
+    }
+
+    if (!payment_method) {
+      ShowAlert({ icon: "error", title: "Payment Method Required", text: "Please select your preferred payment method." })
+      return
+    }
+
+    if (!id_verification_photo) {
+      ShowAlert({
+        icon: "error",
+        title: "Missing ID Verification Photo",
+        text: "Please upload your photo while holding a valid ID before submitting."
+      })
+      return
+    }
+
+    if (payment_method === "online" && !payment_receipt) {
+      ShowAlert({ icon: "error", title: "Payment Receipt Required", text: "Please upload your online payment receipt." })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const response = await submitRequest()
+      let payload = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+
+      if (!response.ok) {
+        throw new Error(parseRailsErrors(payload))
+      }
+
+      await ShowAlert({
+        icon: "success",
+        title: "Request Submitted",
+        text: payload?.request_id
+          ? `Your request has been submitted. Request ID: ${payload.request_id}`
+          : "Your document request has been submitted successfully."
+      })
+      resetRequestFlow()
+    } catch (error) {
+      ShowAlert({
+        icon: "error",
+        title: "Submission Failed",
+        text: error?.message || "Failed to submit document request."
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return <div className="p-5">
     <div className="card mx-auto p-12" style={{ maxWidth: 1072 }}>
@@ -31,7 +123,10 @@ export default function StepFour() {
                 <span className="custom-option-title mb-2 user-select-none"> Cash on Hand </span>
                 <small className="user-select-none"> You must visit the Registrar’s Office to complete the payment. Please present your payment summary and provide the request ID. </small>
               </span>
-              <input name="customDeliveryRadioIcon" className="form-check-input d-none" checked={payment_method == "cash_on_hand"} type="radio" id="customRadioIcon1" readOnly={true} onChange={() => setPaymentMethod("cash_on_hand")}/>
+              <input name="customDeliveryRadioIcon" className="form-check-input d-none" checked={payment_method == "cash_on_hand"} type="radio" id="customRadioIcon1" readOnly={true} onChange={() => {
+                setPaymentMethod("cash_on_hand")
+                clearPaymentReceipt()
+              }}/>
             </label>
           </div>
         </div>
@@ -76,15 +171,19 @@ export default function StepFour() {
           
           <label className="mb-5 text-primary">Please upload the GCash generated receipt below:</label>
           <div className="card shadow-none">
-            <form action="/upload" className="dropzone needsclick dz-clickable border border-dashed" id="dropzone-basic">
+            <form action="/upload" className="dropzone needsclick dz-clickable border border-dashed" id="dropzone-payment-receipt">
               <div className="dz-message needsclick">
                 Drop image or Click to upload
               </div>
             </form>
+            {payment_receipt && (
+              <small className="text-success d-block mt-3">
+                Attached: {payment_receipt.name}
+              </small>
+            )}
             <span className="text-secondary">Only png, jpeg, jpg are allowed file types</span>
           </div>
-          
-          <InitDropzone />
+          <InitDropzone elementId="dropzone-payment-receipt" onFileChange={setPaymentReceipt} />
         </>
       }
       
@@ -113,8 +212,15 @@ export default function StepFour() {
         </div>
       </div>
       
-      <a href="#" className="btn btn-primary btn-lg w-100 mt-12" role="button">Proceed</a>
-      <a href="#" className="btn btn-secondary btn-lg w-100 mt-5" role="button" onClick={() => { clearPaymentMethod(); prev() }}>Back</a>
+      <a href="#" className={`btn btn-primary btn-lg w-100 mt-12 ${isSubmitting ? "disabled" : ""}`} role="button" onClick={handleProceed}>
+        {isSubmitting ? "Submitting..." : "Proceed"}
+      </a>
+      <a href="#" className={`btn btn-secondary btn-lg w-100 mt-5 ${isSubmitting ? "disabled" : ""}`} role="button" onClick={() => {
+        if (isSubmitting) return
+        clearPaymentMethod()
+        clearPaymentReceipt()
+        prev()
+      }}>Back</a>
     </div>
   </div>
 }
