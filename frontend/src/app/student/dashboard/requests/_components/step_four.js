@@ -116,6 +116,8 @@ export default function StepFour() {
       completeSubmission({
         request_id: payload?.request_id || "",
         status: payload?.status || "on_hold",
+        delivery_method: payload?.delivery_method || deliver_method,
+        courier_name: payload?.courier_name || (deliver_method === "courier_delivery" ? courier_type.name : ""),
         payment_method: payload?.payment_method || (payment_method === "online" ? "online" : "cash"),
         payment_status: payload?.payment_status || (payment_method === "online" ? "under_review" : "not_paid"),
         request_items: requestItems,
@@ -136,7 +138,7 @@ export default function StepFour() {
 
   return <div className="p-5">
     <div className="card mx-auto p-12" style={{ maxWidth: 1072 }}>
-  
+
       <div className="row gy-3">
         <div className="col-md">
           <div className={`form-check custom-option custom-option-icon h-100 ${payment_method === "cash_on_hand" ? "checked" : ""}`}>

@@ -26,7 +26,7 @@ export default function StudentRequestLayout({ children }) {
       <div className="px-5 pt-8 pb-4">
         <div className="mx-auto" style={{ maxWidth: 980 }}>
           <div className="d-flex align-items-start justify-content-between">
-            {TIMELINE_STEPS.map((timelineStep, index) => {
+            {step < 5 && TIMELINE_STEPS.map((timelineStep, index) => {
               const isActive = timelineStep.key === activeStep;
               const isCompleted = timelineStep.key < activeStep;
               const isInactive = !isActive && !isCompleted;

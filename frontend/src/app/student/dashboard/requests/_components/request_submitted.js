@@ -30,8 +30,11 @@ export default function RequestSubmitted() {
 
   const {
     request_items = [],
+    shipping_fee_cents = 0,
     total_cents = 0,
     request_id = "",
+    delivery_method = "self_pickup",
+    courier_name = "",
     payment_method = "cash",
     payment_status = "not_paid",
     status = "on_hold"
@@ -57,6 +60,12 @@ export default function RequestSubmitted() {
                 <span className="ms-auto fw-semibold">{formatMoney(item.line_total_cents)}</span>
               </div>
             )}
+            {delivery_method === "courier_delivery" && (
+              <div className="d-flex align-items-center text-primary mb-3">
+                <span>Shipping Fee{courier_name ? ` (${courier_name})` : ""}</span>
+                <span className="ms-auto fw-semibold">{formatMoney(shipping_fee_cents)}</span>
+              </div>
+            )}
             <div className="d-flex align-items-center text-primary fw-bold fs-4 mt-6">
               <span>TOTAL:</span>
               <span className="ms-auto">{formatMoney(total_cents)}</span>
@@ -75,7 +84,7 @@ export default function RequestSubmitted() {
           </div>
 
           <div className="rounded-3 d-flex align-items-start p-6 mt-8" style={{ backgroundColor: "#F5F5F5" }}>
-            <i className={`bx bx-info-circle fs-4 me-3 mt-1 ${isOnlineReview ? "text-warning" : "text-danger"}`}></i>
+            <i className={`bx bx-info-circle fs-4 me-2 ${isOnlineReview ? "text-warning" : "text-danger"}`}></i>
             <span className="text-primary">
               <strong className={isOnlineReview ? "text-warning" : "text-danger"}>Note:</strong>{" "}
               {isOnlineReview
