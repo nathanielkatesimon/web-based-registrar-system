@@ -18,7 +18,7 @@ export default function StepFour() {
   const payment_receipt = useStudentDocumentRequestStore((state) => state.payment_receipt)
   const setPaymentReceipt = useStudentDocumentRequestStore((state) => state.setPaymentReceipt)
   const submitRequest = useStudentDocumentRequestStore((state) => state.submitRequest)
-  const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow)
+  const completeSubmission = useStudentDocumentRequestStore((state) => state.completeSubmission)
   const clearPaymentReceipt = useStudentDocumentRequestStore((state) => state.clearPaymentReceipt)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -92,6 +92,19 @@ export default function StepFour() {
         throw new Error(parseRailsErrors(payload))
       }
 
+      const requestItems = Object.keys(documents).map((key) => {
+        const document = documents[key]
+        const quantity = Number.parseInt(document.quantity, 10) || 1
+        return {
+          name: document.name,
+          quantity,
+          line_total_cents: quantity * document.price_cents
+        }
+      })
+
+      const subtotalCents = requestItems.reduce((sum, item) => sum + item.line_total_cents, 0)
+      const shippingFeeCents = deliver_method === "courier_delivery" ? (courier_type.fee_cents || 0) : 0
+
       await ShowAlert({
         icon: "success",
         title: "Request Submitted",
@@ -99,7 +112,17 @@ export default function StepFour() {
           ? `Your request has been submitted. Request ID: ${payload.request_id}`
           : "Your document request has been submitted successfully."
       })
-      resetRequestFlow()
+
+      completeSubmission({
+        request_id: payload?.request_id || "",
+        status: payload?.status || "on_hold",
+        payment_method: payload?.payment_method || (payment_method === "online" ? "online" : "cash"),
+        payment_status: payload?.payment_status || (payment_method === "online" ? "under_review" : "not_paid"),
+        request_items: requestItems,
+        subtotal_cents: subtotalCents,
+        shipping_fee_cents: shippingFeeCents,
+        total_cents: subtotalCents + shippingFeeCents
+      })
     } catch (error) {
       ShowAlert({
         icon: "error",

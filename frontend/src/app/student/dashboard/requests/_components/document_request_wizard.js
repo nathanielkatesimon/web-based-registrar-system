@@ -6,6 +6,7 @@ import StepOneB from "./step_one_b";
 import StepTwo from "./step_two";
 import StepThree from "./step_three"; 
 import StepFour from "./step_four";
+import RequestSubmitted from "./request_submitted";
 import { useEffect } from "react";
 
 const STEPS = {
@@ -14,6 +15,7 @@ const STEPS = {
   2: <StepTwo></StepTwo>,
   3: <StepThree></StepThree>,
   4: <StepFour></StepFour>,
+  5: <RequestSubmitted></RequestSubmitted>,
 }
 
 export default function DocumentRequestWizard({ document_types }) {

@@ -9,6 +9,7 @@ const useStudentDocumentRequestStore = create((set, get) => ({
   payment_method: "",
   id_verification_photo: null,
   payment_receipt: null,
+  submitted_request: null,
   courier_type: {name: "", fee_cents: 0},
   setPaymentMethod: (method) => set({ payment_method: method }),
   clearPaymentMethod: () => set({ payment_method: "" }),
@@ -45,6 +46,18 @@ const useStudentDocumentRequestStore = create((set, get) => ({
 
   resetRequestFlow: () => set({
     step: 1,
+    documents: {},
+    delivery_method: "",
+    payment_method: "",
+    id_verification_photo: null,
+    payment_receipt: null,
+    submitted_request: null,
+    courier_type: { name: "", fee_cents: 0 }
+  }),
+
+  completeSubmission: (submitted_request) => set({
+    step: 5,
+    submitted_request,
     documents: {},
     delivery_method: "",
     payment_method: "",
