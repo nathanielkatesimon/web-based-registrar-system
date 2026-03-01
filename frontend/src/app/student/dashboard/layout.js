@@ -6,9 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo } from "react";
 import useSessionStore from "@/store/session-store";
+import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
 
 export default function StudentDashboardLayout({children}) {
   const { currentUser } = useSessionStore();
+  const requestStep = useStudentDocumentRequestStore((state) => state.step);
+  const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow);
 
   const avatarSrc = useMemo(() => {
     const source = currentUser?.avatar_url;
@@ -42,7 +45,13 @@ export default function StudentDashboardLayout({children}) {
                   </Link>
                 </li>
                 <li className="menu-item">
-                  <Link href="/student/dashboard/requests" className="menu-link fs-5">
+                  <Link
+                    href="/student/dashboard/requests"
+                    className="menu-link fs-5"
+                    onClick={() => {
+                      if (requestStep === 5) resetRequestFlow();
+                    }}
+                  >
                     <i className="menu-icon tf-icons pb-1 bx bx-file-detail"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Requests</div>
                   </Link>
