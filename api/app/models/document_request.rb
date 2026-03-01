@@ -3,10 +3,62 @@ class DocumentRequest < ApplicationRecord
   has_many :document_request_items, dependent: :destroy
 
   accepts_nested_attributes_for :document_request_items, allow_destroy: true
+  has_one_attached :id_verification_photo
+  has_one_attached :payment_receipt
 
   monetize :shipping_fee_cents
-  
+
+  enum :status, {
+    on_hold: 0,
+    processing: 1,
+    completed: 2,
+    closed: 3
+  }
+
+  enum :delivery_method, {
+    self_pickup: 0,
+    courier_delivery: 1
+  }
+
+  enum :payment_status, {
+    paid: 0,
+    not_paid: 1,
+    under_review: 2
+  }
+
+  enum :payment_method, {
+    cash: 0,
+    online: 1
+  }
+
+  validates :id_verification_photo, presence: true
+  validates :courier_name, presence: true, if: :courier_delivery?
+  validates :request_id, uniqueness: true, allow_nil: true
+  validate :payment_receipt_required_for_online
+
+  after_create_commit :assign_request_id!
+
   def user
     student
+  end
+
+  private
+
+  def payment_receipt_required_for_online
+    return unless online?
+    return if payment_receipt.attached?
+
+    errors.add(:payment_receipt, "must be attached for online payment")
+  end
+
+  def assign_request_id!(attempt = 0)
+    return if request_id.present?
+    return if attempt >= 10
+
+    request_id_value = "RID#{SecureRandom.random_number(100_000).to_s.rjust(5, "0")}-#{SecureRandom.random_number(1_000_000).to_s.rjust(6, "0")}"
+
+    update_column(:request_id, request_id_value)
+  rescue ActiveRecord::RecordNotUnique
+    assign_request_id!(attempt + 1)
   end
 end

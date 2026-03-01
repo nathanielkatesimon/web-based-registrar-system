@@ -5,7 +5,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
   # GET /document_requests
   def index
     @document_requests = current_user.document_requests
-  
+
     render json: @document_requests
   end
 
@@ -16,7 +16,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
 
   # POST /document_requests
   def create
-    @document_request = DocumentRequest.new(document_request_params)
+    @document_request = current_user.document_requests.new(document_request_params)
 
     if @document_request.save
       render json: @document_request, status: :created
@@ -42,19 +42,21 @@ class Api::V1::DocumentRequestsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document_request
-      @document_request = DocumentRequest.find(params.expect(:id))
+      @document_request = current_user.document_requests.find(params.expect(:id))
     end
 
     # Only allow a list of trusted parameters through.
     def document_request_params
       params.require(:document_request).permit([
-        :user_id,
         :status,
         :delivery_method,
+        :courier_name,
         :payment_method,
         :payment_status,
         :payment_verified_at,
         :shipping_fee_cents,
+        :id_verification_photo,
+        :payment_receipt,
         document_request_items_attributes: [
             :id,
             :document_type_id,
@@ -62,7 +64,6 @@ class Api::V1::DocumentRequestsController < ApplicationController
             :purpose,
             :destination,
             :remarks,
-            :unit_price_cents,
             :_destroy
         ]
       ])

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_01_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -73,15 +73,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_020000) do
   end
 
   create_table "document_requests", force: :cascade do |t|
+    t.string "courier_name"
     t.datetime "created_at", null: false
     t.integer "delivery_method"
     t.integer "payment_method"
     t.integer "payment_status"
     t.integer "payment_verified_at"
+    t.string "request_id"
     t.integer "shipping_fee_cents"
     t.integer "status"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["request_id"], name: "index_document_requests_on_request_id", unique: true
     t.index ["user_id"], name: "index_document_requests_on_user_id"
   end
 

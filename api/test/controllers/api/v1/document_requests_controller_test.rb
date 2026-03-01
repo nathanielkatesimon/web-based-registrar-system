@@ -1,21 +1,25 @@
 require "test_helper"
 
 class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
+  include ActionDispatch::TestProcess::FixtureFile
+
   setup do
     @student = students(:student_one)
     @other_student = students(:student_two)
     @document_type_one = document_types(:one)
     @document_type_two = document_types(:two)
 
-    @document_request = DocumentRequest.create!(
+    @document_request = DocumentRequest.new(
       user_id: @student.id,
-      status: 0,
-      delivery_method: 0,
-      payment_method: 0,
-      payment_status: 0,
+      status: :on_hold,
+      delivery_method: :self_pickup,
+      payment_method: :cash,
+      payment_status: :not_paid,
       payment_verified_at: 1_739_980_800,
       shipping_fee_cents: 10_000
     )
+    @document_request.id_verification_photo.attach(id_photo_file)
+    @document_request.save!
   end
 
   test "should require authentication for index" do
@@ -26,15 +30,17 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
 
   test "should get only current_user document_requests" do
     own_request = @document_request
-    other_request = DocumentRequest.create!(
+    other_request = DocumentRequest.new(
       user_id: @other_student.id,
-      status: 0,
-      delivery_method: 1,
-      payment_method: 1,
-      payment_status: 0,
+      status: :on_hold,
+      delivery_method: :self_pickup,
+      payment_method: :cash,
+      payment_status: :not_paid,
       payment_verified_at: 1_739_980_801,
       shipping_fee_cents: 5_000
     )
+    other_request.id_verification_photo.attach(id_photo_file)
+    other_request.save!
 
     sign_in_as(@student)
 
@@ -57,13 +63,16 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
         post api_v1_document_requests_url,
              params: {
                document_request: {
-                 user_id: @student.id,
-                 status: 0,
-                 delivery_method: 1,
-                 payment_method: 1,
-                 payment_status: 0,
+                 user_id: @other_student.id,
+                 status: :on_hold,
+                 delivery_method: :courier_delivery,
+                 courier_name: "LBC",
+                 payment_method: :online,
+                 payment_status: :under_review,
                  payment_verified_at: 1_739_980_800,
                  shipping_fee_cents: 15_000,
+                 id_verification_photo: id_photo_file,
+                 payment_receipt: payment_receipt_file,
                  document_request_items_attributes: [
                    {
                      document_type_id: @document_type_one.id,
@@ -71,12 +80,11 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
                      purpose: "Scholarship",
                      destination: 0,
                      remarks: "Rush",
-                     unit_price_cents: @document_type_one.price_cents
+                     unit_price_cents: 999_999
                    }
                  ]
                }
-             },
-             as: :json
+             }
       end
     end
 
@@ -86,6 +94,7 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @student.id, created_request.user_id
     assert_equal 1, created_request.document_request_items.count
     assert_equal @document_type_one.id, created_request.document_request_items.first.document_type_id
+    assert_equal @document_type_one.price_cents, created_request.document_request_items.first.unit_price_cents
   end
 
   test "should update nested document_request_items including destroy" do
@@ -103,7 +112,8 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
     patch api_v1_document_request_url(@document_request),
           params: {
             document_request: {
-              delivery_method: 2,
+              delivery_method: :courier_delivery,
+              courier_name: "J&T",
               document_request_items_attributes: [
                 {
                   id: existing_item.id,
@@ -119,8 +129,7 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
                 }
               ]
             }
-          },
-          as: :json
+          }, as: :json
 
     assert_response :success
 
@@ -141,13 +150,15 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
         post api_v1_document_requests_url,
              params: {
                document_request: {
-                 user_id: @student.id,
-                 status: 0,
-                 delivery_method: 1,
-                 payment_method: 1,
-                 payment_status: 0,
+                 status: :on_hold,
+                 delivery_method: :courier_delivery,
+                 courier_name: "LBC",
+                 payment_method: :online,
+                 payment_status: :under_review,
                  payment_verified_at: 1_739_980_800,
                  shipping_fee_cents: 15_000,
+                 id_verification_photo: id_photo_file,
+                 payment_receipt: payment_receipt_file,
                  document_request_items_attributes: [
                    {
                      document_type_id: 999_999_999,
@@ -159,15 +170,99 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
                    }
                  ]
                }
-             },
-             as: :json
+             }
       end
     end
 
     assert_response :unprocessable_content
   end
 
+  test "should return unprocessable_content when online payment has no receipt" do
+    sign_in_as(@student)
+
+    assert_no_difference("DocumentRequest.count") do
+      post api_v1_document_requests_url,
+           params: {
+             document_request: {
+               status: :on_hold,
+               delivery_method: :self_pickup,
+               payment_method: :online,
+               payment_status: :under_review,
+               shipping_fee_cents: 5000,
+               id_verification_photo: id_photo_file,
+               document_request_items_attributes: [
+                 {
+                   document_type_id: @document_type_one.id,
+                   quantity: 1
+                 }
+               ]
+             }
+           }
+    end
+
+    assert_response :unprocessable_content
+  end
+
+  test "should return unprocessable_content when courier delivery has no courier_name" do
+    sign_in_as(@student)
+
+    assert_no_difference("DocumentRequest.count") do
+      post api_v1_document_requests_url,
+           params: {
+             document_request: {
+               status: :on_hold,
+               delivery_method: :courier_delivery,
+               payment_method: :cash,
+               payment_status: :not_paid,
+               shipping_fee_cents: 5000,
+               id_verification_photo: id_photo_file,
+               document_request_items_attributes: [
+                 {
+                   document_type_id: @document_type_one.id,
+                   quantity: 1
+                 }
+               ]
+             }
+           }
+    end
+
+    assert_response :unprocessable_content
+  end
+
+  test "should not allow accessing another users document request" do
+    other_request = DocumentRequest.new(
+      user_id: @other_student.id,
+      status: :on_hold,
+      delivery_method: :self_pickup,
+      payment_method: :cash,
+      payment_status: :not_paid,
+      shipping_fee_cents: 5000
+    )
+    other_request.id_verification_photo.attach(id_photo_file)
+    other_request.save!
+
+    sign_in_as(@student)
+
+    get api_v1_document_request_url(other_request), as: :json
+
+    assert_response :not_found
+  end
+
   private
+
+  def id_photo_file
+    Rack::Test::UploadedFile.new(
+      Rails.root.join("test/fixtures/files/id_verification_photo.jpg"),
+      "image/jpeg"
+    )
+  end
+
+  def payment_receipt_file
+    Rack::Test::UploadedFile.new(
+      Rails.root.join("test/fixtures/files/payment_receipt.jpg"),
+      "image/jpeg"
+    )
+  end
 
   def sign_in_as(user)
     post "/api/v1/users/sign_in",

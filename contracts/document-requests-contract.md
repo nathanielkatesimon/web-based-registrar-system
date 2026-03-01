@@ -3,45 +3,53 @@
 ## Endpoint Group
 - Base Path: `/api/v1/document_requests`
 - Controller: `Api::V1::DocumentRequestsController`
-- Auth required: `No` (current controller has no authentication guard)
+- Auth required: `Yes` (`authenticate_user!`)
 
 ## Purpose
-Manages document request records and supports nested create/update/delete of `document_request_items` through `document_request_items_attributes`.
+Manages student-owned document requests with nested `document_request_items`, required ID verification upload, conditional payment receipt upload, and server-generated `request_id`.
 
 ## Endpoints
-- `GET /api/v1/document_requests` (index)
-- `GET /api/v1/document_requests/:id` (show)
+- `GET /api/v1/document_requests` (index, current user only)
+- `GET /api/v1/document_requests/:id` (show, current user only)
 - `POST /api/v1/document_requests` (create)
-- `PATCH /api/v1/document_requests/:id` (update)
-- `PUT /api/v1/document_requests/:id` (update)
-- `DELETE /api/v1/document_requests/:id` (destroy)
+- `PATCH /api/v1/document_requests/:id` (update, current user only)
+- `PUT /api/v1/document_requests/:id` (update, current user only)
+- `DELETE /api/v1/document_requests/:id` (destroy, current user only)
+
+## Enums
+- `status`: `on_hold`, `processing`, `completed`, `closed`
+- `delivery_method`: `self_pickup`, `courier_delivery`
+- `payment_status`: `paid`, `not_paid`, `under_review`
+- `payment_method`: `cash`, `online`
 
 ## Request
 ### Headers
-- `Content-Type: application/json` (for `POST`, `PATCH`, `PUT`)
+- `Content-Type: multipart/form-data` for create/update with file uploads.
+- `Content-Type: application/json` can be used for non-file updates.
 
 ### Body Wrapper
 All write endpoints require top-level key: `document_request`.
 
-### Create/Update Example (with nested items)
+### Create/Update Example
 ```json
 {
   "document_request": {
-    "user_id": 2,
-    "status": 0,
-    "delivery_method": 1,
-    "payment_method": 0,
-    "payment_status": 0,
+    "status": "on_hold",
+    "delivery_method": "courier_delivery",
+    "courier_name": "LBC",
+    "payment_method": "online",
+    "payment_status": "under_review",
     "payment_verified_at": 1739980800,
     "shipping_fee_cents": 10000,
+    "id_verification_photo": "<uploaded file>",
+    "payment_receipt": "<uploaded file>",
     "document_request_items_attributes": [
       {
         "document_type_id": 1,
         "quantity": 2,
         "purpose": "Scholarship requirement",
         "destination": 0,
-        "remarks": "Process ASAP",
-        "unit_price_cents": 5000
+        "remarks": "Process ASAP"
       },
       {
         "id": 10,
@@ -54,50 +62,50 @@ All write endpoints require top-level key: `document_request`.
 
 ### Allowed Fields
 Top-level `document_request`:
-- `user_id` (integer, required by DB/model association)
-- `status` (integer)
-- `delivery_method` (integer)
-- `payment_method` (integer)
-- `payment_status` (integer)
-- `payment_verified_at` (integer)
-- `shipping_fee_cents` (integer)
-- `document_request_items_attributes` (array)
+- `status`
+- `delivery_method`
+- `courier_name`
+- `payment_method`
+- `payment_status`
+- `payment_verified_at`
+- `shipping_fee_cents`
+- `id_verification_photo`
+- `payment_receipt`
+- `document_request_items_attributes`
 
 Nested `document_request_items_attributes[]`:
-- `id` (integer; required when updating/deleting existing nested row)
-- `document_type_id` (integer; must reference an existing `document_types.id`)
-- `quantity` (integer)
-- `purpose` (string)
-- `destination` (integer)
-- `remarks` (string)
-- `unit_price_cents` (integer)
-- `_destroy` (boolean; with `id`, removes nested row on update)
+- `id`
+- `document_type_id`
+- `quantity`
+- `purpose`
+- `destination`
+- `remarks`
+- `_destroy`
 
 ## Server-Enforced Behavior
-- Nested items are enabled via `accepts_nested_attributes_for :document_request_items, allow_destroy: true`.
-- Each nested item must use an existing `document_type_id`.
-  - Enforced by `belongs_to :document_type` and DB foreign key on `document_request_items.document_type_id`.
-  - Contract expectation: clients must not create new document types through this endpoint.
-- `DocumentType` data is pre-seeded and should be selected from existing records.
-- Deleting a `DocumentRequest` also deletes associated `document_request_items` (`dependent: :destroy`).
+- `user_id` is always assigned from `current_user`.
+- `request_id` is generated after successful create using format `RIDXXXXX-XXXXXX` (numeric digits) and is unique.
+- `courier_name` is required when `delivery_method = courier_delivery`.
+- `id_verification_photo` is required.
+- `payment_receipt` is required when `payment_method = online`.
+- For nested request items, `unit_price_cents` is enforced from `document_type.price_cents` on save.
 
 ## Success Responses
 ### `GET /api/v1/document_requests`
 - Status: `200 OK`
-- Body: array of document requests (serialized via `DocumentRequestSerializer`).
+- Body: array of current user document requests.
 
 ### `GET /api/v1/document_requests/:id`
 - Status: `200 OK`
-- Body: single document request (serialized via `DocumentRequestSerializer`).
+- Body: single current user document request.
 
 ### `POST /api/v1/document_requests`
 - Status: `201 Created`
-- Body: created document request (serialized).
-- `Location` header is set to created resource URL.
+- Body: created document request.
 
 ### `PATCH|PUT /api/v1/document_requests/:id`
 - Status: `200 OK`
-- Body: updated document request (serialized).
+- Body: updated document request.
 
 ### `DELETE /api/v1/document_requests/:id`
 - Status: `204 No Content`
@@ -105,35 +113,23 @@ Nested `document_request_items_attributes[]`:
 
 ## Error Responses
 ### `422 Unprocessable Content`
-Returned when create/update validations fail. Current controller returns raw model errors:
-```json
-{
-  "user": [
-    "must exist"
-  ],
-  "document_request_items.document_type": [
-    "must exist"
-  ]
-}
-```
-
-Possible causes include:
-- Missing/invalid `user_id`.
-- Missing/invalid nested `document_type_id`.
-- Any model-level validation failures for `DocumentRequest` or nested `DocumentRequestItem`.
+Returned when validations fail, including:
+- missing `id_verification_photo`
+- missing `payment_receipt` for online payment
+- missing `courier_name` for courier delivery
+- invalid nested `document_type_id`
 
 ### `404 Not Found`
-Returned when `:id` does not match an existing `DocumentRequest` (raised by `DocumentRequest.find`).
+Returned when `:id` does not exist for current user scope.
 
-## Serialization Notes (Current)
-- Controller renders ActiveModelSerializer output for `DocumentRequest`.
-- Current serializer attributes:
-  - `id`, `status`, `delivery_method`, `payment_method`, `payment_status`, `payment_verified_at`, `shipping_fee_cents`
-- Current serializer declares `has_one :user`.
-  - If response shape changes (for example adding nested `document_request_items`), update this contract accordingly.
-
-## Frontend Integration Notes
-- Submit nested rows under `document_request.document_request_items_attributes`.
-- For new rows, send `document_type_id` from existing seeded document types.
-- For nested row deletion in update, send both `id` and `_destroy: true`.
-- Prefer loading selectable document types from `/api/v1/document_types` (or another approved source) and never creating types from the document request payload.
+## Serialization (Current)
+`DocumentRequestSerializer` returns:
+- `id`
+- `request_id`
+- `status`
+- `delivery_method`
+- `courier_name`
+- `payment_method`
+- `payment_status`
+- `payment_verified_at`
+- `shipping_fee_cents`
