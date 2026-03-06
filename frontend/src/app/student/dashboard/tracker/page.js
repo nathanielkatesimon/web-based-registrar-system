@@ -23,6 +23,8 @@ const TIMELINE_LABELS = {
   ready_for_pick_up: "Ready for Pick-up",
   document_shipped: "Document Shipped",
   completed: "Completed",
+  request_on_hold: "Request on Hold",
+  request_closed: "Request Closed",
 };
 
 const FILTER_OPTIONS = [

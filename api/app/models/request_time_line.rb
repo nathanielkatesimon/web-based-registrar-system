@@ -15,6 +15,8 @@ class RequestTimeLine < ApplicationRecord
     document_shipped: 8,
     request_opened: 9,
     request_submitted: 10,
+    request_on_hold: 11,
+    request_closed: 12
   }
 
   validates :type, presence: true
