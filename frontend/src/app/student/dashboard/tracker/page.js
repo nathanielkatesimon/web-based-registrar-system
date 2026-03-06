@@ -445,6 +445,11 @@ export default function StudentDashboardTrackerPage() {
                   <p className="mb-2">
                     <strong>Delivery Method:</strong> {formatDeliveryMethod(selectedRequest.delivery_method)}
                   </p>
+                  {selectedRequest.delivery_method == "courier_delivery" &&
+                    <p className="mb-2">
+                      <strong>Courier:</strong> {selectedRequest.courier_name}
+                    </p>
+                  }
                   <p className="mb-0">
                     <strong>ETA:</strong> {selectedRequest.status === "completed" ? "Completed" : "3 - 5 business days"}
                   </p>
