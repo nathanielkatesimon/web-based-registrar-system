@@ -30,7 +30,7 @@ export default function StepThree() {
           <div className={`form-check custom-option custom-option-icon h-100 ${delivery_method === "self_pickup" ? "checked" : ""}`}>
             <label className="form-check-label custom-option-content" htmlFor="customRadioIcon1">
               <span className="custom-option-body">
-                <i className="bx bx-currency-notes"></i>
+                <i className="bx bx-walking"></i>
                 <span className="custom-option-title mb-2 user-select-none"> Office Visit / Self Pick-up</span>
                 <small className="user-select-none"> Once your request has been processed and completed, you will be notified of the document pickup schedule via email or through this portal’s notifications. </small>
               </span>
@@ -42,7 +42,7 @@ export default function StepThree() {
           <div className={`form-check custom-option custom-option-icon h-100 ${delivery_method === "courier_delivery" ? "checked" : ""}`}>
             <label className="form-check-label custom-option-content" htmlFor="customRadioIcon2">
               <span className="custom-option-body">
-                <i className="bx bx-qr-scan"></i>
+                <i className="bx bx-truck"></i>
                 <span className="custom-option-title mb-2 user-select-none"> Courier Delivery </span>
                 <small className="user-select-none">The requested document will be delivered right into your home. No more hassle and unnecessary office visits and follow-ups.</small>
               </span>
