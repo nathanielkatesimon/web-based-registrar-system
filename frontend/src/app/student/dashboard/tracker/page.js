@@ -87,6 +87,7 @@ export default function StudentDashboardTrackerPage() {
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortByLatest, setSortByLatest] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -129,14 +130,15 @@ export default function StudentDashboardTrackerPage() {
 
   const filteredRequests = useMemo(() => {
     const searchLower = search.trim().toLowerCase();
+    const sourceRequests = sortByLatest ? sortedRequests : requests;
 
-    return sortedRequests.filter((request) => {
+    return sourceRequests.filter((request) => {
       const requestId = (request.request_id || "").toLowerCase();
       const matchesSearch = requestId.includes(searchLower);
       const matchesStatus = statusFilter === "all" || request.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [search, sortedRequests, statusFilter]);
+  }, [requests, search, sortedRequests, sortByLatest, statusFilter]);
 
   useEffect(() => {
     if (filteredRequests.length === 0) {
@@ -169,6 +171,8 @@ export default function StudentDashboardTrackerPage() {
   }, 0);
   const shippingFeeCents = Number(selectedRequest?.shipping_fee_cents || 0);
   const totalCents = Number(selectedRequest?.total_cents ?? subtotalCents + shippingFeeCents);
+  const statusFilterLabel =
+    FILTER_OPTIONS.find((option) => option.value === statusFilter)?.label || "All Statuses";
 
   return (
     <div className="container-fluid px-4 p-lg-12 py-4" style={{ backgroundColor: "#EEF0FA", minHeight: "calc(100vh - 90px)" }}>
@@ -204,8 +208,9 @@ export default function StudentDashboardTrackerPage() {
               {showFilters ? (
                 <div
                   className="position-absolute end-0 mt-2 bg-white rounded-3 shadow-sm border p-2"
-                  style={{ minWidth: 180, zIndex: 5 }}
+                  style={{ minWidth: 220, zIndex: 5 }}
                 >
+                  <p className="small text-muted px-2 mb-2">Status</p>
                   {FILTER_OPTIONS.map((option) => (
                     <button
                       key={option.value}
@@ -219,18 +224,62 @@ export default function StudentDashboardTrackerPage() {
                       {option.label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    className={`dropdown-item rounded-2 ${sortByLatest ? "active" : ""}`}
+                    onClick={() => {
+                      setSortByLatest((prev) => !prev);
+                      setShowFilters(false);
+                    }}
+                  >
+                    Latest
+                  </button>
                 </div>
               ) : null}
             </div>
           </div>
 
-          <p className="text-muted small mb-3">Latest</p>
+          <div className="d-flex align-items-center flex-wrap gap-3 mb-4">
+            {statusFilter !== "all" ? (
+              <button
+                type="button"
+                className="btn btn-sm border-0 text-white fw-semibold d-flex align-items-center gap-3"
+                style={{ borderRadius: 999, backgroundColor: "#040F5F" }}
+                onClick={() => setStatusFilter("all")}
+              >
+                <span>{statusFilterLabel}</span>
+                <i className="bx bx-x lh-1" />
+              </button>
+            ) : null}
+
+            {sortByLatest ? (
+              <button
+                type="button"
+                className="btn btn-sm border-0 text-white fw-semibold d-flex align-items-center gap-3"
+                style={{ borderRadius: 999, backgroundColor: "#040F5F" }}
+                onClick={() => setSortByLatest(false)}
+              >
+                <span>Latest</span>
+                <i className="bx bx-x lh-1" />
+              </button>
+            ) : null}
+          </div>
+
+          {!loading && !error ? (
+            <p className="text-muted mb-4 px-2">
+              {filteredRequests.length} result{filteredRequests.length === 1 ? "" : "s"} found
+            </p>
+          ) : null}
 
           {loading ? <p className="text-muted">Loading requests...</p> : null}
           {error ? <p className="text-danger mb-0">{error}</p> : null}
 
-          {!loading && !error && filteredRequests.length === 0 ? (
-            <p className="text-muted mb-0">No request item details available.</p>
+          {!loading && !error && requests.length === 0 ? (
+            <p className="text-muted text-center mb-0">Empty queue..</p>
+          ) : null}
+
+          {!loading && !error && requests.length > 0 && filteredRequests.length === 0 ? (
+            <p className="text-muted mb-0">No matching requests found.</p>
           ) : null}
 
           <div className="d-flex flex-column gap-3">
@@ -367,7 +416,7 @@ export default function StudentDashboardTrackerPage() {
                       );
                     })
                   ) : (
-                    <p className="text-muted small mb-2">Empty queue..</p>
+                    <p className="text-muted small mb-2">No matching requests found.</p>
                   )}
 
                   {selectedRequest.delivery_method === "courier_delivery" ? (
