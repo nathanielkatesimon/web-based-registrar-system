@@ -1,7 +1,7 @@
 class DocumentRequestSerializer < ActiveModel::Serializer
   attributes :id, :request_id, :status, :delivery_method, :courier_name, :payment_method,
              :payment_status, :payment_verified_at, :shipping_fee_cents, :student_name, :created_at,
-             :updated_at, :request_items, :total_cents
+             :updated_at, :request_items, :total_cents, :id_verification_photo_url, :payment_receipt_url
 
   has_many :request_time_lines
 
@@ -32,5 +32,17 @@ class DocumentRequestSerializer < ActiveModel::Serializer
     end
 
     items_total + object.shipping_fee_cents.to_i
+  end
+
+  def id_verification_photo_url
+    return unless object.id_verification_photo.attached?
+
+    Rails.application.routes.url_helpers.rails_blob_path(object.id_verification_photo, only_path: true)
+  end
+
+  def payment_receipt_url
+    return unless object.payment_receipt.attached?
+
+    Rails.application.routes.url_helpers.rails_blob_path(object.payment_receipt, only_path: true)
   end
 end

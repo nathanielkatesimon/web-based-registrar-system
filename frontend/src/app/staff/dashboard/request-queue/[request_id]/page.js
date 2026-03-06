@@ -101,6 +101,7 @@ export default function StaffRequestQueueDetailPage() {
   const [markOnHold, setMarkOnHold] = useState(false);
   const [markClosed, setMarkClosed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [modalFile, setModalFile] = useState({ title: "", url: "" });
 
   const fetchRequest = useCallback(async () => {
     if (!requestId) return;
@@ -151,6 +152,7 @@ export default function StaffRequestQueueDetailPage() {
   const totalCents = Number(request?.total_cents ?? subtotalCents + Number(request?.shipping_fee_cents || 0));
 
   const paymentStatus = formatPaymentStatus(request?.payment_status);
+  const isOnlinePayment = request?.payment_method === "online";
   const verificationPhotoUrl = findFileUrl(request, [
     "id_verification_photo_url",
     "id_verification_photo",
@@ -250,6 +252,13 @@ export default function StaffRequestQueueDetailPage() {
     }
   };
 
+  const openFileModal = (title, url) => {
+    setModalFile({
+      title,
+      url,
+    });
+  };
+
   return (
     <div className="px-12 flex-grow-1 py-4 request-queue-detail-page">
       <div>
@@ -320,6 +329,9 @@ export default function StaffRequestQueueDetailPage() {
                   </button>
                 </div>
 
+                <hr className="my-4" />
+                <p className="rqd-section-title text-info">Status</p>
+
                 <label className="rqd-check-row">
                   <input
                     type="checkbox"
@@ -340,7 +352,40 @@ export default function StaffRequestQueueDetailPage() {
                   <span>Close Request</span>
                 </label>
 
+
                 <hr className="my-4" />
+                <p className="rqd-section-title text-info">Payment</p>
+
+                <div className="rqd-info-list">
+
+                  <p><strong>Payment Method:</strong> {formatPaymentMethod(request.payment_method)}</p>
+                  <p>
+                    <strong>Payment Status:</strong>{" "}
+                    <span className={paymentStatus.className}>{paymentStatus.label}</span>
+                  </p>
+
+                  {isOnlinePayment ? (
+                    <p>
+                      <strong>Receipt:</strong>{" "}
+                      {receiptUrl ? (
+                        <button
+                          type="button"
+                          className="rqd-file-btn"
+                          data-bs-toggle="modal"
+                          data-bs-target="#request-file-preview-modal"
+                          onClick={() => openFileModal("Receipt", receiptUrl)}
+                        >
+                          View file
+                        </button>
+                      ) : (
+                        "Unavailable"
+                      )}
+                    </p>
+                  ) : null}
+                </div>
+
+                <hr className="my-4" />
+                <p className="rqd-section-title text-info">Request Details</p>
 
                 <div className="rqd-items-card">
                   {items.length === 0 ? (
@@ -362,16 +407,25 @@ export default function StaffRequestQueueDetailPage() {
                 </div>
 
                 <div className="rqd-info-list">
-                  <p><strong>Payment Method:</strong> {formatPaymentMethod(request.payment_method)}</p>
-                  <p>
-                    <strong>Payment Status:</strong>{" "}
-                    <span className={paymentStatus.className}>{paymentStatus.label}</span>
-                  </p>
                   <p><strong>Delivery Method:</strong> {formatDeliveryMethod(request.delivery_method)}</p>
                   <p><strong>Courier:</strong> {request.courier_name || "-"}</p>
                   <p><strong>Name of Student:</strong> {request.student_name || "-"}</p>
-                  <p><strong>Verification Photo:</strong> {verificationPhotoUrl ? <a href={verificationPhotoUrl} target="_blank" rel="noreferrer">View file</a> : "-"}</p>
-                  <p><strong>Receipt:</strong> {receiptUrl ? <a href={receiptUrl} target="_blank" rel="noreferrer">View file</a> : "-"}</p>
+                  <p>
+                    <strong>Verification Photo:</strong>{" "}
+                    {verificationPhotoUrl ? (
+                      <button
+                        type="button"
+                        className="rqd-file-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#request-file-preview-modal"
+                        onClick={() => openFileModal("Verification Photo", verificationPhotoUrl)}
+                      >
+                        View file
+                      </button>
+                    ) : (
+                      "Unavailable"
+                    )}
+                  </p>
                 </div>
 
                 <Link href="/staff/dashboard/student-list" className="rqd-student-btn">
@@ -381,6 +435,28 @@ export default function StaffRequestQueueDetailPage() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="modal fade" id="request-file-preview-modal" tabIndex="-1" aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">{modalFile.title || "File Preview"}</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              {modalFile.url ? (
+                <img
+                  src={modalFile.url}
+                  alt={modalFile.title || "File preview"}
+                  className="rqd-file-preview-img"
+                />
+              ) : (
+                <p className="mb-0 text-muted">No file available.</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
