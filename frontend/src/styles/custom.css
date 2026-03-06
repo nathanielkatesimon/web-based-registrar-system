@@ -227,9 +227,43 @@
   color: #bf2d2d;
 }
 
-.request-queue-page .dt-container .dt-layout-row {
+.request-queue-page .dt-container .dt-layout-row:first-child {
   margin: 0;
   display: none;
+}
+
+.request-queue-page .dt-container .dt-layout-row:last-child {
+  margin: 0;
+  padding: 0.9rem 0.5rem 1rem;
+}
+
+.request-queue-page .dt-container .dt-paging {
+  user-select: none;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding-bottom: 1.15rem;
+}
+
+.request-queue-page .dt-container .dt-paging .dt-paging-button {
+  min-width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 10px;
+  background: #ffffff !important;
+  color: #0f318e !important;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem !important;
+}
+
+.request-queue-page .dt-container .dt-paging .dt-paging-button.current {
+  border-color: #0f318e !important;
+  background: #0f318e !important;
+  color: #ffffff !important;
+}
+
+.request-queue-page .dt-container .dt-paging .dt-paging-button.disabled {
+  opacity: 0.45;
 }
 
 .request-queue-page .request-queue-table thead th {

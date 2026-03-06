@@ -166,12 +166,13 @@ export default function StaffRequestQueuePage() {
               columns={columns}
               className="table align-middle w-100 request-queue-table"
               options={{
-                paging: false,
+                paging: true,
+                pageLength: 15,
                 info: false,
                 ordering: false,
                 searching: true,
                 lengthChange: false,
-                dom: "t",
+                dom: "tp",
                 language: {
                   emptyTable: "No requests found.",
                   zeroRecords: "No requests match your filters.",
