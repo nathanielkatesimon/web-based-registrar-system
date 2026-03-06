@@ -126,10 +126,10 @@ export default function StaffRequestQueuePage() {
   }, [activeFilter, searchTerm]);
 
   return (
-    <div className="container-xxl flex-grow-1 py-4 request-queue-page">
-      <div className="rq-card">
-        <div className="rq-toolbar">
-          <div className="rq-filters">
+    <div className="px-12 flex-grow-1 py-4 request-queue-page">
+      <div className="p-4 rounded-4">
+        <div className="rq-toolbar d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+          <div className="rq-filters d-flex flex-wrap align-items-center gap-2">
             {STATUS_FILTERS.map((filter) => (
               <button
                 key={filter}
@@ -141,14 +141,14 @@ export default function StaffRequestQueuePage() {
               </button>
             ))}
           </div>
-
-          <div className="rq-search-wrap">
-            <i className="bx bx-search"></i>
+          <div className="input-group input-group-merge rq-search-wrap rounded-pill">
+            <span className="input-group-text" id="basic-addon-search31"><i className="bx bx-search"></i></span>
             <input
               type="text"
-              className="rq-search-input"
-              placeholder="Search"
-              value={searchTerm}
+              className="form-control"
+              placeholder="Search..."
+              aria-label="Search..."
+              aria-describedby="basic-addon-search31"
               onChange={(event) => setSearchTerm(event.target.value)}
             />
           </div>
@@ -159,7 +159,7 @@ export default function StaffRequestQueuePage() {
         ) : error ? (
           <div className="rq-state rq-state-error">{error}</div>
         ) : (
-          <div className="rq-table-wrap">
+          <div className="rq-table-wrap rounded-3 overflow-hidden">
             <DataTable
               ref={tableRef}
               data={requests}
@@ -181,154 +181,6 @@ export default function StaffRequestQueuePage() {
           </div>
         )}
       </div>
-
-      <style jsx global>{`
-        .request-queue-page .rq-card {
-          background: #e8edff;
-          border-radius: 24px;
-          padding: 1.1rem 1.1rem 1.2rem;
-        }
-
-        .request-queue-page .rq-toolbar {
-          display: flex;
-          gap: 1rem;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .request-queue-page .rq-filters {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        .request-queue-page .rq-filter-btn {
-          border: 0;
-          background: transparent;
-          color: #6480b3;
-          font-size: 1rem;
-          font-weight: 500;
-          padding: 0.45rem 0.65rem;
-          border-radius: 10px;
-          transition: color 0.2s ease;
-        }
-
-        .request-queue-page .rq-filter-btn.active {
-          color: #001fbb;
-          font-weight: 600;
-        }
-
-        .request-queue-page .rq-search-wrap {
-          width: min(100%, 300px);
-          background: #f7f7f8;
-          border-radius: 999px;
-          display: flex;
-          align-items: center;
-          padding: 0 0.95rem;
-          color: #717376;
-        }
-
-        .request-queue-page .rq-search-wrap i {
-          font-size: 1.1rem;
-        }
-
-        .request-queue-page .rq-search-input {
-          width: 100%;
-          border: 0;
-          outline: 0;
-          background: transparent;
-          color: #45484e;
-          padding: 0.62rem 0.55rem;
-        }
-
-        .request-queue-page .rq-table-wrap {
-          background: #ffffff;
-          border-radius: 20px;
-          overflow: hidden;
-          padding: 0 1rem;
-        }
-
-        .request-queue-page .rq-state {
-          background: #ffffff;
-          border-radius: 20px;
-          min-height: 170px;
-          display: grid;
-          place-items: center;
-          color: #55607c;
-          font-weight: 500;
-          padding: 1rem;
-        }
-
-        .request-queue-page .rq-state-error {
-          color: #bf2d2d;
-        }
-
-        .request-queue-page .dt-container .dt-layout-row {
-          margin: 0;
-          display: none;
-        }
-
-        .request-queue-page .request-queue-table thead th {
-          border-bottom: 1px solid #dbe2ef;
-          color: #121f44;
-          font-weight: 700;
-          font-size: 1rem;
-          padding: 1rem 1.15rem;
-          white-space: nowrap;
-        }
-
-        .request-queue-page .request-queue-table tbody td {
-          border-bottom: 1px solid #dbe2ef;
-          padding: 0.86rem 1.15rem;
-          color: #34373f;
-          vertical-align: middle;
-        }
-
-        .request-queue-page .rq-status {
-          font-weight: 500;
-        }
-
-        .request-queue-page .rq-status-processing {
-          color: #1f30ff;
-        }
-
-        .request-queue-page .rq-status-completed {
-          color: #31b215;
-        }
-
-        .request-queue-page .rq-status-hold {
-          color: #c59800;
-        }
-
-        .request-queue-page .rq-check-btn {
-          border: 2px solid #0f318e;
-          border-radius: 999px;
-          background: #ffffff;
-          color: #0f318e;
-          font-weight: 600;
-          font-size: 1rem;
-          padding: 0.23rem 1.2rem;
-          min-width: 82px;
-          opacity: 1;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .request-queue-page .rq-card {
-            border-radius: 18px;
-            padding: 0.85rem;
-          }
-
-          .request-queue-page .rq-table-wrap {
-            border-radius: 14px;
-            padding: 0 0.6rem;
-            overflow-x: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 }
