@@ -78,10 +78,11 @@ export default function StaffRequestQueuePage() {
       { title: "Paid or Not", data: "payment" },
       {
         title: "",
-        data: null,
+        data: "id",
         orderable: false,
         searchable: false,
-        render: () => '<button type="button" class="rq-check-btn" disabled>Check</button>',
+        render: (id) =>
+          `<a class="rq-check-btn" href="/staff/dashboard/request-queue/${id}">Check</a>`,
       },
     ],
     [],

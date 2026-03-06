@@ -299,21 +299,242 @@
 }
 
 .request-queue-page .rq-check-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid #0f318e;
   border-radius: 999px;
   background: #ffffff;
   color: #0f318e;
+  text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
   padding: 0.23rem 1.2rem;
   min-width: 82px;
   opacity: 1;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
   .request-queue-page .rq-table-wrap {
     overflow-x: auto;
     padding: 0 0.6rem;
+  }
+}
+
+/* Request Queue Detail (Staff Dashboard)
+******************************************************************************/
+.request-queue-detail-page .rqd-shell {
+  background: #e8edff;
+  border-radius: 20px;
+  padding: 1.4rem;
+  min-height: calc(100vh - 132px);
+}
+
+.request-queue-detail-page .rqd-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: #081344;
+  font-weight: 600;
+}
+
+.request-queue-detail-page .rqd-status-chip {
+  color: #001fbb;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.request-queue-detail-page .rqd-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.request-queue-detail-page .rqd-timeline-row {
+  display: grid;
+  grid-template-columns: 72px 20px 1fr 68px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.request-queue-detail-page .rqd-timeline-date,
+.request-queue-detail-page .rqd-timeline-time {
+  font-size: 0.78rem;
+  color: #1f2b59;
+}
+
+.request-queue-detail-page .rqd-timeline-label {
+  font-size: 0.9rem;
+  color: #1f2b59;
+}
+
+.request-queue-detail-page .rqd-timeline-marker {
+  width: 10px;
+  height: 10px;
+  background: #1b2bb0;
+  border-radius: 999px;
+  position: relative;
+  justify-self: center;
+}
+
+.request-queue-detail-page .rqd-timeline-marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 68px;
+  background: #3147cd;
+}
+
+.request-queue-detail-page .rqd-timeline-marker.last::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 60px;
+  background-color: transparent;
+  border-left: dashed 1px #3147cd;
+}
+
+.request-queue-detail-page .rqd-timeline-marker.pending::after {
+  display: none;
+}
+
+.request-queue-detail-page .rqd-timeline-marker.pending {
+  border: 1px dashed #5f73d9;
+  background: transparent;
+}
+
+.request-queue-detail-page .rqd-timeline-placeholder .rqd-timeline-label {
+  color: #9ea6be;
+}
+
+.request-queue-detail-page .rqd-right {
+  background: #f8f9fc;
+  padding: 1.45rem 1.3rem;
+}
+
+.request-queue-detail-page .rqd-section-title {
+  color: #121f44;
+  font-weight: 600;
+  margin-bottom: 0.55rem;
+}
+
+.request-queue-detail-page .rqd-select {
+  border: 1px solid #d6dbe9;
+  background: #ffffff;
+  color: #30384f;
+}
+
+.request-queue-detail-page .rqd-add-btn {
+  border: 0;
+  border-radius: 999px;
+  background: #0f318e;
+  color: #ffffff;
+  min-width: 72px;
+  font-weight: 600;
+  padding: 0.35rem 1rem;
+}
+
+.request-queue-detail-page .rqd-add-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.request-queue-detail-page .rqd-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #1f2b59;
+  margin-bottom: 0.75rem;
+}
+
+.request-queue-detail-page .rqd-check-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.request-queue-detail-page .rqd-items-card {
+  background: #eceef3;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.request-queue-detail-page .rqd-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  color: #14214a;
+  font-size: 0.9rem;
+  margin-bottom: 0.45rem;
+}
+
+.request-queue-detail-page .rqd-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.9rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #00123f;
+}
+
+.request-queue-detail-page .rqd-info-list {
+  margin-top: 1.2rem;
+}
+
+.request-queue-detail-page .rqd-info-list p {
+  margin-bottom: 0.62rem;
+  color: #182452;
+}
+
+.request-queue-detail-page .rqd-info-list strong {
+  color: #0f1b4f;
+}
+
+.request-queue-detail-page .rqd-student-btn {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  border-radius: 4px;
+  background: #040f5f;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  margin-top: 1.1rem;
+}
+
+.request-queue-detail-page .rqd-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #465377;
+  font-weight: 500;
+}
+
+.request-queue-detail-page .rqd-state-error {
+  color: #bf2d2d;
+}
+
+@media (max-width: 992px) {
+  .request-queue-detail-page .rqd-shell {
+    padding: 1rem;
+  }
+
+  .request-queue-detail-page .rqd-timeline-row {
+    grid-template-columns: 64px 16px 1fr 64px;
+    gap: 0.5rem;
+  }
+
+  .request-queue-detail-page .rqd-timeline-label {
+    font-size: 0.82rem;
   }
 }
