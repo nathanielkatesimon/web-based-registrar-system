@@ -1,10 +1,11 @@
 class Api::V1::DocumentRequestsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_document_request, only: %i[ show update destroy ]
+  before_action :mark_request_as_opened_by_staff!, only: :show
 
   # GET /document_requests
   def index
-    @document_requests = current_user.document_requests
+    @document_requests = document_requests_scope
 
     render json: @document_requests
   end
@@ -42,7 +43,19 @@ class Api::V1::DocumentRequestsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document_request
-      @document_request = current_user.document_requests.find(params.expect(:id))
+      @document_request = document_requests_scope.find(params.expect(:id))
+    end
+
+    def document_requests_scope
+      return DocumentRequest.all if current_user.is_a?(Staff)
+
+      current_user.document_requests
+    end
+
+    def mark_request_as_opened_by_staff!
+      return unless current_user.is_a?(Staff)
+
+      @document_request.mark_opened_by_staff!
     end
 
     # Only allow a list of trusted parameters through.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_01_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_06_034439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -132,6 +132,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_000002) do
     t.index ["user_id"], name: "index_family_infos_on_user_id", unique: true
   end
 
+  create_table "request_time_lines", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "document_request_id", null: false
+    t.integer "type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_request_id"], name: "index_request_time_lines_on_document_request_id"
+  end
+
   create_table "student_profiles", force: :cascade do |t|
     t.string "barangay_name"
     t.date "birthday"
@@ -209,5 +217,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_000002) do
   add_foreign_key "document_request_items", "document_types"
   add_foreign_key "document_requests", "users"
   add_foreign_key "family_infos", "users"
+  add_foreign_key "request_time_lines", "document_requests"
   add_foreign_key "student_profiles", "users"
 end

@@ -1,6 +1,7 @@
 class DocumentRequest < ApplicationRecord
   belongs_to :student, class_name: "Student", foreign_key: :user_id, inverse_of: :document_requests
   has_many :document_request_items, dependent: :destroy
+  has_many :request_time_lines, -> { order(created_at: :asc) }, dependent: :destroy
 
   accepts_nested_attributes_for :document_request_items, allow_destroy: true
   has_one_attached :id_verification_photo
@@ -37,6 +38,7 @@ class DocumentRequest < ApplicationRecord
   validate :payment_receipt_required_for_online
 
   after_create_commit :assign_request_id!
+  after_create_commit :create_request_submitted_timeline!
 
   def items
     document_request_items
@@ -46,6 +48,12 @@ class DocumentRequest < ApplicationRecord
     student
   end
 
+  def mark_opened_by_staff!
+    return if request_time_lines.exists?(type: :request_opened)
+
+    request_time_lines.create!(type: :request_opened)
+  end
+  
   private
 
   def payment_receipt_required_for_online
@@ -64,5 +72,11 @@ class DocumentRequest < ApplicationRecord
     update_column(:request_id, request_id_value)
   rescue ActiveRecord::RecordNotUnique
     assign_request_id!(attempt + 1)
+  end
+
+  def create_request_submitted_timeline!
+    return if request_time_lines.exists?(type: :request_submitted)
+
+    request_time_lines.create!(type: :request_submitted)
   end
 end

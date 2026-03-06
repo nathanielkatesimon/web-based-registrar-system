@@ -6,6 +6,7 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @student = students(:student_one)
     @other_student = students(:student_two)
+    @staff = staffs(:staff_one)
     @document_type_one = document_types(:one)
     @document_type_two = document_types(:two)
 
@@ -60,31 +61,33 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference("DocumentRequest.count") do
       assert_difference("DocumentRequestItem.count") do
-        post api_v1_document_requests_url,
-             params: {
-               document_request: {
-                 user_id: @other_student.id,
-                 status: :on_hold,
-                 delivery_method: :courier_delivery,
-                 courier_name: "LBC",
-                 payment_method: :online,
-                 payment_status: :under_review,
-                 payment_verified_at: 1_739_980_800,
-                 shipping_fee_cents: 15_000,
-                 id_verification_photo: id_photo_file,
-                 payment_receipt: payment_receipt_file,
-                 document_request_items_attributes: [
-                   {
-                     document_type_id: @document_type_one.id,
-                     quantity: 2,
-                     purpose: "Scholarship",
-                     destination: 0,
-                     remarks: "Rush",
-                     unit_price_cents: 999_999
-                   }
-                 ]
+        assert_difference("RequestTimeLine.count", 1) do
+          post api_v1_document_requests_url,
+               params: {
+                 document_request: {
+                   user_id: @other_student.id,
+                   status: :on_hold,
+                   delivery_method: :courier_delivery,
+                   courier_name: "LBC",
+                   payment_method: :online,
+                   payment_status: :under_review,
+                   payment_verified_at: 1_739_980_800,
+                   shipping_fee_cents: 15_000,
+                   id_verification_photo: id_photo_file,
+                   payment_receipt: payment_receipt_file,
+                   document_request_items_attributes: [
+                     {
+                       document_type_id: @document_type_one.id,
+                       quantity: 2,
+                       purpose: "Scholarship",
+                       destination: 0,
+                       remarks: "Rush",
+                       unit_price_cents: 999_999
+                     }
+                   ]
+                 }
                }
-             }
+        end
       end
     end
 
@@ -95,6 +98,7 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, created_request.document_request_items.count
     assert_equal @document_type_one.id, created_request.document_request_items.first.document_type_id
     assert_equal @document_type_one.price_cents, created_request.document_request_items.first.unit_price_cents
+    assert created_request.request_time_lines.exists?(type: :request_submitted)
   end
 
   test "should update nested document_request_items including destroy" do
@@ -246,6 +250,22 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
     get api_v1_document_request_url(other_request), as: :json
 
     assert_response :not_found
+  end
+
+  test "should add request_opened timeline only once when staff views document_request" do
+    assert_not @document_request.request_time_lines.exists?(type: :request_opened)
+
+    sign_in_as(@staff)
+
+    assert_difference("RequestTimeLine.where(type: :request_opened).count", 1) do
+      get api_v1_document_request_url(@document_request), as: :json
+      assert_response :success
+    end
+
+    assert_no_difference("RequestTimeLine.where(type: :request_opened).count") do
+      get api_v1_document_request_url(@document_request), as: :json
+      assert_response :success
+    end
   end
 
   private

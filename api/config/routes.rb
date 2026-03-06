@@ -21,7 +21,9 @@ Rails.application.routes.draw do
       resources :deficiencies, only: [:show, :update]
       resources :document_request_items
       resources :document_types
-      resources :document_requests
+      resources :document_requests do
+        resources :request_time_lines, except: [:index]
+      end
     end
   end
 end
