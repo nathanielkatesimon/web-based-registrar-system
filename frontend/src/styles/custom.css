@@ -204,6 +204,15 @@
   padding: 0 1rem;
 }
 
+.request-queue-page .request-queue-table.dataTable {
+  border-top: 0 !important;
+}
+
+.request-queue-page .request-queue-table.dataTable > thead > tr > th,
+.request-queue-page .request-queue-table.dataTable > tbody > tr > td {
+  border-top: 0 !important;
+}
+
 .request-queue-page .rq-state {
   background: #ffffff;
   min-height: 170px;
@@ -234,7 +243,7 @@
 
 .request-queue-page .request-queue-table tbody td {
   border-bottom: 1px solid #dbe2ef;
-  padding: 0.86rem 1.15rem;
+  padding: 1.25rem 1.15rem;
   color: #34373f;
   vertical-align: middle;
 }
