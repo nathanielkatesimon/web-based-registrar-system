@@ -133,3 +133,9 @@ Returned when `:id` does not exist for current user scope.
 - `payment_status`
 - `payment_verified_at`
 - `shipping_fee_cents`
+- `student_name`
+- `created_at`
+- `updated_at`
+- `request_items` (derived list with item name, quantity, unit/line pricing, purpose, remarks)
+- `total_cents` (sum of line totals + shipping)
+- `request_time_lines` (timeline entries)

@@ -1,9 +1,13 @@
 class DocumentRequestSerializer < ActiveModel::Serializer
   attributes :id, :request_id, :status, :delivery_method, :courier_name, :payment_method,
-             :payment_status, :payment_verified_at, :shipping_fee_cents, :created_at,
+             :payment_status, :payment_verified_at, :shipping_fee_cents, :student_name, :created_at,
              :updated_at, :request_items, :total_cents
 
   has_many :request_time_lines
+
+  def student_name
+    object.student&.full_name
+  end
 
   def request_items
     object.document_request_items.includes(:document_type).map do |item|
