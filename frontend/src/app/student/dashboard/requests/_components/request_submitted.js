@@ -2,6 +2,7 @@
 
 import formatMoney from "@/lib/formatMoney"
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store"
+import Link from "next/link"
 
 const formatPaymentMethod = (value) => {
   if (value === "online") return "Online Payment (GCash)"
@@ -24,7 +25,6 @@ const formatStatus = (value) => {
 
 export default function RequestSubmitted() {
   const submitted_request = useStudentDocumentRequestStore((state) => state.submitted_request)
-  const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow)
 
   if (!submitted_request) return null
 
@@ -92,10 +92,10 @@ export default function RequestSubmitted() {
                 : "Unpaid requests will be placed on hold. Please visit the Registrar’s Office to complete your payment."}
             </span>
           </div>
-
-          <button className="btn btn-primary btn-lg w-100 mt-10" type="button" onClick={resetRequestFlow}>
+          
+          <Link href="/student/dashboard/tracker" className="btn btn-primary btn-lg w-100 mt-10">
             Go to Tracker
-          </button>
+          </Link>
         </div>
       </div>
     </div>
