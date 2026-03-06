@@ -101,6 +101,7 @@ export default function StaffRequestQueueDetailPage() {
   const [markOnHold, setMarkOnHold] = useState(false);
   const [markClosed, setMarkClosed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
   const [modalFile, setModalFile] = useState({ title: "", url: "" });
 
   const fetchRequest = useCallback(async () => {
@@ -259,6 +260,52 @@ export default function StaffRequestQueueDetailPage() {
     });
   };
 
+  const handlePaymentStatusUpdate = async (nextPaymentStatus) => {
+    if (!requestId || !request || updatingPaymentStatus) return;
+
+    const statusLabel = nextPaymentStatus.replaceAll("_", " ");
+    const confirmation = await ShowAlert({
+      icon: "question",
+      title: "Confirm Payment Status Update",
+      text: `Set payment status to ${statusLabel}?`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, update",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmation?.isConfirmed) return;
+
+    try {
+      setUpdatingPaymentStatus(true);
+      const response = await api(`/api/v1/document_requests/${requestId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          document_request: { payment_status: nextPaymentStatus },
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload?.error || "Failed to update payment status.");
+      }
+
+      await fetchRequest();
+      await ShowAlert({
+        icon: "success",
+        title: "Payment Status Updated",
+        text: `Payment status is now ${statusLabel}.`,
+      });
+    } catch (updateError) {
+      await ShowAlert({
+        icon: "error",
+        title: "Update Failed",
+        text: updateError?.message || "Unable to update payment status.",
+      });
+    } finally {
+      setUpdatingPaymentStatus(false);
+    }
+  };
+
   return (
     <div className="px-12 flex-grow-1 py-4 request-queue-detail-page">
       <div>
@@ -308,7 +355,7 @@ export default function StaffRequestQueueDetailPage() {
 
             <div className="col-12 col-xl-6">
               <div className="rqd-right bg-white rounded-3">
-                <p className="rqd-section-title">Add timeline</p>
+                <p className="rqd-section-title text-info">Add timeline</p>
 
                 <div className="d-flex gap-2 mb-4">
                   <select
@@ -357,13 +404,37 @@ export default function StaffRequestQueueDetailPage() {
                 <p className="rqd-section-title text-info">Payment</p>
 
                 <div className="rqd-info-list">
-
-                  <p><strong>Payment Method:</strong> {formatPaymentMethod(request.payment_method)}</p>
                   <p>
                     <strong>Payment Status:</strong>{" "}
-                    <span className={paymentStatus.className}>{paymentStatus.label}</span>
                   </p>
+                  <div className="rqd-payment-actions">
+                    <button
+                      type="button"
+                      className={`btn btn-sm btn-outline-secondary rounded-pill ${request.payment_status === "paid" ? "btn-outline-success active" : ""}`}
+                      disabled={updatingPaymentStatus}
+                      onClick={() => handlePaymentStatusUpdate("paid")}
+                    >
+                      Paid
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm btn-outline-secondary rounded-pill ${request.payment_status === "not_paid" ? "btn-outline-danger active" : ""}`}
+                      disabled={updatingPaymentStatus}
+                      onClick={() => handlePaymentStatusUpdate("not_paid")}
+                    >
+                      Not Paid
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm btn-outline-secondary rounded-pill ${request.payment_status === "under_review" ? "btn-outline-warning active" : ""}`}
+                      disabled={updatingPaymentStatus}
+                      onClick={() => handlePaymentStatusUpdate("under_review")}
+                    >
+                      Under Review
+                    </button>
+                  </div>
 
+                  <p><strong>Payment Method:</strong> {formatPaymentMethod(request.payment_method)}</p>
                   {isOnlinePayment ? (
                     <p>
                       <strong>Receipt:</strong>{" "}
@@ -381,7 +452,7 @@ export default function StaffRequestQueueDetailPage() {
                         "Unavailable"
                       )}
                     </p>
-                  ) : null}
+                    ) : null}
                 </div>
 
                 <hr className="my-4" />
@@ -446,6 +517,7 @@ export default function StaffRequestQueueDetailPage() {
             </div>
             <div className="modal-body">
               {modalFile.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={modalFile.url}
                   alt={modalFile.title || "File preview"}

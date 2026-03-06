@@ -497,6 +497,33 @@
   color: #0f1b4f;
 }
 
+.request-queue-detail-page .rqd-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.request-queue-detail-page .rqd-payment-action {
+  border: 1px solid #0f318e;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f318e;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.75rem;
+}
+
+.request-queue-detail-page .rqd-payment-action.active {
+  background: #0f318e;
+  color: #ffffff;
+}
+
+.request-queue-detail-page .rqd-payment-action:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .request-queue-detail-page .rqd-file-btn {
   border: 0;
   background: transparent;

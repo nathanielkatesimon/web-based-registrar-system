@@ -88,6 +88,9 @@ Nested `document_request_items_attributes[]`:
 - `courier_name` is required when `delivery_method = courier_delivery`.
 - `id_verification_photo` is required.
 - `payment_receipt` is required when `payment_method = online`.
+- `payment_verified_at` is automatically managed from `payment_status` updates:
+  - set to current UNIX timestamp when `payment_status = paid`
+  - cleared (`null`) when `payment_status = not_paid` or `under_review`
 - For nested request items, `unit_price_cents` is enforced from `document_type.price_cents` on save.
 
 ## Success Responses
@@ -138,4 +141,6 @@ Returned when `:id` does not exist for current user scope.
 - `updated_at`
 - `request_items` (derived list with item name, quantity, unit/line pricing, purpose, remarks)
 - `total_cents` (sum of line totals + shipping)
+- `id_verification_photo_url` (Active Storage blob path)
+- `payment_receipt_url` (Active Storage blob path when attached)
 - `request_time_lines` (timeline entries)

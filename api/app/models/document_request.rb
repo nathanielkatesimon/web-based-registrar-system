@@ -37,6 +37,8 @@ class DocumentRequest < ApplicationRecord
   validates :request_id, uniqueness: true, allow_nil: true
   validate :payment_receipt_required_for_online
 
+  before_validation :sync_payment_verified_at_with_payment_status
+
   after_create_commit :assign_request_id!
   after_create_commit :create_request_submitted_timeline!
 
@@ -61,6 +63,16 @@ class DocumentRequest < ApplicationRecord
     return if payment_receipt.attached?
 
     errors.add(:payment_receipt, "must be attached for online payment")
+  end
+
+  def sync_payment_verified_at_with_payment_status
+    return unless will_save_change_to_payment_status?
+
+    if paid?
+      self.payment_verified_at ||= Time.current.to_i
+    else
+      self.payment_verified_at = nil
+    end
   end
 
   def assign_request_id!(attempt = 0)
