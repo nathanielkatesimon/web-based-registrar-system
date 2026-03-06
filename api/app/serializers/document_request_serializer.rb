@@ -1,6 +1,32 @@
 class DocumentRequestSerializer < ActiveModel::Serializer
   attributes :id, :request_id, :status, :delivery_method, :courier_name, :payment_method,
-             :payment_status, :payment_verified_at, :shipping_fee_cents
+             :payment_status, :payment_verified_at, :shipping_fee_cents, :created_at,
+             :updated_at, :request_items, :total_cents
 
   has_many :request_time_lines
+
+  def request_items
+    object.document_request_items.includes(:document_type).map do |item|
+      quantity = item.quantity.to_i
+      unit_price_cents = item.unit_price_cents.to_i
+
+      {
+        id: item.id,
+        quantity: quantity,
+        name: item.document_type&.name,
+        unit_price_cents: unit_price_cents,
+        line_total_cents: quantity * unit_price_cents,
+        purpose: item.purpose,
+        remarks: item.remarks
+      }
+    end
+  end
+
+  def total_cents
+    items_total = object.document_request_items.sum do |item|
+      item.quantity.to_i * item.unit_price_cents.to_i
+    end
+
+    items_total + object.shipping_fee_cents.to_i
+  end
 end

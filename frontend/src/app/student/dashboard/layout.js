@@ -5,11 +5,13 @@ import LogoutButton from "@/components/features/auth/logout-button";
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo } from "react";
+import { usePathname } from "next/navigation";
 import useSessionStore from "@/store/session-store";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
 
 export default function StudentDashboardLayout({children}) {
   const { currentUser } = useSessionStore();
+  const pathname = usePathname();
   const requestStep = useStudentDocumentRequestStore((state) => state.step);
   const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow);
 
@@ -21,6 +23,8 @@ export default function StudentDashboardLayout({children}) {
   }, [currentUser?.avatar_url]);
 
   const displayName = currentUser?.full_name || "Student";
+  const isExactMatch = (route) => pathname === route;
+  const isRoutePrefix = (route) => pathname?.startsWith(route);
 
   return (
     <AuthRequiredGuard requiredType="Student">
@@ -38,13 +42,13 @@ export default function StudentDashboardLayout({children}) {
               <div className="menu-inner-shadow"></div>
     
               <ul className="menu-inner py-1 overflow-auto">
-                <li className="menu-item">
+                <li className={`menu-item ${isExactMatch("/student/dashboard") ? "active" : ""}`}>
                   <Link href="/student/dashboard" className="menu-link fs-5">
                     <i className="menu-icon tf-icons pb-1 bx bx-dashboard"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Dashboard</div>
                   </Link>
                 </li>
-                <li className="menu-item">
+                <li className={`menu-item ${isRoutePrefix("/student/dashboard/requests") ? "active" : ""}`}>
                   <Link
                     href="/student/dashboard/requests"
                     className="menu-link fs-5"
@@ -56,7 +60,19 @@ export default function StudentDashboardLayout({children}) {
                     <div className="text-truncate" data-i18n="Dashboards">Requests</div>
                   </Link>
                 </li>
-                <li className="menu-item">
+                <li className={`menu-item ${isRoutePrefix("/student/dashboard/tracker") ? "active" : ""}`}>
+                  <Link href="/student/dashboard/tracker" className="menu-link fs-5">
+                    <i className="menu-icon tf-icons pb-1 bx bx-timeline"></i>
+                    <div className="text-truncate" data-i18n="Dashboards">Tracker</div>
+                  </Link>
+                </li>
+                {/* <li className={`menu-item ${isRoutePrefix("/student/dashboard/escalations") ? "active" : ""}`}>
+                  <Link href="/student/dashboard/escalations" className="menu-link fs-5">
+                    <i className="menu-icon tf-icons pb-1 bx bx-error-circle"></i>
+                    <div className="text-truncate" data-i18n="Dashboards">Escalations</div>
+                  </Link>
+                </li>*/}
+                <li className={`menu-item ${isRoutePrefix("/student/dashboard/profile") ? "active" : ""}`}>
                   <Link href="/student/dashboard/profile/personal_info" className="menu-link fs-5">
                     <i className="menu-icon tf-icons pb-1 bx bx-user"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Profile</div>
