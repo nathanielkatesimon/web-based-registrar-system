@@ -235,7 +235,7 @@ export default function StudentRegistrationForm() {
 
     const { profile, error: profileError } = buildStudentProfileAttributes();
     if (profileError) {
-      await ShowAlert({ icon: "error", title: "Registration Failed", text: profileError, customClass: { cancelButton: "d-none" }  });
+      await ShowAlert({ icon: "error", title: "Registration Failed", text: profileError  });
       return;
     }
 
@@ -263,16 +263,16 @@ export default function StudentRegistrationForm() {
 
       if (response.status === 200 || response.status === 201) {
         if (responseJson?.message) {
-          await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message, customClass: { cancelButton: "d-none" }  });
+          await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message  });
         } else {
-          await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully.", customClass: { cancelButton: "d-none" }  });
+          await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully."  });
         }
         window.location.href = "/student/dashboard";
       } else {
-        await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(responseJson) || "Please review your inputs and try again.", customClass: { cancelButton: "d-none" }  });
+        await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(responseJson) || "Please review your inputs and try again."  });
       }
     } catch (error) {
-      await ShowAlert({ icon: "error", title: "Registration Failed", text: "Something went wrong. Please try again.", customClass: { cancelButton: "d-none" }  });
+      await ShowAlert({ icon: "error", title: "Registration Failed", text: "Something went wrong. Please try again." });
     } finally {
       setIsSubmitting(false);
     }

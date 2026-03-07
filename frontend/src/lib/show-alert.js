@@ -15,7 +15,7 @@ export default function ShowAlert({ icon, title, text, ...options }) {
         title: "m-0 p-4",
         htmlContainer: "m-0 mb-2 px-8 text-muted",
         confirmButton: "btn btn-primary",
-        cancelButton: "btn btn-outline-secondary ms-2",
+        cancelButton: options.showCancelButton ? "btn btn-outline-secondary ms-2" : "d-none",
         ...options.customClass
       },
     });

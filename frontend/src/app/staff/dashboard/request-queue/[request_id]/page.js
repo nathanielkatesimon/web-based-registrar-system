@@ -283,7 +283,6 @@ export default function StaffRequestQueueDetailPage() {
         confirmButtonText: "Okay!",
         customClass: {
           confirmButton: "btn btn-primary w-100",
-          cancelButton: "d-none",
         }
       });
     } catch (saveError) {

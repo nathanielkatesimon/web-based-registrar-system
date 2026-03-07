@@ -23,6 +23,7 @@ export default function StepTwo() {
       ShowAlert({
         icon: "error",
         title: "Missing ID Verification Photo",
+        showCancelButton: false,
         text: "Please upload your photo while holding a valid ID before proceeding."
       })
       return
