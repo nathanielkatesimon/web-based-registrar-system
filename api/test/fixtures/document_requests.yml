@@ -7,7 +7,8 @@ one:
   payment_method: 1
   payment_status: 1
   payment_verified_at: 1
-  shipping_fee_cents: 1
+  shipping_fee_cents: 1,
+  close_or_hold_reason: 0,
 
 two:
   student: student_two
@@ -16,4 +17,5 @@ two:
   payment_method: 1
   payment_status: 1
   payment_verified_at: 1
-  shipping_fee_cents: 1
+  shipping_fee_cents: 1,
+  close_or_hold_reason: 1,

@@ -8,6 +8,11 @@ class DocumentRequest < ApplicationRecord
   has_one_attached :payment_receipt
 
   monetize :shipping_fee_cents
+  
+  enum :close_or_hold_reason, {
+    unpaid_bill: 0,
+    missing_requirements: 1
+  }
 
   enum :status, {
     on_hold: 0,

@@ -18,6 +18,7 @@ Manages student-owned document requests with nested `document_request_items`, re
 
 ## Enums
 - `status`: `on_hold`, `processing`, `completed`, `closed`
+- `close_or_hold_reason`: `unpaid_bill`, `missing_requirements`
 - `delivery_method`: `self_pickup`, `courier_delivery`
 - `payment_status`: `paid`, `not_paid`, `under_review`
 - `payment_method`: `cash`, `online`
@@ -35,6 +36,7 @@ All write endpoints require top-level key: `document_request`.
 {
   "document_request": {
     "status": "on_hold",
+    "close_or_hold_reason": "missing_requirements",
     "delivery_method": "courier_delivery",
     "courier_name": "LBC",
     "payment_method": "online",
@@ -63,6 +65,7 @@ All write endpoints require top-level key: `document_request`.
 ### Allowed Fields
 Top-level `document_request`:
 - `status`
+- `close_or_hold_reason`
 - `delivery_method`
 - `courier_name`
 - `payment_method`
@@ -130,6 +133,7 @@ Returned when `:id` does not exist for current user scope.
 - `id`
 - `request_id`
 - `status`
+- `close_or_hold_reason`
 - `delivery_method`
 - `courier_name`
 - `payment_method`

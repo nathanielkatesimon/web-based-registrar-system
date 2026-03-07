@@ -62,6 +62,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
     def document_request_params
       params.require(:document_request).permit([
         :status,
+        :close_or_hold_reason,
         :delivery_method,
         :courier_name,
         :payment_method,
