@@ -42,6 +42,7 @@ const STATUS_SELECT_OPTIONS = [
   { value: "on_hold", label: "On Hold" },
   { value: "closed", label: "Closed" },
 ];
+const DEFAULT_STATUS = STATUS_SELECT_OPTIONS[0].value;
 
 function formatTimelineDate(value) {
   if (!value) return "--/--/--";
@@ -67,12 +68,6 @@ function formatTimelineTime(value) {
 
 function formatPaymentMethod(value) {
   return value === "online" ? "Online Payment" : "Cash";
-}
-
-function formatPaymentStatus(value) {
-  if (value === "paid") return { label: "Paid", className: "text-success" };
-  if (value === "under_review") return { label: "Under Review", className: "text-warning" };
-  return { label: "Not Paid", className: "text-danger" };
 }
 
 function formatDeliveryMethod(value) {
@@ -106,7 +101,7 @@ export default function StaffRequestQueueDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [newTimelineType, setNewTimelineType] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState(DEFAULT_STATUS);
   const [reasonUnpaidBill, setReasonUnpaidBill] = useState(false);
   const [reasonMissingRequirements, setReasonMissingRequirements] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -141,16 +136,10 @@ export default function StaffRequestQueueDetailPage() {
 
   useEffect(() => {
     if (!request) return;
-    setSelectedStatus(request.status || "");
+    setSelectedStatus(request.status || DEFAULT_STATUS);
     setReasonUnpaidBill(Boolean(request.unpaid_bill));
     setReasonMissingRequirements(Boolean(request.missing_requirements));
   }, [request]);
-
-  useEffect(() => {
-    const $ = window.jQuery || window.$;
-    if (!$ || !$.fn?.selectpicker) return;
-    $(".rqd-selectpicker").selectpicker("refresh");
-  }, [request?.id]);
 
   const timelineEntries = useMemo(() => {
     const list = Array.isArray(request?.request_time_lines) ? request.request_time_lines : [];
@@ -175,7 +164,6 @@ export default function StaffRequestQueueDetailPage() {
   }, 0);
   const totalCents = Number(request?.total_cents ?? subtotalCents + Number(request?.shipping_fee_cents || 0));
 
-  const paymentStatus = formatPaymentStatus(request?.payment_status);
   const isOnlinePayment = request?.payment_method === "online";
   const verificationPhotoUrl = findFileUrl(request, [
     "id_verification_photo_url",
@@ -212,18 +200,16 @@ export default function StaffRequestQueueDetailPage() {
     try {
       setSubmitting(true);
 
-      if (newTimelineType) {
-        const timelineResponse = await api(`/api/v1/document_requests/${requestId}/request_time_lines`, {
-          method: "POST",
-          body: JSON.stringify({
-            request_time_line: { type: newTimelineType },
-          }),
-        });
+      const timelineResponse = await api(`/api/v1/document_requests/${requestId}/request_time_lines`, {
+        method: "POST",
+        body: JSON.stringify({
+          request_time_line: { type: newTimelineType },
+        }),
+      });
 
-        if (!timelineResponse.ok) {
-          const payload = await timelineResponse.json();
-          throw new Error(payload?.error || "Failed to add timeline.");
-        }
+      if (!timelineResponse.ok) {
+        const payload = await timelineResponse.json();
+        throw new Error(payload?.error || "Failed to add timeline.");
       }
 
       setNewTimelineType("");
@@ -246,15 +232,6 @@ export default function StaffRequestQueueDetailPage() {
 
   const handleSaveStatus = async () => {
     if (!requestId || !request) return;
-
-    if (!selectedStatus) {
-      await ShowAlert({
-        icon: "error",
-        title: "Status Required",
-        text: "Select a status before saving.",
-      });
-      return;
-    }
 
     if (requiresReason && !hasAtLeastOneReason) {
       await ShowAlert({
@@ -364,6 +341,8 @@ export default function StaffRequestQueueDetailPage() {
     }
   };
 
+  const selectInitKey = `${request?.id || "new"}-${newTimelineType}-${selectedStatus}-${loading}`;
+
   return (
     <div className="px-12 flex-grow-1 py-4 request-queue-detail-page">
       <div>
@@ -414,14 +393,13 @@ export default function StaffRequestQueueDetailPage() {
             <div className="col-12 col-xl-6">
               <div className="rqd-right bg-white rounded-3">
                 <p className="rqd-section-title text-info">Add timeline</p>
-                <InitBootstrapSelect selector=".rqd-selectpicker" />
+                <InitBootstrapSelect key={selectInitKey} selector=".rqd-selectpicker" />
 
                 <div className="d-flex gap-2 mb-4">
                   <select
                     className="selectpicker w-100 rqd-selectpicker"
                     value={newTimelineType}
                     onChange={(event) => setNewTimelineType(event.target.value)}
-                    disabled={submitting || statusSubmitting}
                     data-style="bg-light border"
                     data-width="100%"
                     title="Please Select..."
@@ -458,19 +436,16 @@ export default function StaffRequestQueueDetailPage() {
                         setReasonMissingRequirements(false);
                       }
                     }}
-                    disabled={submitting || statusSubmitting}
                     data-style="bg-light border"
                     data-width="100%"
-                    title="Select status..."
                   >
-                    <option value="">Select status...</option>
                     {STATUS_SELECT_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
                     ))}
                   </select>
-                
+
                   <button
                     type="button"
                     className="btn btn-info rounded-pill fw-bold shadow-none mb-2 ms-auto"
@@ -497,8 +472,8 @@ export default function StaffRequestQueueDetailPage() {
                     <label className="rqd-check-row">
                       <input
                         type="checkbox"
-                              checked={reasonMissingRequirements}
-                              className="form-check-input"
+                        checked={reasonMissingRequirements}
+                        className="form-check-input"
                         onChange={(event) => setReasonMissingRequirements(event.target.checked)}
                         disabled={submitting || statusSubmitting}
                       />
@@ -508,8 +483,6 @@ export default function StaffRequestQueueDetailPage() {
                 ) : (
                   <div className="mb-4"></div>
                 )}
-
-
                 <hr className="my-4" />
                 <p className="rqd-section-title text-info">Payment</p>
 
