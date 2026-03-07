@@ -48,9 +48,9 @@ export default function StudentLoginForm() {
 
       if (response.status === 200) {
         if (responseJson?.message) {
-          await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message });
+          await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message, customClass: { cancelButton: "d-none" }  });
         } else {
-          await ShowAlert({ icon: "success", title: "Login Successful", text: "Welcome back." });
+          await ShowAlert({ icon: "success", title: "Login Successful", text: "Welcome back.", customClass: { cancelButton: "d-none" }  });
         }
         window.location.href = "/student/dashboard";
         return;
@@ -59,13 +59,13 @@ export default function StudentLoginForm() {
       await ShowAlert({
         icon: "error",
         title: "Login Failed",
-        text: responseJson?.message || parseError(responseJson) || "Invalid ID or password.",
+        text: responseJson?.message || parseError(responseJson) || "Invalid ID or password.", customClass: { cancelButton: "d-none" } 
       });
     } catch (error) {
       await ShowAlert({
         icon: "error",
         title: "Login Failed",
-        text: "Something went wrong. Please try again.",
+        text: "Something went wrong. Please try again.", customClass: { cancelButton: "d-none" } 
       });
     } finally {
       setIsSubmitting(false);

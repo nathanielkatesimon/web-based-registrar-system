@@ -77,16 +77,16 @@ export default function StaffRegistrationForm() {
       
       if (response.status == 200 || response.status == 201) {
         if (response_json.message) {
-          await ShowAlert({icon: "info", title: "Already Signed In", text: "", });
+          await ShowAlert({icon: "info", title: "Already Signed In", text: "", customClass: { cancelButton: "d-none" }  });
         } else {
-          await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully." });
+          await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully.", customClass: { cancelButton: "d-none" }  });
         }
         window.location.href = "/staff/dashboard";
       } else {
-          await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(response_json) });
+          await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(response_json), customClass: { cancelButton: "d-none" }  });
       }
     } catch (error) {
-      ShowAlert({ icon: "error", title: "Registration Failed", text: "Something went wrong. Please try again." });
+      ShowAlert({ icon: "error", title: "Registration Failed", text: "Something went wrong. Please try again.", customClass: { cancelButton: "d-none" }  });
     } finally {
       setIsSubmitting(false);
     }
