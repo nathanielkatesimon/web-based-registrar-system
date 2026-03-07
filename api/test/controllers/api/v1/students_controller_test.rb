@@ -11,6 +11,9 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should require authentication for protected actions" do
+    get api_v1_students_url, as: :json
+    assert_response :unauthorized
+
     get api_v1_student_url(@student_one), as: :json
     assert_response :unauthorized
 
@@ -21,6 +24,71 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     delete api_v1_student_url(@student_one), as: :json
     assert_response :unauthorized
+  end
+
+  test "should reject student access to index with forbidden" do
+    sign_in_as(@student_one)
+
+    get api_v1_students_url, as: :json
+
+    assert_response :forbidden
+  end
+
+  test "should allow staff to list students with profiles" do
+    sign_in_as(@staff_one)
+
+    get api_v1_students_url, as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    ids = json_response.map { |record| record["id"] }
+
+    assert_includes ids, @student_one.id
+    assert_includes ids, @student_two.id
+    assert_not_includes ids, students(:student_three).id
+  end
+
+  test "should filter index by year_level, school_level and status" do
+    sign_in_as(@staff_one)
+
+    get "#{api_v1_students_url}?year_level=12&school_level=senior_high&status=currently_enrolled",
+        as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    ids = json_response.map { |record| record["id"] }
+
+    assert_equal [@student_two.id], ids
+  end
+
+  test "should filter index by course_or_track for course" do
+    sign_in_as(@staff_one)
+
+    get "#{api_v1_students_url}?course_or_track=bachelor_of_science_in_computer_science",
+        as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    ids = json_response.map { |record| record["id"] }
+
+    assert_equal [@student_one.id], ids
+  end
+
+  test "should filter index by course_or_track for track" do
+    sign_in_as(@staff_one)
+
+    get "#{api_v1_students_url}?course_or_track=academic_track",
+        as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    ids = json_response.map { |record| record["id"] }
+
+    assert_equal [@student_two.id], ids
   end
 
   test "should show the student matching requested id" do

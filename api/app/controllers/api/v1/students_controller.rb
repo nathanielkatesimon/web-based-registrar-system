@@ -1,6 +1,28 @@
 class Api::V1::StudentsController < ApplicationController
-  before_action :authenticate_user!, only: [:show, :update, :destroy]
+  before_action :authenticate_user!, only: [:index, :show, :update, :destroy]
+  before_action :authorize_staff!, only: [:index]
   before_action :set_student, only: [:show, :update, :destroy]
+
+  # GET /api/v1/students
+  def index
+    students = Student.includes(:student_profile, :family_info)
+      .joins(:student_profile)
+      .order(created_at: :desc)
+
+    students = students.where(student_profiles: { year_level: params[:year_level] }) if params[:year_level].present?
+    students = students.where(student_profiles: { school_level: params[:school_level] }) if params[:school_level].present?
+    students = students.where(student_profiles: { status: params[:status] }) if params[:status].present?
+
+    if params[:course_or_track].present?
+      value = params[:course_or_track]
+      students = students.where(
+        "student_profiles.course = :value OR student_profiles.track = :value",
+        value: value
+      )
+    end
+
+    render json: students
+  end
 
   # GET /api/v1/students/personal_info
   def show
@@ -35,6 +57,11 @@ class Api::V1::StudentsController < ApplicationController
   end
 
   private
+  def authorize_staff!
+    return if current_user.is_a?(Staff)
+
+    render json: {}, status: :forbidden
+  end
 
   def set_student
     @student = if params[:id] == "personal_info"

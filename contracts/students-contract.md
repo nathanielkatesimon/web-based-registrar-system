@@ -4,6 +4,7 @@
 - Base Path: `/api/v1/students`
 - Controller: `Api::V1::StudentsController`
 - Auth required:
+  - `GET /api/v1/students`: `Yes` (Staff only)
   - `GET /api/v1/students/personal_info`: `Yes`
   - `GET /api/v1/students/:id`: `Yes`
   - `PATCH|PUT /api/v1/students/:id`: `Yes`
@@ -14,6 +15,7 @@
 Returns, updates, and deletes a student resource resolved from `:id`, with support for current-user aliasing via `personal_info`.
 
 ## Endpoints (Covered)
+- `GET /api/v1/students` (index)
 - `GET /api/v1/students/personal_info` (show)
 - `GET /api/v1/students/:id` (show)
 - `PATCH /api/v1/students/:id` (update)
@@ -24,6 +26,15 @@ Returns, updates, and deletes a student resource resolved from `:id`, with suppo
 ### Headers
 - `Content-Type: application/json` (for `PATCH`, `PUT`)
 - Auth session cookie required (Devise session).
+
+### Query Params (Index)
+- `year_level` (optional): exact match on `student_profiles.year_level`
+- `school_level` (optional): exact match on `student_profiles.school_level`
+- `status` (optional): exact match on `student_profiles.status`
+- `course_or_track` (optional): exact match against either `student_profiles.course` OR `student_profiles.track`
+
+### Index Example
+`GET /api/v1/students?year_level=12&school_level=senior_high&course_or_track=academic_track&status=currently_enrolled`
 
 ### Body Wrapper (Update)
 All write requests require top-level key: `student`.
@@ -117,6 +128,11 @@ All write requests require top-level key: `student`.
 
 ## Server-Enforced Behavior (Current)
 - `authenticate_user!` protects `show`, `update`, and `destroy`.
+- `authenticate_user!` protects `index`, `show`, `update`, and `destroy`.
+- `index` is staff-only:
+  - If `current_user` is not `Staff`, returns `403 Forbidden`.
+  - Returns students with a joined `student_profile`.
+  - Applies optional filters: `year_level`, `school_level`, `status`, `course_or_track`.
 - `set_student` resolution for `show`, `update`, and `destroy`:
   - If `params[:id] == "personal_info"`, target is `current_user`.
   - Otherwise, target is `Student.find(params[:id])`.
@@ -133,6 +149,11 @@ All write requests require top-level key: `student`.
   - `password_confirmation`
 
 ## Success Responses
+### `GET /api/v1/students`
+- Status: `200 OK`
+- Access: staff users only
+- Body: JSON array of student objects (with nested `student_profile` and `family_info`), optionally filtered by query params.
+
 ### `GET /api/v1/students/personal_info`
 - Status: `200 OK`
 - Body: JSON of the authenticated student (includes nested `student_profile` data).
@@ -160,6 +181,14 @@ Typical response shape:
 }
 ```
 
+### `403 Forbidden` (Index)
+Returned when authenticated user is not a `Staff`.
+
+Typical response shape:
+```json
+{}
+```
+
 ### `422 Unprocessable Entity` (Update)
 Returned when validations fail for `Student` or `StudentProfile`.
 
@@ -175,6 +204,8 @@ Returned when validations fail for `Student` or `StudentProfile`.
 Returned when `:id` is not `"personal_info"` and no matching `Student` exists.
 
 ## Frontend Integration Notes
+- Use `/api/v1/students` for staff-facing student directory/list pages.
+- Available list filters: `year_level`, `school_level`, `status`, `course_or_track`.
 - Use `/api/v1/students/personal_info` for current account operations.
 - Use `/api/v1/students/:id` for ID-based student operations.
 - Send requests with cookies enabled (for example, `credentials: "include"` in `fetch`).
