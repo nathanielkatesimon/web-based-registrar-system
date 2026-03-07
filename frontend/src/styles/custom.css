@@ -402,7 +402,7 @@
   border-left: dashed 1px #3147cd;
 }
 
-.request-queue-detail-page .rqd-timeline-marker.pending::after {
+.request-queue-detail-page .rqd-timeline-marker.last.timeline-end::after, .request-queue-detail-page .rqd-timeline-marker.pending::after {
   display: none;
 }
 
@@ -567,6 +567,54 @@
   color: #bf2d2d;
 }
 
+.swal2-popup.rqd-on-hold-alert-popup {
+  border-radius: 12px;
+  width: min(560px, calc(100vw - 2rem));
+  padding: 2rem 1.75rem 1.5rem;
+}
+
+.swal2-title.rqd-on-hold-alert-title {
+  color: #2f376d;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: left;
+  margin: 0 0 0.85rem;
+}
+
+.swal2-html-container.rqd-on-hold-alert-content {
+  text-align: left;
+  margin: 0;
+  color: #6d7288;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.swal2-html-container.rqd-on-hold-alert-content .rqd-on-hold-alert-lead {
+  color: #0f1116;
+  font-size: 1.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+
+.swal2-html-container.rqd-on-hold-alert-content .rqd-on-hold-alert-body {
+  margin: 0;
+}
+
+.swal2-confirm.rqd-on-hold-alert-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  background: #040f5f;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.85rem 1rem;
+  margin-top: 1.5rem;
+}
+
 @media (max-width: 992px) {
   .request-queue-detail-page .rqd-shell {
     padding: 1rem;
@@ -579,5 +627,13 @@
 
   .request-queue-detail-page .rqd-timeline-label {
     font-size: 0.82rem;
+  }
+
+  .swal2-title.rqd-on-hold-alert-title {
+    font-size: 1.65rem;
+  }
+
+  .swal2-html-container.rqd-on-hold-alert-content .rqd-on-hold-alert-lead {
+    font-size: 1.5rem;
   }
 }

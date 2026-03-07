@@ -392,8 +392,8 @@ export default function StudentDashboardTrackerPage() {
                           }}
                         />
                       </div>
-                      <p className="mb-0 small" style={{ color: "#8C8C8C", paddingTop: 1 }}>
-                        ...
+                      <p className="mb-0 small text-muted" style={{ color: "#8C8C8C", paddingTop: 1 }}>
+                        Completed
                       </p>
                     </div>
                   ) : null}

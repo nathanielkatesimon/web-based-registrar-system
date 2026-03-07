@@ -25,7 +25,6 @@ const TIMELINE_LABELS = {
 };
 
 const TIMELINE_SELECT_OPTIONS = [
-  "request_processed",
   "request_forwarded_to_head_office",
   "waiting_for_approval",
   "approved_by_head_office",
@@ -33,7 +32,6 @@ const TIMELINE_SELECT_OPTIONS = [
   "ready_for_shipping",
   "ready_for_pick_up",
   "document_shipped",
-  "completed",
 ];
 
 const STATUS_SELECT_OPTIONS = [
@@ -154,8 +152,6 @@ export default function StaffRequestQueueDetailPage() {
       created_at: entry.created_at,
     }));
   }, [request?.request_time_lines]);
-
-  const hasCompletedTimeline = timelineEntries.some((entry) => entry.type === "completed");
 
   const items = Array.isArray(request?.request_items) ? request.request_items : [];
   const subtotalCents = items.reduce((sum, item) => {
@@ -393,13 +389,13 @@ export default function StaffRequestQueueDetailPage() {
                   {timelineEntries.map((entry, index) => (
                     <div className="rqd-timeline-row" key={entry.id || `${entry.type}-${index}`}>
                       <div className="rqd-timeline-date">{formatTimelineDate(entry.created_at)}</div>
-                      <div className={`rqd-timeline-marker ${index === timelineEntries.length - 1 ? "last" : ""}`}></div>
+                      <div className={`rqd-timeline-marker ${request.status == "closed" || request.status == "completed" ? "timeline-end" : ""} ${index === timelineEntries.length - 1 ? "last" : ""}`}></div>
                       <div className="rqd-timeline-label">{entry.label}</div>
                       <div className="rqd-timeline-time text-end">{formatTimelineTime(entry.created_at)}</div>
                     </div>
                   ))}
 
-                  {!hasCompletedTimeline ? (
+                  {request.status != "closed" && request.status != "completed" ? (
                     <div className="rqd-timeline-row rqd-timeline-placeholder">
                       <div className="rqd-timeline-date"></div>
                       <div className="rqd-timeline-marker last pending"></div>

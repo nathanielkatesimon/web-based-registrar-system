@@ -41,6 +41,7 @@ class DocumentRequest < ApplicationRecord
 
   after_create_commit :assign_request_id!
   after_create_commit :create_request_submitted_timeline!
+  after_update_commit :create_status_change_timeline!
 
   def items
     document_request_items
@@ -90,5 +91,25 @@ class DocumentRequest < ApplicationRecord
     return if request_time_lines.exists?(type: :request_submitted)
 
     request_time_lines.create!(type: :request_submitted)
+  end
+
+  def create_status_change_timeline!
+    return unless previous_changes.key?("status")
+
+    timeline_type = case status
+                    when "on_hold"
+                      :request_on_hold
+                    when "processing"
+                      :request_processed
+                    when "completed"
+                      :completed
+                    when "closed"
+                      :request_closed
+                    end
+
+    return if timeline_type.blank?
+    return if request_time_lines.exists?(type: timeline_type)
+
+    request_time_lines.create!(type: timeline_type)
   end
 end
