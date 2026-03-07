@@ -8,7 +8,7 @@ class DocumentRequest < ApplicationRecord
   has_one_attached :payment_receipt
 
   monetize :shipping_fee_cents
-  
+
   enum :status, {
     on_hold: 0,
     processing: 1,
@@ -25,7 +25,7 @@ class DocumentRequest < ApplicationRecord
     paid: 0,
     not_paid: 1,
     under_review: 2
-  }
+  }, prefix: true
 
   enum :payment_method, {
     cash: 0,
@@ -46,7 +46,7 @@ class DocumentRequest < ApplicationRecord
   def items
     document_request_items
   end
-  
+
   def user
     student
   end
@@ -56,7 +56,7 @@ class DocumentRequest < ApplicationRecord
 
     request_time_lines.create!(type: :request_opened)
   end
-  
+
   private
 
   def payment_receipt_required_for_online
@@ -69,7 +69,7 @@ class DocumentRequest < ApplicationRecord
   def sync_payment_verified_at_with_payment_status
     return unless will_save_change_to_payment_status?
 
-    if paid?
+    if payment_status_paid?
       self.payment_verified_at ||= Time.current.to_i
     else
       self.payment_verified_at = nil
