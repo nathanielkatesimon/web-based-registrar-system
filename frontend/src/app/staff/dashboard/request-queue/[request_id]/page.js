@@ -237,7 +237,7 @@ export default function StaffRequestQueueDetailPage() {
       await ShowAlert({
         icon: "error",
         title: "Reason Required",
-        text: "Select at least one reason for On Hold or Closed status.",
+        text: "Select at least one reason.",
       });
       return;
     }
