@@ -18,7 +18,6 @@ Manages student-owned document requests with nested `document_request_items`, re
 
 ## Enums
 - `status`: `on_hold`, `processing`, `completed`, `closed`
-- `close_or_hold_reason`: `unpaid_bill`, `missing_requirements`
 - `delivery_method`: `self_pickup`, `courier_delivery`
 - `payment_status`: `paid`, `not_paid`, `under_review`
 - `payment_method`: `cash`, `online`
@@ -36,7 +35,8 @@ All write endpoints require top-level key: `document_request`.
 {
   "document_request": {
     "status": "on_hold",
-    "close_or_hold_reason": "missing_requirements",
+    "unpaid_bill": true,
+    "missing_requirements": true,
     "delivery_method": "courier_delivery",
     "courier_name": "LBC",
     "payment_method": "online",
@@ -65,7 +65,8 @@ All write endpoints require top-level key: `document_request`.
 ### Allowed Fields
 Top-level `document_request`:
 - `status`
-- `close_or_hold_reason`
+- `unpaid_bill`
+- `missing_requirements`
 - `delivery_method`
 - `courier_name`
 - `payment_method`
@@ -94,6 +95,7 @@ Nested `document_request_items_attributes[]`:
 - `payment_verified_at` is automatically managed from `payment_status` updates:
   - set to current UNIX timestamp when `payment_status = paid`
   - cleared (`null`) when `payment_status = not_paid` or `under_review`
+- `unpaid_bill` and `missing_requirements` are independent boolean flags and can both be `true`.
 - For nested request items, `unit_price_cents` is enforced from `document_type.price_cents` on save.
 
 ## Success Responses
@@ -133,7 +135,8 @@ Returned when `:id` does not exist for current user scope.
 - `id`
 - `request_id`
 - `status`
-- `close_or_hold_reason`
+- `unpaid_bill`
+- `missing_requirements`
 - `delivery_method`
 - `courier_name`
 - `payment_method`

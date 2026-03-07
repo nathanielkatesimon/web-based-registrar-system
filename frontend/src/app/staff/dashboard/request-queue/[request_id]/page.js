@@ -36,6 +36,13 @@ const TIMELINE_SELECT_OPTIONS = [
   "completed",
 ];
 
+const STATUS_SELECT_OPTIONS = [
+  { value: "processing", label: "Processing" },
+  { value: "completed", label: "Completed" },
+  { value: "on_hold", label: "On Hold" },
+  { value: "closed", label: "Closed" },
+];
+
 function formatTimelineDate(value) {
   if (!value) return "--/--/--";
   const date = new Date(value);
@@ -99,9 +106,11 @@ export default function StaffRequestQueueDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [newTimelineType, setNewTimelineType] = useState("");
-  const [markOnHold, setMarkOnHold] = useState(false);
-  const [markClosed, setMarkClosed] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [reasonUnpaidBill, setReasonUnpaidBill] = useState(false);
+  const [reasonMissingRequirements, setReasonMissingRequirements] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [statusSubmitting, setStatusSubmitting] = useState(false);
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
   const [modalFile, setModalFile] = useState({ title: "", url: "" });
 
@@ -131,10 +140,17 @@ export default function StaffRequestQueueDetailPage() {
   }, [fetchRequest]);
 
   useEffect(() => {
+    if (!request) return;
+    setSelectedStatus(request.status || "");
+    setReasonUnpaidBill(Boolean(request.unpaid_bill));
+    setReasonMissingRequirements(Boolean(request.missing_requirements));
+  }, [request]);
+
+  useEffect(() => {
     const $ = window.jQuery || window.$;
     if (!$ || !$.fn?.selectpicker) return;
     $(".rqd-selectpicker").selectpicker("refresh");
-  }, [newTimelineType, submitting]);
+  }, [request?.id]);
 
   const timelineEntries = useMemo(() => {
     const list = Array.isArray(request?.request_time_lines) ? request.request_time_lines : [];
@@ -167,15 +183,17 @@ export default function StaffRequestQueueDetailPage() {
     "verification_photo_url",
   ]);
   const receiptUrl = findFileUrl(request, ["payment_receipt_url", "payment_receipt", "receipt_url"]);
+  const requiresReason = selectedStatus === "on_hold" || selectedStatus === "closed";
+  const hasAtLeastOneReason = reasonUnpaidBill || reasonMissingRequirements;
 
   const handleAddTimeline = async () => {
     if (!requestId || !request) return;
 
-    if (!newTimelineType && !markOnHold && !markClosed) {
+    if (!newTimelineType) {
       await ShowAlert({
         icon: "error",
         title: "No Changes Selected",
-        text: "Choose a timeline update or mark the request on hold/closed.",
+        text: "Choose a timeline update.",
       });
       return;
     }
@@ -183,7 +201,7 @@ export default function StaffRequestQueueDetailPage() {
     const confirmation = await ShowAlert({
       icon: "question",
       title: "Confirm Timeline Update",
-      text: "Apply this timeline/status update?",
+      text: "Add this timeline update?",
       showCancelButton: true,
       confirmButtonText: "Yes, add",
       cancelButtonText: "Cancel",
@@ -208,58 +226,13 @@ export default function StaffRequestQueueDetailPage() {
         }
       }
 
-      if (markOnHold) {
-        const statusResponse = await api(`/api/v1/document_requests/${requestId}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            document_request: { status: "on_hold" },
-          }),
-        });
-        if (!statusResponse.ok) {
-          const payload = await statusResponse.json();
-          throw new Error(payload?.error || "Failed to set request on hold.");
-        }
-
-        const holdTimelineResponse = await api(`/api/v1/document_requests/${requestId}/request_time_lines`, {
-          method: "POST",
-          body: JSON.stringify({
-            request_time_line: { type: "request_on_hold" },
-          }),
-        });
-        if (!holdTimelineResponse.ok) {
-          const payload = await holdTimelineResponse.json();
-          throw new Error(payload?.error || "Failed to log on hold timeline.");
-        }
-      }
-
-      if (markClosed) {
-        const statusResponse = await api(`/api/v1/document_requests/${requestId}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            document_request: { status: "closed" },
-          }),
-        });
-        if (!statusResponse.ok) {
-          const payload = await statusResponse.json();
-          throw new Error(payload?.error || "Failed to close request.");
-        }
-
-        const closeTimelineResponse = await api(`/api/v1/document_requests/${requestId}/request_time_lines`, {
-          method: "POST",
-          body: JSON.stringify({
-            request_time_line: { type: "request_closed" },
-          }),
-        });
-        if (!closeTimelineResponse.ok) {
-          const payload = await closeTimelineResponse.json();
-          throw new Error(payload?.error || "Failed to log close timeline.");
-        }
-      }
-
       setNewTimelineType("");
-      setMarkOnHold(false);
-      setMarkClosed(false);
       await fetchRequest();
+      await ShowAlert({
+        icon: "success",
+        title: "Timeline Updated",
+        text: "Timeline entry has been added.",
+      });
     } catch (submitError) {
       await ShowAlert({
         icon: "error",
@@ -268,6 +241,73 @@ export default function StaffRequestQueueDetailPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSaveStatus = async () => {
+    if (!requestId || !request) return;
+
+    if (!selectedStatus) {
+      await ShowAlert({
+        icon: "error",
+        title: "Status Required",
+        text: "Select a status before saving.",
+      });
+      return;
+    }
+
+    if (requiresReason && !hasAtLeastOneReason) {
+      await ShowAlert({
+        icon: "error",
+        title: "Reason Required",
+        text: "Select at least one reason for On Hold or Closed status.",
+      });
+      return;
+    }
+
+    const confirmation = await ShowAlert({
+      icon: "question",
+      title: "Confirm Status Update",
+      text: "Save this status update?",
+      showCancelButton: true,
+      confirmButtonText: "Yes, save",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmation?.isConfirmed) return;
+
+    try {
+      setStatusSubmitting(true);
+      const statusResponse = await api(`/api/v1/document_requests/${requestId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          document_request: {
+            status: selectedStatus,
+            unpaid_bill: requiresReason ? reasonUnpaidBill : false,
+            missing_requirements: requiresReason ? reasonMissingRequirements : false,
+          },
+        }),
+      });
+
+      if (!statusResponse.ok) {
+        const payload = await statusResponse.json();
+        throw new Error(payload?.error || "Failed to update request status.");
+      }
+
+      await fetchRequest();
+      await ShowAlert({
+        icon: "success",
+        title: "Status Updated",
+        text: "Request status has been saved.",
+      });
+    } catch (saveError) {
+      await ShowAlert({
+        icon: "error",
+        title: "Update Failed",
+        text: saveError?.message || "Unable to update request status.",
+      });
+    } finally {
+      setStatusSubmitting(false);
     }
   };
 
@@ -374,15 +414,16 @@ export default function StaffRequestQueueDetailPage() {
             <div className="col-12 col-xl-6">
               <div className="rqd-right bg-white rounded-3">
                 <p className="rqd-section-title text-info">Add timeline</p>
-                <InitBootstrapSelect />
+                <InitBootstrapSelect selector=".rqd-selectpicker" />
 
                 <div className="d-flex gap-2 mb-4">
                   <select
-                    className="selectpicker w-100"
+                    className="selectpicker w-100 rqd-selectpicker"
                     value={newTimelineType}
                     onChange={(event) => setNewTimelineType(event.target.value)}
-                    disabled={submitting}
+                    disabled={submitting || statusSubmitting}
                     data-style="bg-light border"
+                    data-width="100%"
                     title="Please Select..."
                   >
                     <option value="">Please Select...</option>
@@ -392,7 +433,12 @@ export default function StaffRequestQueueDetailPage() {
                       </option>
                     ))}
                   </select>
-                  <button type="button" className="rqd-add-btn" onClick={handleAddTimeline} disabled={submitting}>
+                  <button
+                    type="button"
+                    className="btn btn-info rounded-pill fw-bold shadow-none"
+                    onClick={handleAddTimeline}
+                    disabled={submitting || statusSubmitting}
+                  >
                     {submitting ? "Saving..." : "Add"}
                   </button>
                 </div>
@@ -400,25 +446,68 @@ export default function StaffRequestQueueDetailPage() {
                 <hr className="my-4" />
                 <p className="rqd-section-title text-info">Status</p>
 
-                <label className="rqd-check-row">
-                  <input
-                    type="checkbox"
-                    checked={markOnHold}
-                    onChange={(event) => setMarkOnHold(event.target.checked)}
-                    disabled={submitting}
-                  />
-                  <span>Put Request On Hold</span>
-                </label>
+                <div className="d-flex gap-3">
+                  <select
+                    className="selectpicker w-100 rqd-selectpicker"
+                    value={selectedStatus}
+                    onChange={(event) => {
+                      const nextStatus = event.target.value;
+                      setSelectedStatus(nextStatus);
+                      if (nextStatus !== "on_hold" && nextStatus !== "closed") {
+                        setReasonUnpaidBill(false);
+                        setReasonMissingRequirements(false);
+                      }
+                    }}
+                    disabled={submitting || statusSubmitting}
+                    data-style="bg-light border"
+                    data-width="100%"
+                    title="Select status..."
+                  >
+                    <option value="">Select status...</option>
+                    {STATUS_SELECT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                
+                  <button
+                    type="button"
+                    className="btn btn-info rounded-pill fw-bold shadow-none mb-2 ms-auto"
+                    onClick={handleSaveStatus}
+                    disabled={submitting || statusSubmitting}
+                  >
+                    {statusSubmitting ? "Saving..." : "Save"}
+                  </button>
+                </div>
 
-                <label className="rqd-check-row mb-4">
-                  <input
-                    type="checkbox"
-                    checked={markClosed}
-                    onChange={(event) => setMarkClosed(event.target.checked)}
-                    disabled={submitting}
-                  />
-                  <span>Close Request</span>
-                </label>
+                {requiresReason ? (
+                  <div className="mb-4">
+                    <p className="small text-muted mb-2">Reason (select at least one)</p>
+                    <label className="rqd-check-row">
+                      <input
+                        type="checkbox"
+                        checked={reasonUnpaidBill}
+                        className="form-check-input"
+                        onChange={(event) => setReasonUnpaidBill(event.target.checked)}
+                        disabled={submitting || statusSubmitting}
+                      />
+                      <span>Unpaid bill</span>
+                    </label>
+                    <label className="rqd-check-row">
+                      <input
+                        type="checkbox"
+                              checked={reasonMissingRequirements}
+                              className="form-check-input"
+                        onChange={(event) => setReasonMissingRequirements(event.target.checked)}
+                        disabled={submitting || statusSubmitting}
+                      />
+                      <span>Missing requirements</span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="mb-4"></div>
+                )}
 
 
                 <hr className="my-4" />
