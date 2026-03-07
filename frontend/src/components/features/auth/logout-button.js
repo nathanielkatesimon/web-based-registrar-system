@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSessionStore from "@/store/session-store";
 import { api } from "@/lib/api";
+import ShowAlert from "@/lib/show-alert";
 
 export default function LogoutButton({ className = "btn btn-danger" }) {
   const {resetSession} = useSessionStore();
@@ -13,8 +14,8 @@ export default function LogoutButton({ className = "btn btn-danger" }) {
   const confirmLogout = async () => {
     const Swal = typeof window !== "undefined" ? window.Swal : null;
     if (!Swal?.fire) return true;
-
-    const result = await Swal.fire({
+    
+    const result = await ShowAlert({
       icon: "warning",
       title: "Are you sure?",
       text: "You will be signed out of your account.",
@@ -44,7 +45,7 @@ export default function LogoutButton({ className = "btn btn-danger" }) {
     } catch {
       const Swal = typeof window !== "undefined" ? window.Swal : null;
       if (Swal?.fire) {
-        await Swal.fire({
+        await ShowAlert({
           icon: "error",
           title: "Logout Failed",
           text: "Unable to sign out right now. Please try again.",

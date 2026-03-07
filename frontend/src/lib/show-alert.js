@@ -7,14 +7,17 @@ export default function ShowAlert({ icon, title, text, ...options }) {
       text,
       showCancelButton: false,
       confirmButtonText: "OK",
-      customClass: {
-        confirmButton: "btn btn-primary",
-        cancelButton: "btn btn-outline-secondary ms-2",
-      },
       showClass: {
         popup: "animate__animated animate__bounceIn",
       },
       ...options,
+      customClass: {
+        title: "m-0 p-4",
+        htmlContainer: "m-0 mb-2 px-8 text-muted",
+        confirmButton: "btn btn-primary",
+        cancelButton: "btn btn-outline-secondary ms-2",
+        ...options.customClass
+      },
     });
   }
 

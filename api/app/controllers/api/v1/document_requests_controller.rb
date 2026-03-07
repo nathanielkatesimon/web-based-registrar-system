@@ -47,7 +47,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
     end
 
     def document_requests_scope
-      return DocumentRequest.all if current_user.is_a?(Staff)
+      return DocumentRequest.all.order(created_at: :desc) if current_user.is_a?(Staff)
 
       current_user.document_requests
     end

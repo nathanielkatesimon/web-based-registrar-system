@@ -68,11 +68,13 @@ export default function StaffRequestQueuePage() {
         render: (value) => {
           const tone =
             value === "Completed"
-              ? "rq-status-completed"
+              ? "text-success"
               : value === "On Hold"
-                ? "rq-status-hold"
-                : "rq-status-processing";
-          return `<span class="rq-status ${tone}">${value}</span>`;
+                ? "text-warning"
+                : value === "Closed"
+                  ? "text-danger" 
+                  : "text-info";
+          return `<span class="fw-semibold ${tone}">${value}</span>`;
         },
       },
       { title: "Paid or Not", data: "payment" },

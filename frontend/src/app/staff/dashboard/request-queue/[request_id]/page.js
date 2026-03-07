@@ -241,13 +241,16 @@ export default function StaffRequestQueueDetailPage() {
       });
       return;
     }
+    
+    const swal_title = selectedStatus == "closed" ? "Confirm Request Closure" : "Confirm Status Update";
+    const swal_desc = selectedStatus == "closed" ? "You are about to close this request. This action will end the process and notify the student that the request has been closed." : "Save this status update?";
 
     const confirmation = await ShowAlert({
       icon: "question",
-      title: "Confirm Status Update",
-      text: "Save this status update?",
+      title: swal_title,
+      text: swal_desc,
       showCancelButton: true,
-      confirmButtonText: "Yes, save",
+      confirmButtonText: selectedStatus == "closed" ? "Close request" : "Yes, save",
       cancelButtonText: "Cancel",
     });
 
@@ -266,16 +269,26 @@ export default function StaffRequestQueueDetailPage() {
         }),
       });
 
+      const responsePayload = await statusResponse.json();
+      
       if (!statusResponse.ok) {
-        const payload = await statusResponse.json();
-        throw new Error(payload?.error || "Failed to update request status.");
+        throw new Error(responsePayload?.error || "Failed to update request status.");
       }
-
+      
+      
+      const swal_title = responsePayload.status == "on_hold" ? "Request On Hold!" : "Status Updated";
+      const swal_desc = responsePayload.status == "on_hold" ? "The request has been placed on hold. The student has been automatically notified to review the issue and complete the required action before processing can continue." : "Request status has been saved.";
+      
       await fetchRequest();
       await ShowAlert({
-        icon: "success",
-        title: "Status Updated",
-        text: "Request status has been saved.",
+        icon: "info",
+        title: swal_title,
+        text: swal_desc,
+        confirmButtonText: "Okay!",
+        customClass: {
+          confirmButton: "btn btn-primary w-100",
+          cancelButton: "d-none",
+        }
       });
     } catch (saveError) {
       await ShowAlert({
@@ -363,9 +376,17 @@ export default function StaffRequestQueueDetailPage() {
 
                 <div className="d-flex align-items-center justify-content-between mt-12 mb-4">
                   <p className="mb-0 fw-semibold text-dark">
-                    Request ID: <span className="fw-normal">{request.request_id || `RID${request.id}`}</span>
+                    Request ID: <span className="fw-normal">{request.request_id}</span>
                   </p>
-                  <span className="rqd-status-chip">{request.status?.replaceAll("_", " ") || "processing"}</span>
+                    <span className={
+                      "fw-semibold " + (request.status === "on_hold"
+                        ? "text-warning"
+                        : request.status === "closed"
+                          ? "text-danger"
+                          : request.status === "completed"
+                            ? "text-success"
+                            : "text-info")
+                    }>{request.status?.replaceAll("_", " ")}</span>
                 </div>
 
                 <div className="rqd-timeline">
