@@ -16,6 +16,13 @@ const STATUS_LABELS = {
   returnee: "Returnee",
   graduated: "Graduate",
 };
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All Statuses" },
+  { value: "currently_enrolled", label: "Currently Enrolled" },
+  { value: "transferee", label: "Transferee" },
+  { value: "returnee", label: "Returnee" },
+  { value: "graduated", label: "Graduated" },
+];
 
 const PROGRAM_FILTERS = {
   "diploma-in-web-application-development-technology": {
@@ -155,6 +162,8 @@ export default function StudentListProgramPage() {
 
   const tableRef = useRef(null);
   const [activeFilter, setActiveFilter] = useState("All Students");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -165,6 +174,8 @@ export default function StudentListProgramPage() {
     () => PROGRAM_OPTIONS.find((item) => item.id === programId && item.category === category),
     [programId, category],
   );
+  const statusFilterLabel =
+  STATUS_FILTER_OPTIONS.find((option) => option.value === statusFilter)?.label || "All Statuses";
   const programFilter = programId ? PROGRAM_FILTERS[programId] : null;
   const yearFilters = category === "college" ? COLLEGE_YEAR_FILTERS : SHS_YEAR_FILTERS;
 
@@ -239,8 +250,14 @@ export default function StudentListProgramPage() {
       dtApi.column(2).search(`^${activeFilter}$`, true, false);
     }
 
+    if (statusFilter === "all") {
+      dtApi.column(3).search("");
+    } else {
+      dtApi.column(3).search(`^${STATUS_LABELS[statusFilter] || ""}$`, true, false);
+    }
+
     dtApi.search(searchTerm).draw();
-  }, [activeFilter, searchTerm]);
+  }, [activeFilter, statusFilter, searchTerm]);
 
   if (!program || !category || !programFilter) {
     return (
@@ -253,11 +270,11 @@ export default function StudentListProgramPage() {
   return (
     <div className="px-12 flex-grow-1 py-4 request-queue-page student-list-program-page">
       <div className="p-4 rounded-4">
-        <div className="d-flex align-items-center gap-2 mb-4">
-          <Link href={`/staff/dashboard/student-list?category=${category}`} className="text-decoration-none text-dark">
-            <i className="bx bx-chevron-left fs-4"></i>
+        <div className="d-flex align-items-center gap-2">
+          <Link href={`/staff/dashboard/student-list?category=${category}`} className="text-decoration-none text-dark p-0 m-0">
+            <i className="bx bx-chevron-left fs-3 pt-1"></i>
           </Link>
-          <h5 className="fw-semibold m-0 text-dark">{program.label}</h5>
+          <h5 className="fw-semibold m-0 p-0 text-dark">{program.label}</h5>
         </div>
 
         <div className="rq-toolbar d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
@@ -285,13 +302,54 @@ export default function StudentListProgramPage() {
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </div>
-            <button type="button" className="btn btn-sm rounded-circle border-0 bg-white text-primary" style={{
-              height: 37,
-              width: 37
-            }}>
-              <i className="bx bx-slider-alt"></i>
-            </button>
+
+            <div className="position-relative">
+              <button
+                type="button"
+                className="btn bg-white text-primary d-flex align-items-center justify-content-center"
+                style={{ width: 37, height: 37, borderRadius: 10 }}
+                onClick={() => setShowFilters((prev) => !prev)}
+              >
+                <i className="bx bx-slider-alt"></i>
+              </button>
+
+              {showFilters ? (
+                <div
+                  className="position-absolute end-0 mt-2 bg-white rounded-3 shadow-sm border p-2"
+                  style={{ minWidth: 220, zIndex: 5 }}
+                >
+                  <p className="small text-muted px-2 mb-2">Status</p>
+                  {STATUS_FILTER_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`dropdown-item rounded-2 ${statusFilter === option.value ? "active" : ""}`}
+                      onClick={() => {
+                        setStatusFilter(option.value);
+                        setShowFilters(false);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
+        </div>
+
+        <div className="d-flex align-items-center flex-wrap gap-3 mb-4">
+          {statusFilter !== "all" ? (
+            <button
+              type="button"
+              className="btn btn-sm border-0 text-white fw-semibold d-flex align-items-center gap-3"
+              style={{ borderRadius: 999, backgroundColor: "#040F5F" }}
+              onClick={() => setStatusFilter("all")}
+            >
+              <span>{statusFilterLabel}</span>
+              <i className="bx bx-x lh-1" />
+            </button>
+          ) : null}
         </div>
 
         {loading ? (
