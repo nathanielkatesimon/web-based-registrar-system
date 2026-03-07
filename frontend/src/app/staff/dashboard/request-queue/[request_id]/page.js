@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import formatMoney from "@/lib/formatMoney";
 import ShowAlert from "@/lib/show-alert";
+import InitBootstrapSelect from "@/components/initializer/init-bootstrap-select";
 
 const TIMELINE_LABELS = {
   request_submitted: "Request Submitted",
@@ -129,6 +130,12 @@ export default function StaffRequestQueueDetailPage() {
     fetchRequest();
   }, [fetchRequest]);
 
+  useEffect(() => {
+    const $ = window.jQuery || window.$;
+    if (!$ || !$.fn?.selectpicker) return;
+    $(".rqd-selectpicker").selectpicker("refresh");
+  }, [newTimelineType, submitting]);
+
   const timelineEntries = useMemo(() => {
     const list = Array.isArray(request?.request_time_lines) ? request.request_time_lines : [];
     const sorted = [...list].sort(
@@ -172,6 +179,17 @@ export default function StaffRequestQueueDetailPage() {
       });
       return;
     }
+
+    const confirmation = await ShowAlert({
+      icon: "question",
+      title: "Confirm Timeline Update",
+      text: "Apply this timeline/status update?",
+      showCancelButton: true,
+      confirmButtonText: "Yes, add",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmation?.isConfirmed) return;
 
     try {
       setSubmitting(true);
@@ -356,13 +374,16 @@ export default function StaffRequestQueueDetailPage() {
             <div className="col-12 col-xl-6">
               <div className="rqd-right bg-white rounded-3">
                 <p className="rqd-section-title text-info">Add timeline</p>
+                <InitBootstrapSelect />
 
                 <div className="d-flex gap-2 mb-4">
                   <select
-                    className="form-select rqd-select"
+                    className="selectpicker w-100"
                     value={newTimelineType}
                     onChange={(event) => setNewTimelineType(event.target.value)}
                     disabled={submitting}
+                    data-style="bg-light border"
+                    title="Please Select..."
                   >
                     <option value="">Please Select...</option>
                     {TIMELINE_SELECT_OPTIONS.map((type) => (
