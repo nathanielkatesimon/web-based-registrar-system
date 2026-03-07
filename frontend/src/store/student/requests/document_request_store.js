@@ -109,6 +109,7 @@ const useStudentDocumentRequestStore = create((set, get) => ({
 
     formData.append("document_request[payment_method]", backendPaymentMethod);
     formData.append("document_request[payment_status]", backendPaymentStatus);
+    formData.append("document_request[unpaid_bill]", true);
 
     if (state.id_verification_photo) {
       formData.append("document_request[id_verification_photo]", state.id_verification_photo);
