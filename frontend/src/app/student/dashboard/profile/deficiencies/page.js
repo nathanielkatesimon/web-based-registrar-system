@@ -23,12 +23,6 @@ const STATUS = {
   not_included: "not_included",
 };
 
-const STATUS_OPTIONS = [
-  { value: STATUS.complied, label: "Complied" },
-  { value: STATUS.lacking, label: "Lacking" },
-  { value: STATUS.not_included, label: "Not Included" },
-];
-
 const INITIAL_DATA = FIELDS.reduce((acc, field) => {
   acc[field.key] = STATUS.not_included;
   return acc;
@@ -132,10 +126,16 @@ export default function DeficienciesPage() {
     [data, initialData]
   );
 
-  const handleChange = (key, value) => {
+  const handleStatusToggle = (key, targetStatus) => {
     setSaveError("");
     setSaveMessage("");
-    setData((prev) => ({ ...prev, [key]: value }));
+    setData((prev) => {
+      const currentStatus = prev[key] || STATUS.not_included;
+      return {
+        ...prev,
+        [key]: currentStatus === targetStatus ? STATUS.not_included : targetStatus,
+      };
+    });
   };
 
   const handleDiscard = () => {
@@ -216,32 +216,36 @@ export default function DeficienciesPage() {
               </button>
               <button
                 type="button"
-                className="btn btn-info text-white rounded-pill"
+                className="btn btn-info rounded-pill"
                 onClick={handleSave}
                 disabled={isSaving}
               >
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? "Saving..." : "Update"}
               </button>
             </div>
           ) : null}
         </div>
         <hr />
 
-        <h5 className="fw-bold mt-4 mb-3">Legend</h5>
-        <div className="d-flex flex-wrap align-items-center gap-4 mb-5">
-          <div className="d-flex align-items-center gap-2">
-            <StatusIcon status={STATUS.complied} />
-            <span>Complied</span>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <StatusIcon status={STATUS.lacking} />
-            <span>Lacking</span>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <StatusIcon status={STATUS.not_included} />
-            <span>Not Included</span>
-          </div>
-        </div>
+        {!isStaffMode ? (
+          <>
+            <h5 className="fw-bold mt-4 mb-3">Legend</h5>
+            <div className="d-flex flex-wrap align-items-center gap-4 mb-5">
+              <div className="d-flex align-items-center gap-2">
+                <StatusIcon status={STATUS.complied} />
+                <span>Complied</span>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <StatusIcon status={STATUS.lacking} />
+                <span>Lacking</span>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <StatusIcon status={STATUS.not_included} />
+                <span>Not Included</span>
+              </div>
+            </div>
+          </>
+        ) : null}
 
         {isLoading && <p className="text-muted">Loading deficiencies...</p>}
         {error && <p className="text-danger">{error}</p>}
@@ -257,25 +261,44 @@ export default function DeficienciesPage() {
               return (
                 <div key={field.key} className="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div className="d-flex align-items-center gap-2">
-                    <StatusIcon status={status} />
+                    {!isStaffMode ? <StatusIcon status={status} /> : null}
                     <span>{field.label}</span>
                   </div>
 
                   <div className="d-flex align-items-center gap-2" style={{ minWidth: "220px", justifyContent: "flex-end" }}>
                     {isStaffMode ? (
-                      <select
-                        className="form-select form-select-sm"
-                        style={{ width: "160px" }}
-                        value={status}
-                        onChange={(event) => handleChange(field.key, event.target.value)}
-                        disabled={isSaving}
-                      >
-                        {STATUS_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-pill fw-semibold"
+                          style={{
+                            minWidth: "100px",
+                            borderWidth: "2px",
+                            borderColor: "#49a40f",
+                            color: status === STATUS.complied ? "#fff" : "#49a40f",
+                            backgroundColor: status === STATUS.complied ? "#49a40f" : "transparent",
+                          }}
+                          onClick={() => handleStatusToggle(field.key, STATUS.complied)}
+                          disabled={isSaving}
+                        >
+                          Complied
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-pill fw-semibold"
+                          style={{
+                            minWidth: "100px",
+                            borderWidth: "2px",
+                            borderColor: "#f0121c",
+                            color: status === STATUS.lacking ? "#fff" : "#f0121c",
+                            backgroundColor: status === STATUS.lacking ? "#f0121c" : "transparent",
+                          }}
+                          onClick={() => handleStatusToggle(field.key, STATUS.lacking)}
+                          disabled={isSaving}
+                        >
+                          Lacking
+                        </button>
+                      </>
                     ) : (
                       <div style={{ minWidth: "120px", textAlign: "right" }}>
                         {isLacking ? (
