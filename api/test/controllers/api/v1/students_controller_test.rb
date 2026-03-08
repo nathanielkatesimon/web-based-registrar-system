@@ -14,6 +14,18 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     get api_v1_students_url, as: :json
     assert_response :unauthorized
 
+    post api_v1_students_url,
+         params: {
+           student: {
+             auth_id: "2026111111111",
+             email: "unauthorized-create@example.com",
+             first_name: "No",
+             last_name: "Auth"
+           }
+         },
+         as: :json
+    assert_response :unauthorized
+
     get api_v1_student_url(@student_one), as: :json
     assert_response :unauthorized
 
@@ -140,6 +152,8 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should create student with nested profile and school slots" do
+    sign_in_as(@staff_one)
+
     assert_difference("Student.count", 1) do
       assert_difference("StudentProfile.count", 1) do
         post api_v1_students_url,
@@ -189,6 +203,8 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should create student without optional school slots on create" do
+    sign_in_as(@staff_one)
+
     assert_difference("Student.count", 1) do
       post api_v1_students_url,
            params: {
@@ -219,6 +235,8 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should return unprocessable_entity when auth_id format is invalid on create" do
+    sign_in_as(@staff_one)
+
     assert_no_difference("Student.count") do
       post api_v1_students_url,
            params: {
@@ -239,6 +257,55 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     assert json_response.key?("errors")
     assert_includes json_response["errors"].join(" "), "Student USN must be 11 to 13 characters"
+  end
+
+  test "should reject create when authenticated user is not staff" do
+    sign_in_as(@student_one)
+
+    assert_no_difference("Student.count") do
+      post api_v1_students_url,
+           params: {
+             student: {
+               auth_id: "2026000000019",
+               email: "forbidden-create@example.com",
+               first_name: "Forbidden",
+               last_name: "Creator"
+             }
+           },
+           as: :json
+    end
+
+    assert_response :forbidden
+  end
+
+  test "should auto-generate password for staff create when password params are missing" do
+    sign_in_as(@staff_one)
+
+    assert_difference("Student.count", 1) do
+      post api_v1_students_url,
+           params: {
+             student: {
+               auth_id: "2026000000033",
+               email: "autopass.student@example.com",
+               first_name: "Auto",
+               last_name: "Password",
+               student_profile_attributes: {
+                 school_level: "college",
+                 status: "currently_enrolled",
+                 year_level: "1st",
+                 department: "computer_studies",
+                 course: "bachelor_of_science_in_information_technology"
+               }
+             }
+           },
+           as: :json
+    end
+
+    assert_response :created
+
+    created_student = Student.order(:id).last
+    assert created_student.encrypted_password.present?
+    assert_not created_student.valid_password?("")
   end
 
   test "should update student basic fields" do
