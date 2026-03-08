@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  mount ActionCable.server => "/cable"
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   devise_for :users, skip: :all
@@ -23,6 +25,14 @@ Rails.application.routes.draw do
       resources :document_types
       resources :document_requests do
         resources :request_time_lines, except: [:index]
+      end
+      resources :escalation_tickets, only: [:index, :show, :create] do
+        member do
+          patch :close
+          patch :reopen
+        end
+
+        resources :escalation_messages, path: :messages, only: [:index, :create]
       end
     end
   end

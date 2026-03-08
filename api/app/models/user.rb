@@ -11,6 +11,11 @@ class User < ApplicationRecord
   validate :auth_id_format
   
   has_one_attached :avatar
+  has_many :sent_escalation_messages,
+           class_name: "EscalationMessage",
+           foreign_key: :sender_id,
+           inverse_of: :sender,
+           dependent: :destroy
   
   def auth_id_format
     if type == 'Student' && auth_id.present? && auth_id !~ /^(\d{11}|\d{12}|\d{13})$/

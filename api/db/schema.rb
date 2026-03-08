@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_08_080001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -95,6 +95,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_050000) do
     t.string "name"
     t.integer "price_cents"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "escalation_messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "escalation_ticket_id", null: false
+    t.bigint "sender_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["escalation_ticket_id", "created_at"], name: "idx_on_escalation_ticket_id_created_at_ed588f5635"
+    t.index ["escalation_ticket_id"], name: "index_escalation_messages_on_escalation_ticket_id"
+    t.index ["sender_id"], name: "index_escalation_messages_on_sender_id"
+  end
+
+  create_table "escalation_tickets", force: :cascade do |t|
+    t.datetime "closed_at"
+    t.bigint "closed_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "last_message_at"
+    t.integer "status", default: 0, null: false
+    t.bigint "student_id", null: false
+    t.string "subject", null: false
+    t.string "ticket_code", null: false
+    t.datetime "updated_at", null: false
+    t.index ["closed_by_id"], name: "index_escalation_tickets_on_closed_by_id"
+    t.index ["last_message_at"], name: "index_escalation_tickets_on_last_message_at"
+    t.index ["student_id", "status"], name: "index_escalation_tickets_on_student_id_and_status"
+    t.index ["student_id"], name: "index_escalation_tickets_on_student_id"
+    t.index ["ticket_code"], name: "index_escalation_tickets_on_ticket_code", unique: true
   end
 
   create_table "family_infos", force: :cascade do |t|
@@ -218,6 +246,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_050000) do
   add_foreign_key "document_request_items", "document_requests"
   add_foreign_key "document_request_items", "document_types"
   add_foreign_key "document_requests", "users"
+  add_foreign_key "escalation_messages", "escalation_tickets"
+  add_foreign_key "escalation_messages", "users", column: "sender_id"
+  add_foreign_key "escalation_tickets", "users", column: "closed_by_id"
+  add_foreign_key "escalation_tickets", "users", column: "student_id"
   add_foreign_key "family_infos", "users"
   add_foreign_key "request_time_lines", "document_requests"
   add_foreign_key "student_profiles", "users"

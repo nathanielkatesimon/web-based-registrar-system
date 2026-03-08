@@ -64,6 +64,12 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+  frontend_origin = ENV["FRONTEND_URL"].to_s
+  config.action_cable.allowed_request_origins = if frontend_origin.present?
+                                                   [frontend_origin]
+                                                 else
+                                                   [%r{\Ahttp://localhost:\d+\z}, %r{\Ahttp://127\.0\.0\.1:\d+\z}]
+                                                 end
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
