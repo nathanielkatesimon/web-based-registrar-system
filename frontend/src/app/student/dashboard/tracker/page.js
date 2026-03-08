@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import formatMoney from "@/lib/formatMoney";
 
@@ -87,6 +88,7 @@ function buildTimeline(timeLines = []) {
 }
 
 export default function StudentDashboardTrackerPage() {
+  const router = useRouter();
   const [requests, setRequests] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [search, setSearch] = useState("");
@@ -204,6 +206,12 @@ export default function StudentDashboardTrackerPage() {
       setEscalationMessage("");
       setEscalationError("");
 
+      const existingTicketId = selectedRequest.escalation_ticket?.id;
+      if (existingTicketId) {
+        router.push(`/student/dashboard/escalations?ticket=${existingTicketId}`);
+        return;
+      }
+
       const requestId = selectedRequest.request_id || `#${selectedRequest.id}`;
       const response = await api("/api/v1/escalation_tickets", {
         method: "POST",
@@ -211,6 +219,7 @@ export default function StudentDashboardTrackerPage() {
           escalation_ticket: {
             subject: `Follow-up on Request ${requestId}`,
             message: `I am following up on request ${requestId}. This request has been pending for more than 3 weeks.`,
+            document_request_id: selectedRequest.id,
           },
         }),
       });
@@ -222,6 +231,25 @@ export default function StudentDashboardTrackerPage() {
             payload?.error ||
             "Failed to create escalation ticket."
         );
+      }
+
+      if (payload?.id) {
+        setRequests((prev) =>
+          prev.map((request) =>
+            request.id === selectedRequest.id
+              ? {
+                  ...request,
+                  escalation_ticket: {
+                    id: payload.id,
+                    ticket_code: payload.ticket_code,
+                    status: payload.status,
+                  },
+                }
+              : request
+          )
+        );
+        router.push(`/student/dashboard/escalations?ticket=${payload.id}`);
+        return;
       }
 
       setEscalationMessage(`Escalation ticket created: ${payload?.ticket_code || "submitted"}.`);
@@ -375,7 +403,7 @@ export default function StudentDashboardTrackerPage() {
         </div>
 
         <div className="col-12 col-xl-6">
-          <div className="bg-white rounded-3 p-4 p-lg-5 h-100">
+          <div className="bg-white rounded-3 p-4 p-lg-5">
             {!selectedRequest ? (
               <div className="h-100 d-flex flex-column align-items-center justify-content-center text-center text-muted">
                 <h3 className="fw-bold text-muted mb-2">Nothing to show here</h3>

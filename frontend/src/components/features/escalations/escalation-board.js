@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { getCableConsumer } from "@/lib/action-cable";
 import useSessionStore from "@/store/session-store";
@@ -25,8 +26,14 @@ const sortTickets = (items) =>
   });
 
 export default function EscalationBoard({ role }) {
+  const searchParams = useSearchParams();
   const { currentUser } = useSessionStore();
   const isStaff = role === "Staff";
+  const requestedTicketId = useMemo(() => {
+    const rawValue = searchParams.get("ticket");
+    if (!rawValue || !/^\d+$/.test(rawValue)) return null;
+    return Number(rawValue);
+  }, [searchParams]);
 
   const [tickets, setTickets] = useState([]);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -38,7 +45,6 @@ export default function EscalationBoard({ role }) {
   const [isSending, setIsSending] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
 
-  const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
   const [composeMessage, setComposeMessage] = useState("");
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
@@ -87,7 +93,7 @@ export default function EscalationBoard({ role }) {
       const nextTickets = sortTickets(payload || []);
       setTickets(nextTickets);
 
-      const candidateId = selectedTicketIdRef.current;
+      const candidateId = selectedTicketIdRef.current || requestedTicketId;
       const stillExists = nextTickets.some((item) => item.id === candidateId);
       const nextSelected = stillExists ? candidateId : nextTickets[0]?.id || null;
       setSelectedTicketId(nextSelected);
@@ -96,7 +102,7 @@ export default function EscalationBoard({ role }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [requestedTicketId]);
 
   const handleRealtimePayload = useCallback(
     (payload) => {
@@ -321,29 +327,33 @@ export default function EscalationBoard({ role }) {
   };
 
   return (
-    <div className="container-xxl flex-grow-1 py-4">
+    <div className="flex-grow-1 p-4">
       <div className="row g-3">
         <div className="col-12 col-xl-5">
           <div className="panel h-100">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="m-0 fw-bold">{isStaff ? "Escalation Queue" : "My Escalations"}</h5>
+              <h5 className="m-0 fw-bold text-info">{isStaff ? "Escalation Queue" : "My Escalations"}</h5>
             </div>
 
             <div className="d-flex gap-2 mb-3">
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
-                className="form-control shadow-none"
-                placeholder="Search ticket, subject, student..."
-              />
-              <button type="button" className="btn btn-outline-secondary" onClick={fetchTickets}>
-                <i className="bx bx-refresh"></i>
+              
+              <div className="input-group flex-grow-1">
+                <span className="input-group-text border-0 rounded-start-pill bg-white text-muted ps-4">
+                  <i className="bx bx-search"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-0 rounded-end-pill py-3"
+                  placeholder="Enter Escalation ID"
+                />
+              </div>
+              <button type="button" className="btn bg-white" onClick={fetchTickets} style={{width: 44, height: 44, borderRadius: 12}}>
+                <i className="bx bx-slider-alt"></i>
               </button>
             </div>
 
             {isLoading ? <p className="small text-muted">Loading escalations...</p> : null}
-            {!isLoading && filteredTickets.length === 0 ? <p className="small text-muted">No escalations found.</p> : null}
+            {!isLoading && filteredTickets.length === 0 ? <p className="small text-muted my-12 text-center">No escalations found.</p> : null}
 
             <div className="d-flex flex-column gap-2 ticket-list">
               {filteredTickets.map((ticket) => {
@@ -352,19 +362,18 @@ export default function EscalationBoard({ role }) {
                   <button
                     key={ticket.id}
                     type="button"
-                    className={`ticket-item text-start ${isActive ? "active" : ""}`}
+                    className={`ticket-item border-0 bg-white text-start ${isActive ? "active" : ""}`}
                     onClick={() => setSelectedTicketId(ticket.id)}
                   >
                     <div className="d-flex justify-content-between gap-2">
-                      <div className="small fw-semibold">{ticket.ticket_code}</div>
+                      <div className="fw-semibold"><strong>Escalation ID: </strong>{ticket.ticket_code}</div>
                       <span className={`badge rounded-pill ${ticket.status === "open" ? "text-bg-primary" : "text-bg-secondary"}`}>
                         {ticket.status === "open" ? "Open" : "Closed"}
                       </span>
                     </div>
-                    <div className="mt-1 fw-semibold text-truncate">{ticket.subject}</div>
+                    <div className="small text-muted text-truncate">{ticket.subject}</div>
                     {isStaff && <div className="small text-muted">{ticket.student?.full_name || "Student"}</div>}
-                    <div className="small text-muted text-truncate">{ticket.latest_message_preview || "No messages yet."}</div>
-                    <div className="small text-muted">{toDateTime(ticket.latest_message_at || ticket.created_at)}</div>
+                    <div className="small text-muted">{toDateTime(ticket.created_at)}</div>
                   </button>
                 );
               })}
@@ -373,14 +382,14 @@ export default function EscalationBoard({ role }) {
         </div>
 
         <div className="col-12 col-xl-7">
-          <div className="panel h-100">
+          <div className="p-4 rounded-3 d-flex flex-column bg-white" style={{height: "80vh"}}>
             {!selectedDetail ? (
               <div className="h-100 d-flex align-items-center justify-content-center text-muted">Select a ticket to view messages.</div>
             ) : (
               <>
-                <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                   <div>
-                    <div className="small fw-semibold text-primary">{selectedDetail.ticket_code}</div>
+                    <div className="small fw-semibold text-primary">Escalation ID: {selectedDetail.ticket_code}</div>
                     <h5 className="m-0">{selectedDetail.subject}</h5>
                     {isStaff && <div className="small text-muted">{selectedDetail.student?.full_name}</div>}
                   </div>
@@ -403,7 +412,7 @@ export default function EscalationBoard({ role }) {
 
                 <hr />
 
-                <div className="messages-area mb-3">
+                <div className="messages-area mb-3 h-100">
                   {(selectedDetail.messages || []).map((message) => {
                     const isMine = message.sender?.id === currentUser?.id;
                     return (
@@ -415,7 +424,7 @@ export default function EscalationBoard({ role }) {
                             className="message-avatar"
                           />
                         )}
-                        <div className={`message-bubble ${isMine ? "mine" : ""}`}>
+                        <div className={`message-bubble ${isMine ? "mine me-2" : "ms-2"}`}>
                           <div className="d-flex justify-content-between align-items-center gap-3 mb-1">
                             <strong className="small">{isMine ? "You" : message.sender?.full_name}</strong>
                             <span className="small text-muted">{toDateTime(message.created_at)}</span>
@@ -436,7 +445,7 @@ export default function EscalationBoard({ role }) {
                 <div className="d-flex gap-2">
                   <input
                     type="text"
-                    className="form-control shadow-none"
+                    className="form-control bg-light border-0 rounded-pill py-3"
                     placeholder={canSend ? "Reply..." : "Messaging disabled"}
                     value={newMessage}
                     onChange={(event) => setNewMessage(event.target.value)}
@@ -448,8 +457,8 @@ export default function EscalationBoard({ role }) {
                       }
                     }}
                   />
-                  <button type="button" className="btn btn-primary" onClick={handleSendMessage} disabled={!canSend || isSending}>
-                    <i className="bx bxs-send"></i>
+                  <button type="button" className="btn btn-info" style={{borderRadius: 12, width: 40, height: 40}} onClick={handleSendMessage} disabled={!canSend || isSending}>
+                    <i className="bx bx-paper-plane"></i>
                   </button>
                 </div>
               </>
@@ -460,45 +469,8 @@ export default function EscalationBoard({ role }) {
 
       {error ? <div className="alert alert-danger mt-3 py-2">{error}</div> : null}
 
-      {isComposeOpen && !isStaff && (
-        <div className="compose-overlay">
-          <div className="compose-card">
-            <h5 className="fw-bold mb-3">Create Escalation Ticket</h5>
-            <div className="mb-2">
-              <label className="form-label small fw-semibold mb-1">Subject</label>
-              <input
-                type="text"
-                className="form-control"
-                value={composeSubject}
-                onChange={(event) => setComposeSubject(event.target.value)}
-                placeholder="Urgent deadline requirement"
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label small fw-semibold mb-1">Initial Message</label>
-              <textarea
-                className="form-control"
-                rows={4}
-                value={composeMessage}
-                onChange={(event) => setComposeMessage(event.target.value)}
-                placeholder="Explain your concern..."
-              />
-            </div>
-            <div className="d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-secondary" onClick={() => setIsComposeOpen(false)}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn-primary" onClick={handleCreateTicket} disabled={isCreatingTicket}>
-                {isCreatingTicket ? "Creating..." : "Create Ticket"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style jsx>{`
         .panel {
-          background: #e9edf8;
           border-radius: 14px;
           padding: 1rem;
           min-height: 560px;
@@ -521,7 +493,6 @@ export default function EscalationBoard({ role }) {
           background: #eef2ff;
         }
         .messages-area {
-          max-height: 380px;
           overflow: auto;
           display: flex;
           flex-direction: column;

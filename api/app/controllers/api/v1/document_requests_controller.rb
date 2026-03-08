@@ -47,9 +47,11 @@ class Api::V1::DocumentRequestsController < ApplicationController
     end
 
     def document_requests_scope
-      return DocumentRequest.all.order(created_at: :desc) if current_user.is_a?(Staff)
+      if current_user.is_a?(Staff)
+        return DocumentRequest.includes(:escalation_ticket).order(created_at: :desc)
+      end
 
-      current_user.document_requests
+      current_user.document_requests.includes(:escalation_ticket)
     end
 
     def mark_request_as_opened_by_staff!

@@ -51,7 +51,7 @@ export default function StaffDashboardLayout({ children }) {
               </li>
               <li className={`menu-item ${isRoutePrefix("/staff/dashboard/request-queue") ? "active" : ""}`}>
                 <Link href="/staff/dashboard/request-queue" className="menu-link fs-5">
-                  <i className="menu-icon tf-icons bx bx-queue"></i>
+                  <i className="menu-icon tf-icons bx bx-inbox"></i>
                   <div className="text-truncate">Request Queue</div>
                 </Link>
               </li>
@@ -63,7 +63,7 @@ export default function StaffDashboardLayout({ children }) {
               </li>
               <li className={`menu-item ${isRoutePrefix("/staff/dashboard/escalations") ? "active" : ""}`}>
                 <Link href="/staff/dashboard/escalations" className="menu-link fs-5">
-                  <i className="menu-icon tf-icons pb-1 bx bx-error-circle"></i>
+                  <i className="menu-icon tf-icons pb-1 bx bx-message-circle-exclamation"></i>
                   <div className="text-truncate">Escalations</div>
                 </Link>
               </li>

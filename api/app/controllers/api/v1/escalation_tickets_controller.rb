@@ -6,7 +6,7 @@ class Api::V1::EscalationTicketsController < ApplicationController
   # GET /api/v1/escalation_tickets
   def index
     tickets = escalation_tickets_scope
-      .includes(:student)
+      .includes(:student, :document_request)
       .order(Arel.sql("COALESCE(last_message_at, created_at) DESC"))
 
     render json: tickets.map { |ticket| ticket_summary_json(ticket) }
@@ -23,14 +23,29 @@ class Api::V1::EscalationTicketsController < ApplicationController
       return render json: { error: "Only students can create escalation tickets." }, status: :forbidden
     end
 
+    ticket_input = escalation_ticket_params
+    document_request_id = ticket_input[:document_request_id]
+    if document_request_id.blank?
+      return render json: { errors: ["Document request is required."] }, status: :unprocessable_entity
+    end
+
+    document_request = current_user.document_requests.find(document_request_id)
+    existing_ticket = EscalationTicket.find_by(document_request_id: document_request.id)
+    if existing_ticket.present?
+      return render json: ticket_detail_json(existing_ticket), status: :ok
+    end
+
     ticket = nil
     EscalationTicket.transaction do
-      ticket = current_user.escalation_tickets.create!(escalation_ticket_params)
+      ticket = current_user.escalation_tickets.create!(
+        subject: ticket_input[:subject],
+        document_request: document_request
+      )
 
-      if params[:escalation_ticket][:message].present?
+      if ticket_input[:message].present?
         ticket.escalation_messages.create!(
           sender: current_user,
-          body: params[:escalation_ticket][:message]
+          body: ticket_input[:message]
         )
       end
     end
@@ -41,6 +56,12 @@ class Api::V1::EscalationTicketsController < ApplicationController
     broadcast_message_created!(ticket, latest_message) if latest_message.present?
 
     render json: ticket_detail_json(ticket), status: :created
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Document request not found" }, status: :not_found
+  rescue ActiveRecord::RecordNotUnique
+    document_request = current_user.document_requests.find(document_request_id)
+    existing_ticket = EscalationTicket.find_by!(document_request_id: document_request.id)
+    render json: ticket_detail_json(existing_ticket), status: :ok
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
   end
@@ -93,7 +114,7 @@ class Api::V1::EscalationTicketsController < ApplicationController
   end
 
   def escalation_ticket_params
-    params.require(:escalation_ticket).permit(:subject)
+    params.require(:escalation_ticket).permit(:subject, :message, :document_request_id)
   end
 
   def ticket_summary_json(ticket)
@@ -103,6 +124,10 @@ class Api::V1::EscalationTicketsController < ApplicationController
       id: ticket.id,
       ticket_code: ticket.ticket_code,
       subject: ticket.subject,
+      document_request: {
+        id: ticket.document_request_id,
+        request_id: ticket.document_request&.request_id
+      },
       status: ticket.status,
       student: {
         id: ticket.student_id,
@@ -121,6 +146,10 @@ class Api::V1::EscalationTicketsController < ApplicationController
       id: ticket.id,
       ticket_code: ticket.ticket_code,
       subject: ticket.subject,
+      document_request: {
+        id: ticket.document_request_id,
+        request_id: ticket.document_request&.request_id
+      },
       status: ticket.status,
       student: {
         id: ticket.student_id,

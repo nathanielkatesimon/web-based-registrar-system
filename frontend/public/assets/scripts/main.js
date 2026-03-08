@@ -6,10 +6,10 @@ function passwordTogglerEventHandler(e) {
 
   if (formPasswordToggleInput.getAttribute("type") === "text") {
     formPasswordToggleInput.setAttribute("type", "password");
-    formPasswordToggleIcon.classList.replace("bx-show", "bx-hide");
+    formPasswordToggleIcon.classList.replace("bx-eye-alt", "bx-eye-slash");
   } else if (formPasswordToggleInput.getAttribute("type") === "password") {
     formPasswordToggleInput.setAttribute("type", "text");
-    formPasswordToggleIcon.classList.replace("bx-hide", "bx-show");
+    formPasswordToggleIcon.classList.replace("bx-eye-slash", "bx-eye-alt");
   }
 }
 

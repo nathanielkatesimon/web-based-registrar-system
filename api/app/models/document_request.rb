@@ -2,6 +2,7 @@ class DocumentRequest < ApplicationRecord
   belongs_to :student, class_name: "Student", foreign_key: :user_id, inverse_of: :document_requests
   has_many :document_request_items, dependent: :destroy
   has_many :request_time_lines, -> { order(created_at: :asc) }, dependent: :destroy
+  has_one :escalation_ticket, dependent: :destroy, inverse_of: :document_request
 
   accepts_nested_attributes_for :document_request_items, allow_destroy: true
   has_one_attached :id_verification_photo
