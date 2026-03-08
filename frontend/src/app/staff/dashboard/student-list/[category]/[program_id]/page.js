@@ -195,10 +195,11 @@ export default function StudentListProgramPage() {
         data: "id",
         orderable: false,
         searchable: false,
-        render: (id) => `<a class="rq-check-btn" href="/staff/dashboard/student-list/student-profile/${id}/personal_info">Check</a>`,
+        render: (id) =>
+          `<a class="rq-check-btn" href="/staff/dashboard/student-list/student-profile/${id}/personal_info?category=${category}&program_id=${programId}">Check</a>`,
       },
     ],
-    [],
+    [category, programId],
   );
 
   useEffect(() => {
