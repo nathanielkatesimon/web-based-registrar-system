@@ -45,6 +45,7 @@ class Api::V1::StaffsController < ApplicationController
       :email,
       :password,
       :password_confirmation,
+      :avatar,
       :auth_id,
       :first_name,
       :middle_name,
@@ -64,6 +65,7 @@ class Api::V1::StaffsController < ApplicationController
       last_name: staff.last_name,
       extension: staff.extension,
       full_name: staff.full_name,
+      avatar_url: staff.avatar.attached? ? Rails.application.routes.url_helpers.rails_blob_path(staff.avatar, only_path: true) : nil,
       created_at: staff.created_at,
       updated_at: staff.updated_at
     }
