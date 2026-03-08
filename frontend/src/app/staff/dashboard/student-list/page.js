@@ -40,8 +40,8 @@ export default function StaffStudentListPage() {
           <div className="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
             <h4 className="fw-bold text-dark m-0">Category</h4>
 
-            <button
-              type="button"
+            <Link
+              href={`/staff/dashboard/student-list/new?category=${selectedCategory}`}
               className="btn p-0 d-flex align-items-center gap-2"
               style={{ color: "#1d2ec2", fontWeight: 500 }}
             >
@@ -52,7 +52,7 @@ export default function StaffStudentListPage() {
                 +
               </span>
               Add New Student
-            </button>
+            </Link>
           </div>
 
           <div className="d-flex flex-wrap gap-3 mb-5">

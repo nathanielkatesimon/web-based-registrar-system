@@ -1,6 +1,6 @@
 class Api::V1::StudentsController < ApplicationController
-  before_action :authenticate_user!, only: [:index, :show, :update, :destroy]
-  before_action :authorize_staff!, only: [:index]
+  before_action :authenticate_user!, only: [:index, :show, :create, :update, :destroy]
+  before_action :authorize_staff!, only: [:index, :create]
   before_action :set_student, only: [:show, :update, :destroy]
 
   # GET /api/v1/students
@@ -31,7 +31,14 @@ class Api::V1::StudentsController < ApplicationController
 
   # POST /api/v1/students
   def create
-    @student = Student.new(student_params)
+    attrs = student_params.to_h
+    if current_user.is_a?(Staff)
+      generated_password = SecureRandom.alphanumeric(16)
+      attrs["password"] = generated_password if attrs["password"].blank?
+      attrs["password_confirmation"] = attrs["password"] if attrs["password_confirmation"].blank?
+    end
+
+    @student = Student.new(attrs)
 
     if @student.save
       render json: @student, status: :created
