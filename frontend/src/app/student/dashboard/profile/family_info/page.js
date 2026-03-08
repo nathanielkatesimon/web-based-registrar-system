@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
 
@@ -169,8 +170,12 @@ const PersonSection = ({ title, prefix, formData, onChange }) => (
 );
 
 export default function FamilyInfoPage() {
+  const { student_id: studentId } = useParams();
+  const isStaffMode = Boolean(studentId);
+  const studentEndpoint = isStaffMode ? `/api/v1/students/${studentId}` : null;
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
+  const [familyInfoId, setFamilyInfoId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -185,7 +190,7 @@ export default function FamilyInfoPage() {
         setIsLoading(true);
         setError("");
 
-        const response = await api("/api/v1/family_infos/personal_info");
+        const response = await api(studentEndpoint || "/api/v1/family_infos/personal_info");
         let payload = null;
 
         try {
@@ -202,6 +207,7 @@ export default function FamilyInfoPage() {
         if (!isMounted) return;
 
         const nextFormData = toFormData(payload);
+        setFamilyInfoId(payload?.family_info?.id || payload?.id || null);
         setFormData(nextFormData);
         setInitialFormData(nextFormData);
       } catch (err) {
@@ -217,7 +223,7 @@ export default function FamilyInfoPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [studentEndpoint]);
 
   const hasChanges = useMemo(
     () => JSON.stringify(formData) !== JSON.stringify(initialFormData),
@@ -243,7 +249,14 @@ export default function FamilyInfoPage() {
       setSaveError("");
       setSaveMessage("");
 
-      const response = await api("/api/v1/family_infos/personal_info", {
+      const familyInfoEndpoint = isStaffMode
+        ? (familyInfoId ? `/api/v1/family_infos/${familyInfoId}` : "")
+        : "/api/v1/family_infos/personal_info";
+      if (!familyInfoEndpoint) {
+        throw new Error("No family information record was found for this student.");
+      }
+
+      const response = await api(familyInfoEndpoint, {
         method: "PATCH",
         body: JSON.stringify({ family_info: formData }),
       });
@@ -264,6 +277,7 @@ export default function FamilyInfoPage() {
       }
 
       const nextFormData = toFormData(responseJson || formData);
+      setFamilyInfoId(responseJson?.id || familyInfoId || null);
       setFormData(nextFormData);
       setInitialFormData(nextFormData);
       setSaveMessage("Changes saved.");

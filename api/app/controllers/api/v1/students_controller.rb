@@ -5,7 +5,7 @@ class Api::V1::StudentsController < ApplicationController
 
   # GET /api/v1/students
   def index
-    students = Student.includes(:student_profile, :family_info)
+    students = Student.includes(:student_profile, :family_info, :deficiency)
       .joins(:student_profile)
       .order(created_at: :desc)
 

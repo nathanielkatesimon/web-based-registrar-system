@@ -6,6 +6,7 @@ class StudentSerializer < ActiveModel::Serializer
 
   has_one :student_profile
   has_one :family_info
+  has_one :deficiency
 
   def avatar_url
     return unless object.avatar.attached?

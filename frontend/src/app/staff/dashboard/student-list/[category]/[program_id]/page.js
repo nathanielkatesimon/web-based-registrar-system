@@ -195,7 +195,7 @@ export default function StudentListProgramPage() {
         data: "id",
         orderable: false,
         searchable: false,
-        render: () => '<span class="rq-check-btn">Check</span>',
+        render: (id) => `<a class="rq-check-btn" href="/staff/dashboard/student-list/student-profile/${id}/personal_info">Check</a>`,
       },
     ],
     [],

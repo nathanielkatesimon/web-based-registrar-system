@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import InitBootstrapSelect from "@/components/initializer/init-bootstrap-select";
 import { api, parseError } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
@@ -225,6 +226,9 @@ const YearRange = ({ fromName, toName, fromValue, toValue, onChange }) => (
 );
 
 export default function AcademicInfoPage() {
+  const { student_id: studentId } = useParams();
+  const studentEndpoint = studentId ? `/api/v1/students/${studentId}` : "/api/v1/students/personal_info";
+
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
   const [profileId, setProfileId] = useState(null);
@@ -241,7 +245,7 @@ export default function AcademicInfoPage() {
         setIsLoading(true);
         setError("");
 
-        const response = await api("/api/v1/students/personal_info");
+        const response = await api(studentEndpoint);
         let payload = null;
 
         try {
@@ -275,7 +279,7 @@ export default function AcademicInfoPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [studentEndpoint]);
 
   const hasChanges = useMemo(
     () => JSON.stringify(formData) !== JSON.stringify(initialFormData),
@@ -564,7 +568,7 @@ export default function AcademicInfoPage() {
         },
       };
 
-      const response = await api("/api/v1/students/personal_info", {
+      const response = await api(studentEndpoint, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });

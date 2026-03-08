@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
 import useSessionStore from "@/store/session-store";
@@ -37,6 +38,10 @@ const normalizeAvatarUrl = (value) => {
 };
 
 export default function PersonalInfoPage() {
+  const { student_id: studentId } = useParams();
+  const isStaffMode = Boolean(studentId);
+  const studentEndpoint = isStaffMode ? `/api/v1/students/${studentId}` : "/api/v1/students/personal_info";
+
   const formRef = useRef(null);
   const avatarInputRef = useRef(null);
   const cropperRef = useRef(null);
@@ -80,7 +85,7 @@ export default function PersonalInfoPage() {
         setIsLoading(true);
         setError("");
 
-        const response = await api("/api/v1/students/personal_info");
+        const response = await api(studentEndpoint);
         let payload = null;
 
         try {
@@ -116,7 +121,7 @@ export default function PersonalInfoPage() {
           city_municipality: profile?.city_municipality || "",
           province: profile?.province || "",
         };
-        syncCurrentUser(payload);
+        if (!isStaffMode) syncCurrentUser(payload);
         setProfileId(profile?.id || null);
         setAvatarUrl(nextAvatarUrl);
         setFormData(nextFormData);
@@ -138,7 +143,7 @@ export default function PersonalInfoPage() {
         avatarObjectUrlRef.current = "";
       }
     };
-  }, [syncCurrentUser]);
+  }, [isStaffMode, studentEndpoint, syncCurrentUser]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -203,7 +208,7 @@ export default function PersonalInfoPage() {
     const formDataPayload = new FormData();
     formDataPayload.append("student[avatar]", blob, "avatar.jpg");
 
-    const response = await api("/api/v1/students/personal_info", {
+    const response = await api(studentEndpoint, {
       method: "PATCH",
       body: formDataPayload,
     });
@@ -223,7 +228,7 @@ export default function PersonalInfoPage() {
       throw new Error(backendError);
     }
 
-    syncCurrentUser(responseJson);
+    if (!isStaffMode) syncCurrentUser(responseJson);
     setAvatarUrl(normalizeAvatarUrl(responseJson?.avatar_url));
     setSaveMessage("Avatar updated.");
   };
@@ -309,7 +314,7 @@ export default function PersonalInfoPage() {
         },
       };
 
-      const response = await api("/api/v1/students/personal_info", {
+      const response = await api(studentEndpoint, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
@@ -330,7 +335,7 @@ export default function PersonalInfoPage() {
       }
 
       if (responseJson) {
-        syncCurrentUser(responseJson);
+        if (!isStaffMode) syncCurrentUser(responseJson);
         setAvatarUrl(
           normalizeAvatarUrl(responseJson?.avatar_url)
         );

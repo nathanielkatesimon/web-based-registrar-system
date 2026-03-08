@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
+import ShowAlert from "@/lib/show-alert";
 
 const FIELDS = [
   { key: "enrollment_form", label: "Enrollment Form" },
@@ -20,6 +22,12 @@ const STATUS = {
   lacking: "lacking",
   not_included: "not_included",
 };
+
+const STATUS_OPTIONS = [
+  { value: STATUS.complied, label: "Complied" },
+  { value: STATUS.lacking, label: "Lacking" },
+  { value: STATUS.not_included, label: "Not Included" },
+];
 
 const INITIAL_DATA = FIELDS.reduce((acc, field) => {
   acc[field.key] = STATUS.not_included;
@@ -58,9 +66,18 @@ function StatusIcon({ status }) {
 }
 
 export default function DeficienciesPage() {
+  const { student_id: studentId } = useParams();
+  const isStaffMode = Boolean(studentId);
+  const studentEndpoint = isStaffMode ? `/api/v1/students/${studentId}` : null;
+
   const [data, setData] = useState(INITIAL_DATA);
+  const [initialData, setInitialData] = useState(INITIAL_DATA);
+  const [deficiencyId, setDeficiencyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -70,7 +87,7 @@ export default function DeficienciesPage() {
         setIsLoading(true);
         setError("");
 
-        const response = await api("/api/v1/deficiencies/personal_info");
+        const response = await api(studentEndpoint || "/api/v1/deficiencies/personal_info");
         let payload = null;
 
         try {
@@ -86,10 +103,15 @@ export default function DeficienciesPage() {
 
         if (!isMounted) return;
 
-        setData({
+        const source = isStaffMode ? payload?.deficiency || {} : payload || {};
+        const nextData = {
           ...INITIAL_DATA,
-          ...(payload || {}),
-        });
+          ...source,
+        };
+
+        setDeficiencyId(source?.id || null);
+        setData(nextData);
+        setInitialData(nextData);
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || "Failed to load deficiencies.");
@@ -103,12 +125,106 @@ export default function DeficienciesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isStaffMode, studentEndpoint]);
+
+  const hasChanges = useMemo(
+    () => JSON.stringify(data) !== JSON.stringify(initialData),
+    [data, initialData]
+  );
+
+  const handleChange = (key, value) => {
+    setSaveError("");
+    setSaveMessage("");
+    setData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleDiscard = () => {
+    setSaveError("");
+    setSaveMessage("");
+    setData(initialData);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (!isStaffMode) return;
+      if (!deficiencyId) {
+        throw new Error("No deficiency record found for this student.");
+      }
+
+      setIsSaving(true);
+      setSaveError("");
+      setSaveMessage("");
+
+      const payload = FIELDS.reduce((acc, field) => {
+        acc[field.key] = data[field.key] || STATUS.not_included;
+        return acc;
+      }, {});
+
+      const response = await api(`/api/v1/deficiencies/${deficiencyId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ deficiency: payload }),
+      });
+
+      let responseJson = null;
+      try {
+        responseJson = await response.json();
+      } catch {
+        responseJson = null;
+      }
+
+      if (!response.ok) {
+        const backendError =
+          (responseJson?.errors instanceof Array && responseJson.errors[0]) ||
+          responseJson?.error ||
+          "Failed to save deficiencies.";
+        throw new Error(backendError);
+      }
+
+      const nextData = {
+        ...INITIAL_DATA,
+        ...(responseJson || payload),
+      };
+      setData(nextData);
+      setInitialData(nextData);
+      setSaveMessage("Changes saved.");
+      await ShowAlert({
+        icon: "success",
+        title: "Successfully Updated",
+        text: "sucessfully updated",
+      });
+    } catch (err) {
+      setSaveError(err?.message || "Failed to save deficiencies.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-vh-100 py-4">
       <div className="container" style={{ maxWidth: "900px" }}>
-        <h3 className="fw-bold m-0">Deficiencies</h3>
+        <div className="d-flex justify-content-between align-items-center">
+          <h3 className="fw-bold m-0">Deficiencies</h3>
+          {isStaffMode && !isLoading && hasChanges ? (
+            <div className="mb-3 d-flex align-items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-outline-danger rounded-pill"
+                onClick={handleDiscard}
+                disabled={isSaving}
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                className="btn btn-info text-white rounded-pill"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          ) : null}
+        </div>
         <hr />
 
         <h5 className="fw-bold mt-4 mb-3">Legend</h5>
@@ -129,6 +245,8 @@ export default function DeficienciesPage() {
 
         {isLoading && <p className="text-muted">Loading deficiencies...</p>}
         {error && <p className="text-danger">{error}</p>}
+        {saveError && <p className="small text-danger mb-3">{saveError}</p>}
+        {saveMessage && <p className="small text-success mb-3">{saveMessage}</p>}
 
         {!isLoading && !error && (
           <div className="d-flex flex-column gap-3">
@@ -137,15 +255,34 @@ export default function DeficienciesPage() {
               const isLacking = status === STATUS.lacking;
 
               return (
-                <div key={field.key} className="d-flex align-items-center justify-content-between">
+                <div key={field.key} className="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div className="d-flex align-items-center gap-2">
                     <StatusIcon status={status} />
                     <span>{field.label}</span>
                   </div>
-                  <div style={{ minWidth: "120px", textAlign: "right" }}>
-                    {isLacking ? (
-                      <span style={{ color: "#ef1f23", fontStyle: "italic" }}>please comply</span>
-                    ) : null}
+
+                  <div className="d-flex align-items-center gap-2" style={{ minWidth: "220px", justifyContent: "flex-end" }}>
+                    {isStaffMode ? (
+                      <select
+                        className="form-select form-select-sm"
+                        style={{ width: "160px" }}
+                        value={status}
+                        onChange={(event) => handleChange(field.key, event.target.value)}
+                        disabled={isSaving}
+                      >
+                        {STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div style={{ minWidth: "120px", textAlign: "right" }}>
+                        {isLacking ? (
+                          <span style={{ color: "#ef1f23", fontStyle: "italic" }}>please comply</span>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

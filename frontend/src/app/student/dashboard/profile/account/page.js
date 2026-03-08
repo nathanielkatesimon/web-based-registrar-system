@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
@@ -14,6 +15,10 @@ const INITIAL_FORM = {
 };
 
 export default function AccountPage() {
+  const { student_id: studentId } = useParams();
+  const isStaffMode = Boolean(studentId);
+  const studentEndpoint = isStaffMode ? `/api/v1/students/${studentId}` : "/api/v1/students/personal_info";
+
   const formRef = useRef(null);
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
@@ -32,7 +37,7 @@ export default function AccountPage() {
         setIsLoading(true);
         setError("");
 
-        const response = await api("/api/v1/students/personal_info");
+        const response = await api(studentEndpoint);
         let payload = null;
 
         try {
@@ -71,7 +76,7 @@ export default function AccountPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [studentEndpoint]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -109,7 +114,7 @@ export default function AccountPage() {
 
       const isEmailChanged = formData.email.trim() !== initialFormData.email.trim();
       const isAuthIdChanged = formData.auth_id.trim() !== initialFormData.auth_id.trim();
-      const isPasswordChanged = Boolean(formData.password || formData.password_confirmation);
+      const isPasswordChanged = !isStaffMode && Boolean(formData.password || formData.password_confirmation);
 
       if (!isEmailChanged && !isAuthIdChanged && !isPasswordChanged) {
         return;
@@ -119,7 +124,7 @@ export default function AccountPage() {
         throw new Error("New password and re-entered password must match.");
       }
 
-      if ((isEmailChanged || isPasswordChanged) && !formData.current_password) {
+      if (!isStaffMode && (isEmailChanged || isPasswordChanged) && !formData.current_password) {
         throw new Error("Current password is required before changing email or password.");
       }
 
@@ -131,8 +136,8 @@ export default function AccountPage() {
       const payload = {
         student: {
           auth_id: formData.auth_id.trim(),
-          email: formData.email.trim(),
-          ...(isPasswordChanged
+          ...(isStaffMode ? {} : { email: formData.email.trim() }),
+          ...(!isStaffMode && isPasswordChanged
             ? {
                 password: formData.password,
                 password_confirmation: formData.password_confirmation,
@@ -141,7 +146,7 @@ export default function AccountPage() {
         },
       };
 
-      const response = await api("/api/v1/students/personal_info", {
+      const response = await api(studentEndpoint, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
@@ -154,7 +159,7 @@ export default function AccountPage() {
       }
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (!isStaffMode && response.status === 401) {
           throw new Error("Current password is incorrect. Please try again.");
         }
 
@@ -262,9 +267,11 @@ export default function AccountPage() {
                 className="form-control form-control-lg shadow-none"
                 placeholder="Email Address"
                 required
+                readOnly={isStaffMode}
               />
             </div>
 
+            {!isStaffMode ? (
             <div className="col-md-8 mb-3">
               <label className="form-label fw-bold mb-1 small">
                 Enter Current Password<span className="text-danger">*</span>
@@ -293,7 +300,9 @@ export default function AccountPage() {
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
               </div>
             </div>
+            ) : null}
 
+            {!isStaffMode ? (
             <div className="col-md-8 mb-3">
               <label className="form-label fw-bold mb-1 small">
                 Create New Password<span className="text-danger">*</span>
@@ -318,7 +327,9 @@ export default function AccountPage() {
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
               </div>
             </div>
+            ) : null}
 
+            {!isStaffMode ? (
             <div className="col-md-8 mb-3">
               <label className="form-label fw-bold mb-1 small">
                 Re-enter Password<span className="text-danger">*</span>
@@ -343,9 +354,10 @@ export default function AccountPage() {
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
               </div>
             </div>
+            ) : null}
           </div>
           <input type="hidden" />
-          <InitPasswordToggler />
+          {!isStaffMode ? <InitPasswordToggler /> : null}
         </form>
       </div>
     </div>
