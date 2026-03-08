@@ -48,7 +48,8 @@ Provides ticket-based escalation chat between `Student` and `Staff`.
 {
   "escalation_ticket": {
     "subject": "Urgent deadline requirement",
-    "message": "Hello registrar, I need help with my requirement deadline."
+    "message": "Hello registrar, I need help with my requirement deadline.",
+    "document_request_id": 123
   }
 }
 ```
@@ -66,12 +67,15 @@ Provides ticket-based escalation chat between `Student` and `Staff`.
 Ticket (`escalation_ticket`):
 - `subject`
 - `message` (optional initial message)
+- `document_request_id` (required; must belong to current student)
 
 Message (`escalation_message`):
 - `body`
 
 ## Server-Enforced Behavior
 - Ticket ownership (`student_id`) is always assigned from `current_user` during student create.
+- Exactly one escalation ticket is allowed per `document_request_id`.
+- If a ticket already exists for `document_request_id`, create returns the existing ticket.
 - `ticket_code` is generated on create.
 - Student can no longer send messages when ticket is `closed`.
 - Staff can still send messages even when ticket is `closed`.
@@ -89,8 +93,9 @@ Message (`escalation_message`):
 - Body: ticket details with nested `messages` and `can_chat` for current user.
 
 ### `POST /api/v1/escalation_tickets`
-- Status: `201 Created`
-- Body: created ticket details.
+- Status: `201 Created` when a new ticket is created.
+- Status: `200 OK` when a ticket already exists for the provided `document_request_id`.
+- Body: ticket details.
 
 ### `PATCH /api/v1/escalation_tickets/:id/close`
 - Status: `200 OK`
@@ -120,13 +125,14 @@ Message (`escalation_message`):
 - Returned when ticket is outside scoped access (for example, student accessing another student's ticket).
 
 ### `422 Unprocessable Entity`
-- Returned when validations fail (for example, missing `subject`, missing `body`, student sending message to closed ticket).
+- Returned when validations fail (for example, missing `subject`, missing `document_request_id`, missing `body`, student sending message to closed ticket).
 
 ## Serialization (Current)
 ### Ticket Summary (`index`)
 - `id`
 - `ticket_code`
 - `subject`
+- `document_request` (`id`, `request_id`)
 - `status`
 - `student` (`id`, `full_name`)
 - `latest_message_preview`
@@ -139,6 +145,7 @@ Message (`escalation_message`):
 - `id`
 - `ticket_code`
 - `subject`
+- `document_request` (`id`, `request_id`)
 - `status`
 - `student` (`id`, `full_name`, `auth_id`)
 - `can_chat`

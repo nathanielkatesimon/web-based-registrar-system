@@ -5,8 +5,14 @@ class Api::V1::EscalationMessagesControllerTest < ActionDispatch::IntegrationTes
     @student = students(:student_one)
     @other_student = students(:student_two)
     @staff = staffs(:staff_one)
+    @student_request = create_document_request_for(@student)
+    @other_student_request = create_document_request_for(@other_student)
 
-    @ticket = EscalationTicket.create!(student: @student, subject: "Urgent concern")
+    @ticket = EscalationTicket.create!(
+      student: @student,
+      document_request: @student_request,
+      subject: "Urgent concern"
+    )
     @ticket.escalation_messages.create!(sender: @student, body: "First message")
   end
 
@@ -27,7 +33,11 @@ class Api::V1::EscalationMessagesControllerTest < ActionDispatch::IntegrationTes
   end
 
   test "student should not list other student's ticket messages" do
-    other_ticket = EscalationTicket.create!(student: @other_student, subject: "Other student concern")
+    other_ticket = EscalationTicket.create!(
+      student: @other_student,
+      document_request: @other_student_request,
+      subject: "Other student concern"
+    )
 
     sign_in_as(@student)
 
@@ -90,6 +100,27 @@ class Api::V1::EscalationMessagesControllerTest < ActionDispatch::IntegrationTes
   end
 
   private
+
+  def create_document_request_for(student)
+    request = DocumentRequest.new(
+      user_id: student.id,
+      status: :on_hold,
+      delivery_method: :self_pickup,
+      payment_method: :cash,
+      payment_status: :not_paid,
+      shipping_fee_cents: 100
+    )
+    request.id_verification_photo.attach(id_photo_file)
+    request.save!
+    request
+  end
+
+  def id_photo_file
+    Rack::Test::UploadedFile.new(
+      Rails.root.join("test/fixtures/files/id_verification_photo.jpg"),
+      "image/jpeg"
+    )
+  end
 
   def sign_in_as(user)
     post "/api/v1/users/sign_in",

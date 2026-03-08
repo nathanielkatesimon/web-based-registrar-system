@@ -150,4 +150,5 @@ Returned when `:id` does not exist for current user scope.
 - `total_cents` (sum of line totals + shipping)
 - `id_verification_photo_url` (Active Storage blob path)
 - `payment_receipt_url` (Active Storage blob path when attached)
+- `escalation_ticket` (`id`, `ticket_code`, `status`) or `null`
 - `request_time_lines` (timeline entries)

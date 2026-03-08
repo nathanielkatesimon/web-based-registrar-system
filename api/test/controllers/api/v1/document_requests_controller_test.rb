@@ -31,6 +31,11 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
 
   test "should get only current_user document_requests" do
     own_request = @document_request
+    own_ticket = EscalationTicket.create!(
+      student: @student,
+      document_request: own_request,
+      subject: "Follow-up on request"
+    )
     other_request = DocumentRequest.new(
       user_id: @other_student.id,
       status: :on_hold,
@@ -54,6 +59,8 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
 
     assert_includes ids, own_request.id
     assert_not_includes ids, other_request.id
+    own_request_payload = json_response.find { |record| record["id"] == own_request.id }
+    assert_equal own_ticket.id, own_request_payload.dig("escalation_ticket", "id")
   end
 
   test "should create document_request with nested document_request_items" do
