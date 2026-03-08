@@ -393,7 +393,7 @@ export default function StudentRegistrationForm() {
               required
             />
             <span className="input-group-text cursor-pointer">
-              <i className="bx bx-hide"></i>
+              <i className="bx bx-eye-slash"></i>
             </span>
           </div>
           <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -414,7 +414,7 @@ export default function StudentRegistrationForm() {
               required
             />
             <span className="input-group-text cursor-pointer">
-              <i className="bx bx-hide"></i>
+              <i className="bx bx-eye-slash"></i>
             </span>
           </div>
           <PasswordValidator

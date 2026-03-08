@@ -294,7 +294,7 @@ export default function AccountPage() {
                     )}
                   />
                   <span className="input-group-text cursor-pointer">
-                    <i className="bx bx-hide"></i>
+                    <i className="bx bx-eye-slash"></i>
                   </span>
                 </div>
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -321,7 +321,7 @@ export default function AccountPage() {
                     minLength={8}
                   />
                   <span className="input-group-text cursor-pointer">
-                    <i className="bx bx-hide"></i>
+                    <i className="bx bx-eye-slash"></i>
                   </span>
                 </div>
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
@@ -348,7 +348,7 @@ export default function AccountPage() {
                     minLength={8}
                   />
                   <span className="input-group-text cursor-pointer">
-                    <i className="bx bx-hide"></i>
+                    <i className="bx bx-eye-slash"></i>
                   </span>
                 </div>
                 <div className="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>

@@ -207,7 +207,7 @@ export default function StaffRegistrationForm() {
               required
             />
             <span className="input-group-text cursor-pointer">
-              <i className="bx bx-hide"></i>
+              <i className="bx bx-eye-slash"></i>
             </span>
           </div>
         </div>
@@ -227,7 +227,7 @@ export default function StaffRegistrationForm() {
               required
             />
             <span className="input-group-text cursor-pointer">
-              <i className="bx bx-hide"></i>
+              <i className="bx bx-eye-slash"></i>
             </span>
           </div>
           <PasswordValidator
