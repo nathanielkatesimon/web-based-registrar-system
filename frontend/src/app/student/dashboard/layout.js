@@ -66,12 +66,12 @@ export default function StudentDashboardLayout({children}) {
                     <div className="text-truncate" data-i18n="Dashboards">Tracker</div>
                   </Link>
                 </li>
-                {/* <li className={`menu-item ${isRoutePrefix("/student/dashboard/escalations") ? "active" : ""}`}>
+                <li className={`menu-item ${isRoutePrefix("/student/dashboard/escalations") ? "active" : ""}`}>
                   <Link href="/student/dashboard/escalations" className="menu-link fs-5">
                     <i className="menu-icon tf-icons pb-1 bx bx-error-circle"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Escalations</div>
                   </Link>
-                </li>*/}
+                </li>
                 <li className={`menu-item ${isRoutePrefix("/student/dashboard/profile") ? "active" : ""}`}>
                   <Link href="/student/dashboard/profile/personal_info" className="menu-link fs-5">
                     <i className="menu-icon tf-icons pb-1 bx bx-user"></i>

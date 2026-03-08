@@ -1,3 +1,5 @@
+import EscalationBoard from "@/components/features/escalations/escalation-board";
+
 export default function StaffEscalationsPage() {
-  return <div className="container-xxl flex-grow-1 py-4"></div>;
+  return <EscalationBoard role="Staff" />;
 }
