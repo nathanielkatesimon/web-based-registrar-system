@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import formatMoney from "@/lib/formatMoney";
 
+const ESCALATION_AGE_DAYS = 21;
+
 const STATUS_META = {
   processing: { label: "Processing", color: "#1F2AA2" },
   completed: { label: "Completed", color: "#33A000" },
@@ -93,6 +95,9 @@ export default function StudentDashboardTrackerPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isEscalating, setIsEscalating] = useState(false);
+  const [escalationMessage, setEscalationMessage] = useState("");
+  const [escalationError, setEscalationError] = useState("");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -175,6 +180,57 @@ export default function StudentDashboardTrackerPage() {
   const totalCents = Number(selectedRequest?.total_cents ?? subtotalCents + shippingFeeCents);
   const statusFilterLabel =
     FILTER_OPTIONS.find((option) => option.value === statusFilter)?.label || "All Statuses";
+  const selectedRequestCreatedAt = selectedRequest?.created_at ? new Date(selectedRequest.created_at) : null;
+  const selectedRequestAgeDays = selectedRequestCreatedAt
+    ? Math.floor((Date.now() - selectedRequestCreatedAt.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const canEscalateSelectedRequest = Boolean(
+    selectedRequest &&
+      selectedRequestCreatedAt &&
+      !["completed", "closed"].includes(selectedRequest.status) &&
+      selectedRequestAgeDays > ESCALATION_AGE_DAYS
+  );
+
+  useEffect(() => {
+    setEscalationMessage("");
+    setEscalationError("");
+  }, [selectedRequestId]);
+
+  const handleEscalate = async () => {
+    if (!selectedRequest || !canEscalateSelectedRequest || isEscalating) return;
+
+    try {
+      setIsEscalating(true);
+      setEscalationMessage("");
+      setEscalationError("");
+
+      const requestId = selectedRequest.request_id || `#${selectedRequest.id}`;
+      const response = await api("/api/v1/escalation_tickets", {
+        method: "POST",
+        body: JSON.stringify({
+          escalation_ticket: {
+            subject: `Follow-up on Request ${requestId}`,
+            message: `I am following up on request ${requestId}. This request has been pending for more than 3 weeks.`,
+          },
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          (payload?.errors instanceof Array && payload.errors[0]) ||
+            payload?.error ||
+            "Failed to create escalation ticket."
+        );
+      }
+
+      setEscalationMessage(`Escalation ticket created: ${payload?.ticket_code || "submitted"}.`);
+    } catch (createError) {
+      setEscalationError(createError?.message || "Failed to create escalation ticket.");
+    } finally {
+      setIsEscalating(false);
+    }
+  };
 
   return (
     <div className="container-fluid px-4 p-lg-12 py-4" style={{ backgroundColor: "#EEF0FA", minHeight: "calc(100vh - 90px)" }}>
@@ -453,9 +509,33 @@ export default function StudentDashboardTrackerPage() {
                     </p>
                   }
                   <p className="mb-0">
-                    <strong>ETA:</strong> {selectedRequest.status === "completed" ? "Completed" : "3 - 5 business days"}
+                    <strong>ETA:</strong> {selectedRequest.status === "completed" ? "Completed" : "2 - 3 weeks"}
                   </p>
                 </div>
+
+                {canEscalateSelectedRequest ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn w-100 text-white fw-semibold mt-4"
+                      style={{ backgroundColor: "#040F5F", borderRadius: 4 }}
+                      onClick={handleEscalate}
+                      disabled={isEscalating}
+                    >
+                      {isEscalating ? "Escalating..." : "Escalate"}
+                    </button>
+
+                    <div className="small mt-3 p-3" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
+                      <p className="mb-0">
+                        <strong>Note:</strong> This request has exceeded the estimated turnaround time. You may send
+                        an escalation to the registrar staff regarding this matter.
+                      </p>
+                    </div>
+                  </>
+                ) : null}
+
+                {escalationMessage ? <p className="small text-success mt-3 mb-0">{escalationMessage}</p> : null}
+                {escalationError ? <p className="small text-danger mt-3 mb-0">{escalationError}</p> : null}
               </>
             )}
           </div>
