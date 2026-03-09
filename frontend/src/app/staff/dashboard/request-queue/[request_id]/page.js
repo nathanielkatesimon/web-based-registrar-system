@@ -102,6 +102,7 @@ export default function StaffRequestQueueDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState(DEFAULT_STATUS);
   const [reasonUnpaidBill, setReasonUnpaidBill] = useState(false);
   const [reasonMissingRequirements, setReasonMissingRequirements] = useState(false);
+  const [reasonInactivity, setReasonInactivity] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [statusSubmitting, setStatusSubmitting] = useState(false);
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
@@ -137,6 +138,7 @@ export default function StaffRequestQueueDetailPage() {
     setSelectedStatus(request.status || DEFAULT_STATUS);
     setReasonUnpaidBill(Boolean(request.unpaid_bill));
     setReasonMissingRequirements(Boolean(request.missing_requirements));
+    setReasonInactivity(Boolean(request.inactivity));
   }, [request]);
 
   const timelineEntries = useMemo(() => {
@@ -168,7 +170,7 @@ export default function StaffRequestQueueDetailPage() {
   ]);
   const receiptUrl = findFileUrl(request, ["payment_receipt_url", "payment_receipt", "receipt_url"]);
   const requiresReason = selectedStatus === "on_hold" || selectedStatus === "closed";
-  const hasAtLeastOneReason = reasonUnpaidBill || reasonMissingRequirements;
+  const hasAtLeastOneReason = reasonUnpaidBill || reasonMissingRequirements || reasonInactivity;
 
   const handleAddTimeline = async () => {
     if (!requestId || !request) return;
@@ -261,6 +263,7 @@ export default function StaffRequestQueueDetailPage() {
             status: selectedStatus,
             unpaid_bill: requiresReason ? reasonUnpaidBill : false,
             missing_requirements: requiresReason ? reasonMissingRequirements : false,
+            inactivity: requiresReason ? reasonInactivity : false,
           },
         }),
       });
@@ -440,6 +443,16 @@ export default function StaffRequestQueueDetailPage() {
                 <hr className="my-4" />
                 <p className="rqd-section-title text-info">Status</p>
 
+                {request.status === "closed" && request.inactivity ? (
+                  <div className="small mt-2 mb-3 p-3 d-flex align-items-start" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
+                    <i className="bx bx-info-circle fs-5 me-1 text-danger"></i>
+                    <p className="mb-0 text-primary">
+                      <strong className="text-danger">Note: </strong>
+                      This request was closed due to inactivity after more than 3 weeks without updates.
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="d-flex gap-3">
                   <select
                     className="selectpicker w-100 rqd-selectpicker"
@@ -450,6 +463,7 @@ export default function StaffRequestQueueDetailPage() {
                       if (nextStatus !== "on_hold" && nextStatus !== "closed") {
                         setReasonUnpaidBill(false);
                         setReasonMissingRequirements(false);
+                        setReasonInactivity(false);
                       }
                     }}
                     data-style="bg-light border"
@@ -494,6 +508,16 @@ export default function StaffRequestQueueDetailPage() {
                         disabled={submitting || statusSubmitting}
                       />
                       <span>Missing requirements</span>
+                    </label>
+                    <label className="rqd-check-row">
+                      <input
+                        type="checkbox"
+                        checked={reasonInactivity}
+                        className="form-check-input"
+                        onChange={(event) => setReasonInactivity(event.target.checked)}
+                        disabled={submitting || statusSubmitting}
+                      />
+                      <span>Inactivity (3+ weeks no updates)</span>
                     </label>
                   </div>
                 ) : (

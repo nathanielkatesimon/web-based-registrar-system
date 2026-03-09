@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_08_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_09_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,6 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_08_090000) do
     t.string "courier_name"
     t.datetime "created_at", null: false
     t.integer "delivery_method"
+    t.boolean "inactivity", default: false, null: false
     t.boolean "missing_requirements", default: false, null: false
     t.integer "payment_method"
     t.integer "payment_status"

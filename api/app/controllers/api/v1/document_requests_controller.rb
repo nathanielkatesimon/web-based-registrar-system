@@ -66,6 +66,7 @@ class Api::V1::DocumentRequestsController < ApplicationController
         :status,
         :unpaid_bill,
         :missing_requirements,
+        :inactivity,
         :delivery_method,
         :courier_name,
         :payment_method,

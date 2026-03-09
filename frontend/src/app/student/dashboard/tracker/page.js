@@ -87,8 +87,18 @@ function buildTimeline(timeLines = []) {
     }));
 }
 
-function getOnHoldReasonNote(request) {
-  if (!request || request.status !== "on_hold") return "";
+function getStatusReasonNote(request) {
+  if (!request) return "";
+
+  if (request.inactivity) {
+    if (request.status === "closed") {
+      return "Your request was closed due to inactivity after more than 3 weeks without updates. Please submit a new request if you still need this document.";
+    }
+
+    return "This request is flagged for inactivity because it has no updates for more than 3 weeks. Please coordinate with your Registrar for the next steps.";
+  }
+
+  if (request.status !== "on_hold" && request.status !== "closed") return "";
 
   const hasUnpaidBill = Boolean(request.unpaid_bill);
   const hasMissingRequirements = Boolean(request.missing_requirements);
@@ -226,7 +236,7 @@ export default function StudentDashboardTrackerPage() {
   const selectedRequestAgeDays = selectedRequestCreatedAt
     ? Math.floor((Date.now() - selectedRequestCreatedAt.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
-  const selectedOnHoldReasonNote = getOnHoldReasonNote(selectedRequest);
+  const selectedStatusNote = getStatusReasonNote(selectedRequest);
   const canEscalateSelectedRequest = Boolean(
     selectedRequest &&
       selectedRequestCreatedAt &&
@@ -526,12 +536,12 @@ export default function StudentDashboardTrackerPage() {
 
                 <hr className="my-4" />
 
-                {selectedOnHoldReasonNote ? (
+                {selectedStatusNote ? (
                   <div className="small mt-3 mb-4 p-3 d-flex align-items-start" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
                     <i className="bx bx-info-circle fs-5 me-1 text-danger"></i>
                     <p className="mb-0 text-primary">
                       <strong className="text-danger">Note: </strong>
-                      {selectedOnHoldReasonNote}
+                      {selectedStatusNote}
                     </p>
                   </div>
                 ) : null}

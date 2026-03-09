@@ -2,7 +2,7 @@ class DocumentRequestSerializer < ActiveModel::Serializer
   attributes :id, :request_id, :status, :delivery_method, :courier_name, :payment_method,
              :payment_status, :payment_verified_at, :shipping_fee_cents, :student_name, :created_at,
              :updated_at, :request_items, :total_cents, :id_verification_photo_url, :payment_receipt_url,
-             :unpaid_bill, :missing_requirements, :escalation_ticket
+             :unpaid_bill, :missing_requirements, :inactivity, :escalation_ticket
 
   has_many :request_time_lines
 
