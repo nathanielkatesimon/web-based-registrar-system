@@ -64,4 +64,27 @@ class StudentTest < ActiveSupport::TestCase
     assert student.incomplete_family_info?
     assert_empty student.family_info_complete_contacts
   end
+
+  test "incomplete_academic_info? returns false when status-specific academic info exists" do
+    student = students(:student_one)
+
+    assert_not student.incomplete_academic_info?
+  end
+
+  test "incomplete_academic_info? returns true when current status academic info is blank" do
+    student = students(:student_one)
+    student.student_profile.update_columns(
+      year_level: nil,
+      course: "",
+      department: "",
+      strand: "",
+      track: "",
+      current_senior_high_school_name: "",
+      current_senior_high_program: "",
+      current_senior_high_year_from: nil,
+      current_senior_high_year_to: nil
+    )
+
+    assert student.incomplete_academic_info?
+  end
 end

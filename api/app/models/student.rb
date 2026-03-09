@@ -38,6 +38,10 @@ class Student < User
     family_info_complete_contacts.empty?
   end
 
+  def incomplete_academic_info?
+    !academic_info_present_for_status?
+  end
+
   def missing_personal_info_fields
     missing_fields = []
 
@@ -78,6 +82,81 @@ class Student < User
     contact_complete = !blank_required_value?(contact_number) || !blank_required_value?(email_address)
 
     name_complete && contact_complete
+  end
+
+  def academic_info_present_for_status?
+    profile = student_profile
+    return false unless profile
+
+    status = profile.status
+    school_level = profile.school_level
+    return false if blank_required_value?(status) || blank_required_value?(school_level)
+
+    is_college = school_level == "college"
+
+    case status
+    when "graduated"
+      graduated_fields_present?(profile, is_college)
+    when "transferee"
+      transferee_fields_present?(profile, is_college)
+    when "currently_enrolled", "returnee"
+      current_or_returnee_fields_present?(profile, is_college)
+    else
+      false
+    end
+  end
+
+  def current_or_returnee_fields_present?(profile, is_college)
+    return false if blank_required_value?(profile.year_level)
+
+    if is_college
+      core_present = !blank_required_value?(profile.course) && !blank_required_value?(profile.department)
+      shs_present = !blank_required_value?(profile.current_senior_high_program) ||
+                    !blank_required_value?(profile.current_senior_high_school_name) ||
+                    profile.current_senior_high_year_from.present? ||
+                    profile.current_senior_high_year_to.present?
+      core_present || shs_present
+    else
+      !blank_required_value?(profile.strand) || !blank_required_value?(profile.track)
+    end
+  end
+
+  def transferee_fields_present?(profile, is_college)
+    return false if blank_required_value?(profile.year_level)
+
+    if is_college
+      current_present = !blank_required_value?(profile.course) && !blank_required_value?(profile.department)
+      previous_present = !blank_required_value?(profile.prev_college_program) ||
+                         !blank_required_value?(profile.prev_college_school_name) ||
+                         profile.prev_college_year_from.present? ||
+                         profile.prev_college_year_to.present?
+      shs_present = !blank_required_value?(profile.current_senior_high_program) ||
+                    !blank_required_value?(profile.current_senior_high_school_name) ||
+                    profile.current_senior_high_year_from.present? ||
+                    profile.current_senior_high_year_to.present?
+      current_present || previous_present || shs_present
+    else
+      current_present = !blank_required_value?(profile.strand) || !blank_required_value?(profile.track)
+      previous_present = !blank_required_value?(profile.prev_senior_high_program) ||
+                         !blank_required_value?(profile.prev_senior_high_school_name) ||
+                         profile.prev_senior_high_year_from.present? ||
+                         profile.prev_senior_high_year_to.present?
+      current_present || previous_present
+    end
+  end
+
+  def graduated_fields_present?(profile, is_college)
+    if is_college
+      !blank_required_value?(profile.course) ||
+        !blank_required_value?(profile.department) ||
+        profile.prev_college_year_from.present? ||
+        profile.prev_college_year_to.present?
+    else
+      !blank_required_value?(profile.strand) ||
+        !blank_required_value?(profile.track) ||
+        profile.prev_senior_high_year_from.present? ||
+        profile.prev_senior_high_year_to.present?
+    end
   end
 
   def build_default_profile

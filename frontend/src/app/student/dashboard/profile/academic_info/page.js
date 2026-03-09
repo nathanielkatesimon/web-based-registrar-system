@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import InitBootstrapSelect from "@/components/initializer/init-bootstrap-select";
 import { api, parseError } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
+import useSessionStore from "@/store/session-store";
 
 const STATUS_OPTIONS = [
   { value: "currently_enrolled", label: "I am currently enrolled" },
@@ -227,7 +228,9 @@ const YearRange = ({ fromName, toName, fromValue, toValue, onChange }) => (
 
 export default function AcademicInfoPage() {
   const { student_id: studentId } = useParams();
+  const isStaffMode = Boolean(studentId);
   const studentEndpoint = studentId ? `/api/v1/students/${studentId}` : "/api/v1/students/personal_info";
+  const { saveCurrentUser } = useSessionStore();
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
@@ -236,6 +239,33 @@ export default function AcademicInfoPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+
+  const syncCurrentUser = useCallback(async () => {
+    if (isStaffMode) return;
+
+    try {
+      const response = await api("/api/v1/students/personal_info");
+      const payload = await response.json();
+      if (!response.ok) return;
+
+      saveCurrentUser({
+        id: payload?.id,
+        auth_id: payload?.auth_id,
+        type: payload?.type || "Student",
+        first_name: payload?.first_name || "",
+        middle_name: payload?.middle_name || "",
+        last_name: payload?.last_name || "",
+        extension: payload?.extension || "",
+        full_name: payload?.full_name || "",
+        avatar_url: payload?.avatar_url || null,
+        incomplete_personal_info: Boolean(payload?.incomplete_personal_info),
+        incomplete_family_info: Boolean(payload?.incomplete_family_info),
+        incomplete_academic_info: Boolean(payload?.incomplete_academic_info),
+      });
+    } catch {
+      // no-op
+    }
+  }, [isStaffMode, saveCurrentUser]);
 
   useEffect(() => {
     let isMounted = true;
@@ -266,6 +296,7 @@ export default function AcademicInfoPage() {
         setProfileId(profile?.id || null);
         setFormData(nextFormData);
         setInitialFormData(nextFormData);
+        await syncCurrentUser();
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || "Failed to load academic information.");
@@ -279,7 +310,7 @@ export default function AcademicInfoPage() {
     return () => {
       isMounted = false;
     };
-  }, [studentEndpoint]);
+  }, [studentEndpoint, syncCurrentUser]);
 
   const hasChanges = useMemo(
     () => JSON.stringify(formData) !== JSON.stringify(initialFormData),
@@ -590,6 +621,7 @@ export default function AcademicInfoPage() {
       setProfileId(profile?.id || null);
       setFormData(nextFormData);
       setInitialFormData(nextFormData);
+      await syncCurrentUser();
       setSaveMessage("Changes saved.");
 
       await ShowAlert({

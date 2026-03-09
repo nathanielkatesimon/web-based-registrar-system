@@ -155,18 +155,21 @@ All write requests require top-level key: `student`.
 - Body: JSON array of student objects (with nested `student_profile` and `family_info`), optionally filtered by query params.
 - Student object includes `incomplete_personal_info` (boolean) based on required Personal Info fields.
 - Student object includes `incomplete_family_info` (boolean) based on Family Info contact completeness.
+- Student object includes `incomplete_academic_info` (boolean) based on status-specific Academic Info presence.
 
 ### `GET /api/v1/students/personal_info`
 - Status: `200 OK`
 - Body: JSON of the authenticated student (includes nested `student_profile` data).
 - Includes `incomplete_personal_info` (boolean).
 - Includes `incomplete_family_info` (boolean).
+- Includes `incomplete_academic_info` (boolean).
 
 ### `GET /api/v1/students/:id`
 - Status: `200 OK`
 - Body: JSON of the resolved student.
 - Includes `incomplete_personal_info` (boolean).
 - Includes `incomplete_family_info` (boolean).
+- Includes `incomplete_academic_info` (boolean).
 
 ### `PATCH|PUT /api/v1/students/:id`
 - Status: `200 OK`
@@ -218,3 +221,4 @@ Returned when `:id` is not `"personal_info"` and no matching `Student` exists.
 - For update errors, read `errors[]` and map directly to form validation messages.
 - Use `incomplete_personal_info` to drive the Personal Info nav alert badge.
 - Use `incomplete_family_info` to drive the Family Info nav alert badge.
+- Use `incomplete_academic_info` to drive the Academic Info nav alert badge.

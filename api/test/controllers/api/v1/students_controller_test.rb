@@ -134,6 +134,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_nil json_response["avatar_url"]
     assert_equal false, json_response["incomplete_personal_info"]
     assert_equal false, json_response["incomplete_family_info"]
+    assert_equal false, json_response["incomplete_academic_info"]
   end
 
   test "should flag incomplete_personal_info when required personal fields are missing" do
@@ -172,6 +173,28 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     assert_equal true, json_response["incomplete_family_info"]
+  end
+
+  test "should flag incomplete_academic_info when status-specific academic info is blank" do
+    @student_one_profile.update_columns(
+      year_level: nil,
+      course: "",
+      department: "",
+      strand: "",
+      track: "",
+      current_senior_high_school_name: "",
+      current_senior_high_program: "",
+      current_senior_high_year_from: nil,
+      current_senior_high_year_to: nil
+    )
+    sign_in_as(@student_one)
+
+    get api_v1_student_url(id: "personal_info"), as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    assert_equal true, json_response["incomplete_academic_info"]
   end
 
   test "should include avatar_url when student has avatar attached" do

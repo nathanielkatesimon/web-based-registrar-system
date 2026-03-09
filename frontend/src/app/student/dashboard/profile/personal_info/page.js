@@ -76,6 +76,7 @@ export default function PersonalInfoPage() {
       avatar_url: payload?.avatar_url || null,
       incomplete_personal_info: Boolean(payload?.incomplete_personal_info),
       incomplete_family_info: Boolean(payload?.incomplete_family_info),
+      incomplete_academic_info: Boolean(payload?.incomplete_academic_info),
     });
   }, [saveCurrentUser]);
 
