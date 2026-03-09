@@ -170,7 +170,9 @@ export default function StaffRequestQueueDetailPage() {
   ]);
   const receiptUrl = findFileUrl(request, ["payment_receipt_url", "payment_receipt", "receipt_url"]);
   const requiresReason = selectedStatus === "on_hold" || selectedStatus === "closed";
-  const hasAtLeastOneReason = reasonUnpaidBill || reasonMissingRequirements || reasonInactivity;
+  const isClosedStatus = selectedStatus === "closed";
+  const hasAtLeastOneReason =
+    reasonUnpaidBill || reasonMissingRequirements || (isClosedStatus && reasonInactivity);
 
   const handleAddTimeline = async () => {
     if (!requestId || !request) return;
@@ -263,7 +265,7 @@ export default function StaffRequestQueueDetailPage() {
             status: selectedStatus,
             unpaid_bill: requiresReason ? reasonUnpaidBill : false,
             missing_requirements: requiresReason ? reasonMissingRequirements : false,
-            inactivity: requiresReason ? reasonInactivity : false,
+            inactivity: isClosedStatus ? reasonInactivity : false,
           },
         }),
       });
@@ -463,8 +465,8 @@ export default function StaffRequestQueueDetailPage() {
                       if (nextStatus !== "on_hold" && nextStatus !== "closed") {
                         setReasonUnpaidBill(false);
                         setReasonMissingRequirements(false);
-                        setReasonInactivity(false);
                       }
+                      if (nextStatus !== "closed") setReasonInactivity(false);
                     }}
                     data-style="bg-light border"
                     data-width="100%"
@@ -509,16 +511,18 @@ export default function StaffRequestQueueDetailPage() {
                       />
                       <span>Missing requirements</span>
                     </label>
-                    <label className="rqd-check-row">
-                      <input
-                        type="checkbox"
-                        checked={reasonInactivity}
-                        className="form-check-input"
-                        onChange={(event) => setReasonInactivity(event.target.checked)}
-                        disabled={submitting || statusSubmitting}
-                      />
-                      <span>Inactivity (3+ weeks no updates)</span>
-                    </label>
+                    {isClosedStatus ? (
+                      <label className="rqd-check-row">
+                        <input
+                          type="checkbox"
+                          checked={reasonInactivity}
+                          className="form-check-input"
+                          onChange={(event) => setReasonInactivity(event.target.checked)}
+                          disabled={submitting || statusSubmitting}
+                        />
+                        <span>Inactivity (3+ weeks no updates)</span>
+                      </label>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="mb-4"></div>
