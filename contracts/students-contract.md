@@ -153,14 +153,17 @@ All write requests require top-level key: `student`.
 - Status: `200 OK`
 - Access: staff users only
 - Body: JSON array of student objects (with nested `student_profile` and `family_info`), optionally filtered by query params.
+- Student object includes `incomplete_personal_info` (boolean) based on required Personal Info fields.
 
 ### `GET /api/v1/students/personal_info`
 - Status: `200 OK`
 - Body: JSON of the authenticated student (includes nested `student_profile` data).
+- Includes `incomplete_personal_info` (boolean).
 
 ### `GET /api/v1/students/:id`
 - Status: `200 OK`
 - Body: JSON of the resolved student.
+- Includes `incomplete_personal_info` (boolean).
 
 ### `PATCH|PUT /api/v1/students/:id`
 - Status: `200 OK`
@@ -210,3 +213,4 @@ Returned when `:id` is not `"personal_info"` and no matching `Student` exists.
 - Use `/api/v1/students/:id` for ID-based student operations.
 - Send requests with cookies enabled (for example, `credentials: "include"` in `fetch`).
 - For update errors, read `errors[]` and map directly to form validation messages.
+- Use `incomplete_personal_info` to drive the Personal Info nav alert badge.

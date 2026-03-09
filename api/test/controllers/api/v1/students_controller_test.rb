@@ -132,6 +132,20 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @student_one.auth_id, json_response["auth_id"]
     assert_equal @student_one_profile.id, json_response["student_profile"]["id"]
     assert_nil json_response["avatar_url"]
+    assert_equal false, json_response["incomplete_personal_info"]
+  end
+
+  test "should flag incomplete_personal_info when required personal fields are missing" do
+    @student_one.update_columns(first_name: "")
+    @student_one_profile.update_columns(citizenship: nil)
+    sign_in_as(@student_one)
+
+    get api_v1_student_url(id: "personal_info"), as: :json
+
+    assert_response :success
+
+    json_response = JSON.parse(response.body)
+    assert_equal true, json_response["incomplete_personal_info"]
   end
 
   test "should include avatar_url when student has avatar attached" do

@@ -1,4 +1,16 @@
 class Student < User
+  PERSONAL_INFO_REQUIRED_STUDENT_FIELDS = %i[first_name last_name].freeze
+  PERSONAL_INFO_REQUIRED_PROFILE_FIELDS = %i[
+    civil_status
+    contact_number
+    sex
+    birthday
+    citizenship
+    barangay_name
+    city_municipality
+    province
+  ].freeze
+
   has_one :student_profile, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_one :family_info, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_one :deficiency, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
@@ -17,7 +29,31 @@ class Student < User
            :course, :department, :strand, :track,
            to: :student_profile, allow_nil: true
 
+  def incomplete_personal_info?
+    missing_personal_info_fields.any?
+  end
+
+  def missing_personal_info_fields
+    missing_fields = []
+
+    PERSONAL_INFO_REQUIRED_STUDENT_FIELDS.each do |field|
+      missing_fields << field if blank_required_value?(public_send(field))
+    end
+
+    profile = student_profile
+    PERSONAL_INFO_REQUIRED_PROFILE_FIELDS.each do |field|
+      value = profile&.public_send(field)
+      missing_fields << :"student_profile.#{field}" if blank_required_value?(value)
+    end
+
+    missing_fields
+  end
+
   private
+
+  def blank_required_value?(value)
+    value.respond_to?(:strip) ? value.strip.blank? : value.blank?
+  end
 
   def build_default_profile
     create_student_profile unless student_profile
