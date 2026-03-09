@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { getCableConsumer } from "@/lib/action-cable";
@@ -475,7 +476,24 @@ export default function EscalationBoard({ role }) {
                 <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                   <div>
                     <div className="small fw-semibold text-primary">Escalation ID: {selectedDetail.ticket_code}</div>
-                    <h5 className="m-0">{selectedDetail.subject}</h5>
+                      <h5 className="m-0">
+                        {selectedDetail.document_request ? (
+                          <>
+                            <span>Follow-up on Request ID </span>
+                            {!isStaff ? (
+                              <Link
+                                href={`/student/dashboard/tracker?request=${encodeURIComponent(String(selectedDetail.document_request.request_id || selectedDetail.document_request.id))}`}
+                                className="text-decoration-underline"
+                              >
+                                {selectedDetail.document_request.request_id || `#${selectedDetail.document_request.id}`}
+                              </Link>
+                            ) : (
+                              <span>{selectedDetail.document_request.request_id || `#${selectedDetail.document_request.id}`}</span>
+                            )}
+                          </>
+                        ) : null}
+                        
+                      </h5>
                     {isStaff && <div className="small text-muted">{selectedDetail.student?.full_name}</div>}
                   </div>
                   <div className="d-flex align-items-center gap-2">

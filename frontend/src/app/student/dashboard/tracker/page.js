@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import formatMoney from "@/lib/formatMoney";
 
@@ -89,6 +89,8 @@ function buildTimeline(timeLines = []) {
 
 export default function StudentDashboardTrackerPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedRequest = useMemo(() => searchParams.get("request")?.trim() || "", [searchParams]);
   const [requests, setRequests] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [search, setSearch] = useState("");
@@ -148,6 +150,23 @@ export default function StudentDashboardTrackerPage() {
       return matchesSearch && matchesStatus;
     });
   }, [requests, search, sortedRequests, sortByLatest, statusFilter]);
+
+  useEffect(() => {
+    if (!requestedRequest || requests.length === 0) return;
+
+    const normalizedRequestedValue = requestedRequest.toLowerCase();
+    const matchedRequest = requests.find((request) => {
+      const requestCode = String(request.request_id || "").toLowerCase();
+      const requestNumericId = String(request.id || "");
+      return requestCode === normalizedRequestedValue || requestNumericId === requestedRequest;
+    });
+
+    if (!matchedRequest) return;
+
+    setStatusFilter("all");
+    setSearch(matchedRequest.request_id || String(matchedRequest.id));
+    setSelectedRequestId(matchedRequest.id);
+  }, [requestedRequest, requests]);
 
   useEffect(() => {
     if (filteredRequests.length === 0) {
