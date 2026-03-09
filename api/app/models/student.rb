@@ -10,6 +10,7 @@ class Student < User
     city_municipality
     province
   ].freeze
+  FAMILY_INFO_CONTACT_PREFIXES = %w[father mother guardian].freeze
 
   has_one :student_profile, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_one :family_info, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
@@ -33,6 +34,10 @@ class Student < User
     missing_personal_info_fields.any?
   end
 
+  def incomplete_family_info?
+    family_info_complete_contacts.empty?
+  end
+
   def missing_personal_info_fields
     missing_fields = []
 
@@ -49,10 +54,30 @@ class Student < User
     missing_fields
   end
 
+  def family_info_complete_contacts
+    FAMILY_INFO_CONTACT_PREFIXES.select do |prefix|
+      family_contact_complete?(prefix)
+    end
+  end
+
   private
 
   def blank_required_value?(value)
     value.respond_to?(:strip) ? value.strip.blank? : value.blank?
+  end
+
+  def family_contact_complete?(prefix)
+    return false unless family_info
+
+    first_name = family_info.public_send("#{prefix}_first_name")
+    last_name = family_info.public_send("#{prefix}_last_name")
+    contact_number = family_info.public_send("#{prefix}_contact_number")
+    email_address = family_info.public_send("#{prefix}_email_address")
+
+    name_complete = !blank_required_value?(first_name) && !blank_required_value?(last_name)
+    contact_complete = !blank_required_value?(contact_number) || !blank_required_value?(email_address)
+
+    name_complete && contact_complete
   end
 
   def build_default_profile

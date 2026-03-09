@@ -36,4 +36,32 @@ class StudentTest < ActiveSupport::TestCase
     assert_includes student.missing_personal_info_fields, :"student_profile.contact_number"
     assert_includes student.missing_personal_info_fields, :"student_profile.province"
   end
+
+  test "incomplete_family_info? returns false when at least one contact has name and contact info" do
+    student = students(:student_one)
+
+    assert_not student.incomplete_family_info?
+    assert_includes student.family_info_complete_contacts, "father"
+  end
+
+  test "incomplete_family_info? returns true when no contact has both name and contact info" do
+    student = students(:student_one)
+    student.family_info.update_columns(
+      father_first_name: "",
+      father_last_name: "",
+      father_contact_number: "",
+      father_email_address: "",
+      mother_first_name: "",
+      mother_last_name: "",
+      mother_contact_number: "",
+      mother_email_address: "",
+      guardian_first_name: "",
+      guardian_last_name: "",
+      guardian_contact_number: "",
+      guardian_email_address: ""
+    )
+
+    assert student.incomplete_family_info?
+    assert_empty student.family_info_complete_contacts
+  end
 end

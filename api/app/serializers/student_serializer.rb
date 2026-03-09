@@ -3,7 +3,7 @@ class StudentSerializer < ActiveModel::Serializer
 
   attributes :id, :type, :email, :auth_id, :first_name, :middle_name,
              :last_name, :extension, :full_name, :avatar_url,
-             :incomplete_personal_info, :created_at, :updated_at
+             :incomplete_personal_info, :incomplete_family_info, :created_at, :updated_at
 
   has_one :student_profile
   has_one :family_info
@@ -17,5 +17,9 @@ class StudentSerializer < ActiveModel::Serializer
 
   def incomplete_personal_info
     object.incomplete_personal_info?
+  end
+
+  def incomplete_family_info
+    object.incomplete_family_info?
   end
 end

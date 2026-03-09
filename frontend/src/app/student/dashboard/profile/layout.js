@@ -8,7 +8,7 @@ import useSessionStore from "@/store/session-store";
 
 const menuItems = [
   { label: "Personal Info", href: "/student/dashboard/profile/personal_info", alertKey: "incomplete_personal_info" },
-  { label: "Family Info", href: "/student/dashboard/profile/family_info" },
+  { label: "Family Info", href: "/student/dashboard/profile/family_info", alertKey: "incomplete_family_info" },
   { label: "Academic Info", href: "/student/dashboard/profile/academic_info" },
   { label: "Deficiencies", href: "/student/dashboard/profile/deficiencies" },
   { label: "Account", href: "/student/dashboard/profile/account" },
@@ -45,6 +45,7 @@ export default function ProfileLayout({ children }) {
           full_name: payload?.full_name || "",
           avatar_url: payload?.avatar_url || null,
           incomplete_personal_info: Boolean(payload?.incomplete_personal_info),
+          incomplete_family_info: Boolean(payload?.incomplete_family_info),
         });
       } catch {
         // no-op: badge falls back to current store state

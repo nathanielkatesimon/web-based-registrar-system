@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
+import useSessionStore from "@/store/session-store";
 
 const INITIAL_FORM = {
   father_first_name: "",
@@ -152,7 +153,10 @@ const PersonSection = ({ title, prefix, formData, onChange }) => (
           onChange={onChange}
           className="form-control form-control-lg shadow-none"
           placeholder="Contact Number"
+          pattern="^$|^09[0-9]{9}$"
+          title="Contact number must be 11 digits and start with 09."
         />
+        <div className="invalid-feedback">Please enter a valid contact number (e.g., 09123456789).</div>
       </div>
       <div className="col-md-6 mb-3">
         <label className="form-label fw-bold mb-1 small">Email Address</label>
@@ -163,7 +167,10 @@ const PersonSection = ({ title, prefix, formData, onChange }) => (
           onChange={onChange}
           className="form-control form-control-lg shadow-none"
           placeholder="Email Address"
+          pattern="^$|^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+          title="Please enter a valid email address."
         />
+        <div className="invalid-feedback">Please enter a valid email address.</div>
       </div>
     </div>
   </>
@@ -173,14 +180,43 @@ export default function FamilyInfoPage() {
   const { student_id: studentId } = useParams();
   const isStaffMode = Boolean(studentId);
   const studentEndpoint = isStaffMode ? `/api/v1/students/${studentId}` : null;
+  const { saveCurrentUser } = useSessionStore();
+  const formRef = useRef(null);
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [initialFormData, setInitialFormData] = useState(INITIAL_FORM);
   const [familyInfoId, setFamilyInfoId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidated, setIsValidated] = useState(false);
   const [error, setError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+
+  const syncCurrentUser = useCallback(async () => {
+    if (isStaffMode) return;
+
+    try {
+      const response = await api("/api/v1/students/personal_info");
+      const payload = await response.json();
+      if (!response.ok) return;
+
+      saveCurrentUser({
+        id: payload?.id,
+        auth_id: payload?.auth_id,
+        type: payload?.type || "Student",
+        first_name: payload?.first_name || "",
+        middle_name: payload?.middle_name || "",
+        last_name: payload?.last_name || "",
+        extension: payload?.extension || "",
+        full_name: payload?.full_name || "",
+        avatar_url: payload?.avatar_url || null,
+        incomplete_personal_info: Boolean(payload?.incomplete_personal_info),
+        incomplete_family_info: Boolean(payload?.incomplete_family_info),
+      });
+    } catch {
+      // no-op: store remains as-is when refresh fails
+    }
+  }, [isStaffMode, saveCurrentUser]);
 
   useEffect(() => {
     let isMounted = true;
@@ -210,6 +246,7 @@ export default function FamilyInfoPage() {
         setFamilyInfoId(payload?.family_info?.id || payload?.id || null);
         setFormData(nextFormData);
         setInitialFormData(nextFormData);
+        await syncCurrentUser();
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || "Failed to load family information.");
@@ -223,7 +260,7 @@ export default function FamilyInfoPage() {
     return () => {
       isMounted = false;
     };
-  }, [studentEndpoint]);
+  }, [studentEndpoint, syncCurrentUser]);
 
   const hasChanges = useMemo(
     () => JSON.stringify(formData) !== JSON.stringify(initialFormData),
@@ -239,12 +276,24 @@ export default function FamilyInfoPage() {
 
   const handleDiscard = () => {
     setFormData(initialFormData);
+    setIsValidated(false);
     setSaveError("");
     setSaveMessage("");
   };
 
   const handleSave = async () => {
     try {
+      const form = formRef.current;
+      if (form && !form.checkValidity()) {
+        setIsValidated(true);
+        await ShowAlert({
+          icon: "error",
+          title: "Invalid Input",
+          text: "Please fix invalid contact number/email format before saving.",
+        });
+        return;
+      }
+
       setIsSaving(true);
       setSaveError("");
       setSaveMessage("");
@@ -280,6 +329,7 @@ export default function FamilyInfoPage() {
       setFamilyInfoId(responseJson?.id || familyInfoId || null);
       setFormData(nextFormData);
       setInitialFormData(nextFormData);
+      await syncCurrentUser();
       setSaveMessage("Changes saved.");
       await ShowAlert({
         icon: "success",
@@ -326,7 +376,11 @@ export default function FamilyInfoPage() {
         {isLoading && <p className="small text-muted mb-3">Loading family information...</p>}
         {error && <p className="small text-danger mb-3">{error}</p>}
 
-        <form>
+        <form
+          ref={formRef}
+          className={isValidated ? "needs-validation was-validated" : "needs-validation"}
+          noValidate
+        >
           <PersonSection title="Father's Name" prefix="father" formData={formData} onChange={handleInputChange} />
           <PersonSection title="Mother's Maiden Name" prefix="mother" formData={formData} onChange={handleInputChange} />
           <PersonSection title="Guardian's Name" prefix="guardian" formData={formData} onChange={handleInputChange} />
