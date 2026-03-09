@@ -25,6 +25,12 @@ const sortTickets = (items) =>
     return bTime - aTime;
   });
 
+const FILTER_OPTIONS = [
+  { value: "all", label: "All Statuses" },
+  { value: "open", label: "Open" },
+  { value: "closed", label: "Closed" },
+];
+
 export default function EscalationBoard({ role }) {
   const searchParams = useSearchParams();
   const { currentUser } = useSessionStore();
@@ -40,6 +46,8 @@ export default function EscalationBoard({ role }) {
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -187,7 +195,6 @@ export default function EscalationBoard({ role }) {
 
   const filteredTickets = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
-    if (!keyword) return tickets;
 
     return tickets.filter((ticket) => {
       const haystack = [
@@ -200,9 +207,26 @@ export default function EscalationBoard({ role }) {
         .join(" ")
         .toLowerCase();
 
-      return haystack.includes(keyword);
+      const matchesSearch = !keyword || haystack.includes(keyword);
+      const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+      return matchesSearch && matchesStatus;
     });
-  }, [tickets, searchValue]);
+  }, [tickets, searchValue, statusFilter]);
+
+  const statusFilterLabel =
+    FILTER_OPTIONS.find((option) => option.value === statusFilter)?.label || "All Statuses";
+
+  useEffect(() => {
+    if (filteredTickets.length === 0) {
+      setSelectedTicketId(null);
+      return;
+    }
+
+    const stillExists = filteredTickets.some((ticket) => ticket.id === selectedTicketId);
+    if (!stillExists) {
+      setSelectedTicketId(filteredTickets[0].id);
+    }
+  }, [filteredTickets, selectedTicketId]);
 
   const canSend = useMemo(() => {
     if (!selectedDetail) return false;
@@ -344,21 +368,74 @@ export default function EscalationBoard({ role }) {
             </div>
 
             <div className="d-flex gap-2 mb-3">
-              
               <div className="input-group flex-grow-1">
                 <span className="input-group-text border-0 rounded-start-pill bg-white text-muted ps-4">
                   <i className="bx bx-search"></i>
                 </span>
                 <input
                   type="text"
+                  value={searchValue}
+                  onChange={(event) => setSearchValue(event.target.value)}
                   className="form-control border-0 rounded-end-pill py-3"
                   placeholder="Enter Escalation ID"
+                  aria-label="Search escalation"
                 />
               </div>
-              <button type="button" className="btn bg-white" onClick={fetchTickets} style={{width: 44, height: 44, borderRadius: 12}}>
-                <i className="bx bx-slider-alt"></i>
-              </button>
+
+              <div className="position-relative">
+                <button
+                  type="button"
+                  className="btn bg-white text-primary d-flex align-items-center justify-content-center"
+                  style={{ width: 44, height: 44, borderRadius: 12 }}
+                  onClick={() => setShowFilters((prev) => !prev)}
+                >
+                  <i className="bx bx-slider-alt"></i>
+                </button>
+
+                {showFilters ? (
+                  <div
+                    className="position-absolute end-0 mt-2 bg-white rounded-3 shadow-sm border p-2"
+                    style={{ minWidth: 220, zIndex: 5 }}
+                  >
+                    <p className="small text-muted px-2 mb-2">Status</p>
+                    {FILTER_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`dropdown-item rounded-2 ${statusFilter === option.value ? "active" : ""}`}
+                        onClick={() => {
+                          setStatusFilter(option.value);
+                          setShowFilters(false);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
+
+            <div className="d-flex align-items-center flex-wrap gap-3 mb-3">
+              {statusFilter !== "all" ? (
+                <button
+                  type="button"
+                  className="btn btn-sm border-0 text-white fw-semibold d-flex align-items-center gap-3"
+                  style={{ borderRadius: 999, backgroundColor: "#040F5F" }}
+                  onClick={() => setStatusFilter("all")}
+                >
+                  <span>{statusFilterLabel}</span>
+                  <i className="bx bx-x lh-1" />
+                </button>
+              ) : null}
+
+            </div>
+
+            {!isLoading ? (
+              <p className="text-muted mb-3 px-2">
+                {filteredTickets.length} result{filteredTickets.length === 1 ? "" : "s"} found
+              </p>
+            ) : null}
 
             {isLoading ? <p className="small text-muted">Loading escalations...</p> : null}
             {!isLoading && filteredTickets.length === 0 ? <p className="small text-muted my-12 text-center">No escalations found.</p> : null}
