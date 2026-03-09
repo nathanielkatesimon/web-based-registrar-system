@@ -15,6 +15,12 @@ const INITIAL_FORM = {
   email: "",
   password: "",
 };
+const EMPLOYEE_ID_REGEX = /^[0-9]{2}-[0-9]{4}-[0-9]{3}$/;
+
+const normalizeEmployeeId = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/[‐‑‒–—−]/g, "-");
 
 const normalizeAvatarUrl = (value) => {
   if (!value) return "";
@@ -99,7 +105,7 @@ export default function StaffProfilePage() {
           middle_name: payload?.middle_name || "",
           last_name: payload?.last_name || "",
           extension: payload?.extension || "",
-          auth_id: payload?.auth_id || "",
+          auth_id: normalizeEmployeeId(payload?.auth_id),
           email: payload?.email || "",
           password: "",
         };
@@ -134,9 +140,10 @@ export default function StaffProfilePage() {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+    const normalizedValue = name === "auth_id" ? normalizeEmployeeId(value) : value;
     setSaveMessage("");
     setSaveError("");
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: normalizedValue }));
   };
 
   const handleDiscard = () => {
@@ -258,6 +265,19 @@ export default function StaffProfilePage() {
     if (!staffEndpoint) return;
 
     try {
+      const normalizedAuthId = normalizeEmployeeId(formData.auth_id);
+      if (!EMPLOYEE_ID_REGEX.test(normalizedAuthId)) {
+        setIsValidated(true);
+        setSaveError("");
+        setSaveMessage("");
+        await ShowAlert({
+          icon: "error",
+          title: "Invalid Employee ID",
+          text: "Employee ID must follow the format 00-0000-000.",
+        });
+        return;
+      }
+
       const form = formRef.current;
       if (form && !form.checkValidity()) {
         setIsValidated(true);
@@ -282,7 +302,7 @@ export default function StaffProfilePage() {
           middle_name: formData.middle_name,
           last_name: formData.last_name,
           extension: formData.extension,
-          auth_id: formData.auth_id,
+          auth_id: normalizedAuthId,
           email: formData.email,
           ...(formData.password ? { password: formData.password, password_confirmation: formData.password } : {}),
         },
@@ -465,7 +485,7 @@ export default function StaffProfilePage() {
                   className="form-control form-control-lg shadow-none"
                   placeholder="Employee ID"
                   required
-                  pattern="^\\d{2}-\\d{4}-\\d{3}$"
+                  pattern="[0-9]{2}-[0-9]{4}-[0-9]{3}"
                   title="Employee ID must follow the format 00-0000-000"
                   disabled={isSaving}
                 />
