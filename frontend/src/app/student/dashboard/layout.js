@@ -82,7 +82,12 @@ export default function StudentDashboardLayout({children}) {
                     <i className="menu-icon tf-icons pb-1 bx bx-user"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Profile</div>
                     {showProfileBadge ? (
-                      <span className="badge rounded-pill bg-danger badge-dot ms-auto"></span>
+                      <span
+                        className="d-inline-flex align-items-center justify-content-center text-white ms-auto"
+                        style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#ef1f23", fontSize: "11px" }}
+                      >
+                        !
+                      </span>
                     ) : null}
                   </Link>
                 </li>
