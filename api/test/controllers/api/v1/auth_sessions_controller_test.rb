@@ -34,7 +34,39 @@ class Api::V1::AuthSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @student_one.extension, user_payload["extension"]
     assert_equal @student_one.full_name, user_payload["full_name"]
     assert_nil user_payload["avatar_url"]
+    assert_equal false, user_payload["incomplete_personal_info"]
+    assert_equal false, user_payload["incomplete_family_info"]
+    assert_equal false, user_payload["incomplete_academic_info"]
     assert json_response["csrf_token"].present?
+  end
+
+  test "should include completeness flags in session payload for student" do
+    @student_one.update_columns(first_name: "")
+    student_profiles(:one).update_columns(year_level: nil, course: "", department: "", strand: "", track: "")
+    family_infos(:one).update_columns(
+      father_first_name: "",
+      father_last_name: "",
+      father_contact_number: "",
+      father_email_address: "",
+      mother_first_name: "",
+      mother_last_name: "",
+      mother_contact_number: "",
+      mother_email_address: "",
+      guardian_first_name: "",
+      guardian_last_name: "",
+      guardian_contact_number: "",
+      guardian_email_address: ""
+    )
+
+    sign_in_as(@student_one)
+    get "/api/v1/auth/session", as: :json
+
+    assert_response :success
+
+    user_payload = JSON.parse(response.body)["user"]
+    assert_equal true, user_payload["incomplete_personal_info"]
+    assert_equal true, user_payload["incomplete_family_info"]
+    assert_equal true, user_payload["incomplete_academic_info"]
   end
 
   test "should include avatar_url in current user payload when avatar is attached" do

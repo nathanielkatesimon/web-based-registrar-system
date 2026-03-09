@@ -23,6 +23,11 @@ export default function StudentDashboardLayout({children}) {
   }, [currentUser?.avatar_url]);
 
   const displayName = currentUser?.full_name || "Student";
+  const showProfileBadge = Boolean(
+    currentUser?.incomplete_personal_info ||
+    currentUser?.incomplete_family_info ||
+    currentUser?.incomplete_academic_info
+  );
   const isExactMatch = (route) => pathname === route;
   const isRoutePrefix = (route) => pathname?.startsWith(route);
 
@@ -76,6 +81,9 @@ export default function StudentDashboardLayout({children}) {
                   <Link href="/student/dashboard/profile/personal_info" className="menu-link fs-5">
                     <i className="menu-icon tf-icons pb-1 bx bx-user"></i>
                     <div className="text-truncate" data-i18n="Dashboards">Profile</div>
+                    {showProfileBadge ? (
+                      <span className="badge rounded-pill bg-danger badge-dot ms-auto"></span>
+                    ) : null}
                   </Link>
                 </li>
               </ul>

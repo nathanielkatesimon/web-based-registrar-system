@@ -62,7 +62,11 @@ Body:
 
 Notes:
 - Response shape is the same for both `Staff` and `Student`.
-- Current session response includes only `id` and `auth_id`.
+- Current session response includes `id`, `auth_id`, name parts, `full_name`, and `avatar_url`.
+- For `Student`, it also includes:
+  - `incomplete_personal_info` (boolean)
+  - `incomplete_family_info` (boolean)
+  - `incomplete_academic_info` (boolean)
 
 ### Error Responses
 - Status: `422 Unprocessable Entity` (invalid credentials)
