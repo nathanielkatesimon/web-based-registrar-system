@@ -87,6 +87,27 @@ function buildTimeline(timeLines = []) {
     }));
 }
 
+function getOnHoldReasonNote(request) {
+  if (!request || request.status !== "on_hold") return "";
+
+  const hasUnpaidBill = Boolean(request.unpaid_bill);
+  const hasMissingRequirements = Boolean(request.missing_requirements);
+
+  if (hasUnpaidBill && hasMissingRequirements) {
+    return "Your request cannot be processed at this time due to an unpaid bill and missing requirements. Please settle your payment and coordinate with your Registrar.";
+  }
+
+  if (hasUnpaidBill) {
+    return "Your request cannot be processed at this time due to an unpaid bill. Please settle your payment first.";
+  }
+
+  if (hasMissingRequirements) {
+    return "Your request cannot be processed at this time due to a missing requirement or a deficiency. Please settle and coordinate with your Registrar.";
+  }
+
+  return "";
+}
+
 export default function StudentDashboardTrackerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -205,6 +226,7 @@ export default function StudentDashboardTrackerPage() {
   const selectedRequestAgeDays = selectedRequestCreatedAt
     ? Math.floor((Date.now() - selectedRequestCreatedAt.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
+  const selectedOnHoldReasonNote = getOnHoldReasonNote(selectedRequest);
   const canEscalateSelectedRequest = Boolean(
     selectedRequest &&
       selectedRequestCreatedAt &&
@@ -504,6 +526,16 @@ export default function StudentDashboardTrackerPage() {
 
                 <hr className="my-4" />
 
+                {selectedOnHoldReasonNote ? (
+                  <div className="small mt-3 mb-4 p-3 d-flex align-items-start" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
+                    <i className="bx bx-info-circle fs-5 me-1 text-danger"></i>
+                    <p className="mb-0 text-primary">
+                      <strong className="text-danger">Note: </strong>
+                      {selectedOnHoldReasonNote}
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="rounded-3 p-3 p-lg-4 mb-4" style={{ backgroundColor: "#F3F3F3" }}>
                   {selectedItems.length > 0 ? (
                     selectedItems.map((item, index) => {
@@ -572,9 +604,10 @@ export default function StudentDashboardTrackerPage() {
                       {isEscalating ? "Escalating..." : "Escalate"}
                     </button>
 
-                    <div className="small mt-3 p-3" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
-                      <p className="mb-0">
-                        <strong>Note:</strong> This request has exceeded the estimated turnaround time. You may send
+                    <div className="small mt-3 p-3 d-flex align-items-start" style={{ backgroundColor: "#F3F3F3", color: "#122787" }}>
+                      <i className="bx bx-info-circle fs-5 me-1 text-info"></i>
+                      <p className="mb-0 text-primary">
+                        <strong className="text-info">Note:</strong> This request has exceeded the estimated turnaround time. You may send
                         an escalation to the registrar staff regarding this matter.
                       </p>
                     </div>
