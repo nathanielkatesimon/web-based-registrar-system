@@ -50,6 +50,7 @@ export default function EscalationBoard({ role }) {
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
   const selectedTicketIdRef = useRef(null);
+  const messagesAreaRef = useRef(null);
   selectedTicketIdRef.current = selectedTicketId;
 
   const upsertTicket = useCallback((nextTicket) => {
@@ -176,6 +177,13 @@ export default function EscalationBoard({ role }) {
       ticketSubscription.unsubscribe();
     };
   }, [selectedTicketId, handleRealtimePayload]);
+
+  useEffect(() => {
+    if (!selectedDetail) return;
+    if (!messagesAreaRef.current) return;
+
+    messagesAreaRef.current.scrollTop = messagesAreaRef.current.scrollHeight;
+  }, [selectedTicketId, selectedDetail?.messages?.length]);
 
   const filteredTickets = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
@@ -412,7 +420,7 @@ export default function EscalationBoard({ role }) {
 
                 <hr />
 
-                <div className="messages-area mb-3 h-100">
+                <div ref={messagesAreaRef} className="messages-area mb-3 h-100">
                   {(selectedDetail.messages || []).map((message) => {
                     const isMine = message.sender?.id === currentUser?.id;
                     return (
