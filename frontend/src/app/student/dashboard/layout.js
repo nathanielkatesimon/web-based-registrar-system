@@ -2,6 +2,7 @@
 
 import AuthRequiredGuard from "@/components/features/auth/auth-required-guard";
 import LogoutButton from "@/components/features/auth/logout-button";
+import { getCableConsumer } from "@/lib/action-cable";
 import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
 import Link from "next/link";
@@ -59,6 +60,32 @@ export default function StudentDashboardLayout({children}) {
 
     return () => {
       isMounted = false;
+    };
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return undefined;
+
+    const consumer = getCableConsumer();
+    const subscription = consumer.subscriptions.create(
+      { channel: "NotificationsChannel" },
+      {
+        received: (payload) => {
+          if (payload?.event !== "notification_created" || !payload.notification) return;
+
+          setNotifications((currentNotifications) => {
+            const withoutDuplicate = currentNotifications.filter(
+              (notification) => notification.id !== payload.notification.id
+            );
+
+            return [payload.notification, ...withoutDuplicate].slice(0, 10);
+          });
+        },
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
     };
   }, [currentUser?.id]);
 

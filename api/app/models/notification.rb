@@ -13,6 +13,8 @@ class Notification < ApplicationRecord
 
   scope :latest_first, -> { order(created_at: :desc, id: :desc) }
 
+  after_create_commit :broadcast_created!
+
   def mark_as_read!
     return if read_at.present?
 
@@ -38,5 +40,17 @@ class Notification < ApplicationRecord
         status: document_request.status
       }
     }
+  end
+
+  private
+
+  def broadcast_created!
+    ActionCable.server.broadcast(
+      "notifications:student:#{student_id}",
+      {
+        event: "notification_created",
+        notification: as_api_json
+      }
+    )
   end
 end
