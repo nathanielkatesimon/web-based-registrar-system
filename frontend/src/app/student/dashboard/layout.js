@@ -2,16 +2,18 @@
 
 import AuthRequiredGuard from "@/components/features/auth/auth-required-guard";
 import LogoutButton from "@/components/features/auth/logout-button";
+import ShowAlert from "@/lib/show-alert";
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { act, useEffect, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import useSessionStore from "@/store/session-store";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
 
 export default function StudentDashboardLayout({children}) {
-  const { currentUser } = useSessionStore();
+  const { currentUser, csrfToken } = useSessionStore();
   const pathname = usePathname();
+  const router = useRouter();
   const requestStep = useStudentDocumentRequestStore((state) => state.step);
   const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow);
 
@@ -28,6 +30,47 @@ export default function StudentDashboardLayout({children}) {
     currentUser?.incomplete_family_info ||
     currentUser?.incomplete_academic_info
   );
+
+  useEffect(() => {
+    if (!currentUser?.id || !csrfToken || !showProfileBadge) return;
+
+    const promptKey = `student-profile-incomplete-prompt:${currentUser.id}:${csrfToken}`;
+    if (typeof window === "undefined" || window.sessionStorage.getItem(promptKey)) return;
+
+    window.sessionStorage.setItem(promptKey, "shown");
+
+    const showPrompt = async () => {
+      const result = await ShowAlert({
+        title: "Welcome!",
+        html: `
+          <div class="text-start px-8 pb-2">
+            <h4 class="mb-3 text-dark fw-semibold">Complete Your Profile First</h4>
+            <p class="mb-0 text-muted">
+              Please take a moment to update and complete your profile information. This is required to ensure your records are accurate and up to date.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Go to Profile",
+        cancelButtonText: "Later",
+        allowOutsideClick: false,
+        customClass: {
+          title: "m-0 px-8 pt-4 text-start text-info",
+          htmlContainer: "m-0",
+          confirmButton: "btn btn-primary w-100",
+          cancelButton: "btn btn-outline-dark w-100 mt-2 ms-0",
+          actions: "w-100 px-8"
+        },
+      });
+
+      if (result?.isConfirmed) {
+        router.push("/student/dashboard/profile/personal_info");
+      }
+    };
+
+    showPrompt();
+  }, [currentUser?.id, csrfToken, showProfileBadge, router]);
+
   const isExactMatch = (route) => pathname === route;
   const isRoutePrefix = (route) => pathname?.startsWith(route);
 
