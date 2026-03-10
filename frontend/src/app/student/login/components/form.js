@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import InitPasswordToggler from "@/components/initializer/init-password-toggler";
 import { api, parseError } from "@/lib/api";
@@ -117,9 +118,9 @@ export default function StudentLoginForm() {
       </button>
     </div>
     <div className="w-100 text-center">
-      <a href="#" className="fw-semibold">
+      <Link href="/forgot-password?type=student" className="fw-semibold">
         Forgot Password?
-      </a>
+      </Link>
     </div>
     <input type="hidden" />
     <InitPasswordToggler />

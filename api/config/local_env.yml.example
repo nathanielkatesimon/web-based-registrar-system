@@ -1,1 +1,5 @@
 FRONTEND_URL: "http://localhost:3000"
+API_HOST: "localhost"
+SMTP_ADDRESS: "smtp.example.com"
+SMTP_EMAIL: "user@example.com"
+SMTP_PASSWORD: "app-password"
