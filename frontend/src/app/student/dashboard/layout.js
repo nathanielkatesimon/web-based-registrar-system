@@ -2,13 +2,26 @@
 
 import AuthRequiredGuard from "@/components/features/auth/auth-required-guard";
 import LogoutButton from "@/components/features/auth/logout-button";
+import { api } from "@/lib/api";
 import ShowAlert from "@/lib/show-alert";
 import Link from "next/link";
 import Image from "next/image";
-import { act, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import useSessionStore from "@/store/session-store";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
+
+const DEFICIENCY_FIELDS = [
+  { key: "enrollment_form", label: "Enrollment Form" },
+  { key: "form_138", label: "Form 138" },
+  { key: "form_137", label: "Form 137" },
+  { key: "certificate_of_good_moral_character", label: "Certificate of Good Moral Character" },
+  { key: "id_pictures", label: "ID Pictures" },
+  { key: "birth_certificate", label: "NSO/PSA Birth Certificate" },
+  { key: "senior_high_school_diploma", label: "Senior High School Diploma" },
+  { key: "honorable_dismissal", label: "Honorable Dismissal" },
+  { key: "transcript_of_records", label: "Transcript of Records" },
+];
 
 export default function StudentDashboardLayout({children}) {
   const { currentUser, csrfToken } = useSessionStore();
@@ -16,6 +29,7 @@ export default function StudentDashboardLayout({children}) {
   const router = useRouter();
   const requestStep = useStudentDocumentRequestStore((state) => state.step);
   const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow);
+  const [deficiencies, setDeficiencies] = useState([]);
 
   const avatarSrc = useMemo(() => {
     const source = currentUser?.avatar_url;
@@ -30,6 +44,39 @@ export default function StudentDashboardLayout({children}) {
     currentUser?.incomplete_family_info ||
     currentUser?.incomplete_academic_info
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDeficiencies = async () => {
+      try {
+        const response = await api("/api/v1/deficiencies/personal_info");
+
+        let payload = null;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
+        }
+
+        if (!response.ok || !isMounted) return;
+
+        const lackingItems = DEFICIENCY_FIELDS.filter(
+          (field) => payload?.[field.key] === "lacking"
+        );
+
+        setDeficiencies(lackingItems);
+      } catch {
+        if (isMounted) setDeficiencies([]);
+      }
+    };
+
+    if (currentUser?.id) loadDeficiencies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser?.id || !csrfToken || !showProfileBadge) return;
@@ -73,6 +120,7 @@ export default function StudentDashboardLayout({children}) {
 
   const isExactMatch = (route) => pathname === route;
   const isRoutePrefix = (route) => pathname?.startsWith(route);
+  const hasNotifications = deficiencies.length > 0;
 
   return (
     <AuthRequiredGuard requiredType="Student">
@@ -153,24 +201,22 @@ export default function StudentDashboardLayout({children}) {
                   </div>
     
                   <ul className="navbar-nav flex-row align-items-center ms-auto">
-                    <li className="nav-item dropdown-notifications navbar-dropdown dropdown btn-label-info rounded-circle me-4 d-flex" style={{width: 40, height: 40}}>
-                      <a className="nav-link dropdown-toggle hide-arrow mx-auto" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <li className="nav-item me-4 d-flex">
+                      <button
+                        type="button"
+                        className="student-notifications-trigger nav-link hide-arrow bg-light text-info mx-auto border-0 rounded-circle btn-label-info d-flex align-items-center justify-content-center"
+                        style={{ width: 40, height: 40 }}
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#studentNotificationsOffcanvas"
+                        aria-controls="studentNotificationsOffcanvas"
+                      >
                         <span className="position-relative">
                           <i className="bx bx-bell bx-md"></i>
-                          <span className="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
+                          {hasNotifications ? (
+                            <span className="badge rounded-pill bg-danger badge-dot badge-notifications border mt-1 me-1"></span>
+                          ) : null}
                         </span>
-                      </a>
-                      <ul className="dropdown-menu dropdown-menu-end p-0">
-                        <li className="dropdown-menu-header border-bottom">
-                          <div className="dropdown-header d-flex align-items-center py-3">
-                            <h6 className="mb-0 me-auto">Notification</h6>
-                            <div className="d-flex align-items-center h6 mb-0">
-                              <span className="badge bg-label-primary me-2">8 New</span>
-                              <a href="javascript:void(0)" className="dropdown-notifications-all p-2" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Mark all as read" data-bs-original-title="Mark all as read"><i className="bx bx-envelope-open text-heading"></i></a>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
+                      </button>
                     </li>
                     <li className="nav-item navbar-dropdown dropdown-user dropdown">
                       <a className="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -213,12 +259,60 @@ export default function StudentDashboardLayout({children}) {
                   </ul>
                 </div>
               </nav>
+
+              <div
+                className="offcanvas offcanvas-end"
+                tabIndex="-1"
+                id="studentNotificationsOffcanvas"
+                aria-labelledby="studentNotificationsOffcanvasLabel"
+                style={{ width: "360px", maxWidth: "100%" }}
+              >
+                <div className="offcanvas-header align-items-start px-4 pt-4 pb-3 border-bottom">
+                  <div>
+                    <h5 className="offcanvas-title fw-bold text-dark" id="studentNotificationsOffcanvasLabel">
+                      Notifications
+                    </h5>
+                  </div>
+                </div>
+                <div className="offcanvas-body px-4 py-4">
+                  <div className="rounded-4 border bg-white shadow-sm p-4">
+                    <p className="text-info fw-semibold mb-2">My Deficiencies</p>
+                    <p className="text-muted small mb-3">Please comply the following:</p>
+                    {hasNotifications ? (
+                      <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                        {deficiencies.map((item) => (
+                          <li key={item.key} className="d-flex align-items-start gap-3">
+                            <span
+                              className="d-inline-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                              style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#8d1020", fontSize: "11px", marginTop: "2px" }}
+                            >
+                              !
+                            </span>
+                            <span className="text-dark small">{item.label}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
     
               <div className="content-wrapper">
                 {children}
               </div>
             </div>
           </div>
+          <style jsx>{`
+            .student-notifications-trigger,
+            .student-notifications-trigger:hover,
+            .student-notifications-trigger:focus,
+            .student-notifications-trigger:active,
+            .student-notifications-trigger.show {
+              background-color: #e9ecef !important;
+              color: #133288 !important;
+              box-shadow: none !important;
+            }
+          `}</style>
         </div>
     </AuthRequiredGuard>
   );
