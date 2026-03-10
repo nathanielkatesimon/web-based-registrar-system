@@ -19,7 +19,6 @@ const PAYMENT_LABELS = {
 
 function formatDate(value) {
   if (!value) return "-";
-
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
 
@@ -32,7 +31,6 @@ function formatDate(value) {
 
 function formatDateTime(value) {
   if (!value) return "No recent activity";
-
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "No recent activity";
 
@@ -52,11 +50,6 @@ function summarizeRequestItems(items = []) {
   if (!Array.isArray(items) || items.length === 0) return "Document request";
   if (items.length === 1) return items[0]?.name || "Document request";
   return `${items[0]?.name || "Document"} +${items.length - 1} more`;
-}
-
-function studentProgram(student) {
-  const profile = student?.student_profile || {};
-  return profile.course || profile.track || "Program not set";
 }
 
 export default function StaffDashboardPage() {
@@ -127,92 +120,94 @@ export default function StaffDashboardPage() {
   );
 
   const recentRequests = sortedRequests.slice(0, 6);
+  const latestRequest = recentRequests[0] || null;
+  const latestTicket = tickets[0] || null;
+  const totalStudents = students.length;
   const processingCount = requests.filter((request) => request.status === "processing").length;
   const onHoldCount = requests.filter((request) => request.status === "on_hold").length;
   const completedCount = requests.filter((request) => request.status === "completed").length;
   const openEscalationsCount = tickets.filter((ticket) => ticket.status === "open").length;
-  const latestTicket = tickets[0] || null;
-
-  const urgentRequests = useMemo(() => {
-    const heldRequests = requests
-      .filter((request) => request.status === "on_hold")
-      .slice(0, 3)
-      .map((request) => ({
-        key: `hold-${request.id}`,
-        title: request.request_id || `Request #${request.id}`,
-        subtitle: request.student?.full_name || request.student_name || "Student unavailable",
-        meta: "On hold request",
-        href: `/staff/dashboard/request-queue/${request.id}`,
-        tone: "warning",
-      }));
-
-    const openTickets = tickets
-      .filter((ticket) => ticket.status === "open")
-      .slice(0, 3)
-      .map((ticket) => ({
-        key: `ticket-${ticket.id}`,
-        title: ticket.ticket_code || `Ticket #${ticket.id}`,
-        subtitle: ticket.student?.full_name || "Student unavailable",
-        meta: "Open escalation",
-        href: `/staff/dashboard/escalations?ticket=${ticket.id}`,
-        tone: "danger",
-      }));
-
-    return [...heldRequests, ...openTickets].slice(0, 5);
-  }, [requests, tickets]);
-
-  const latestStudents = useMemo(
-    () =>
-      [...students]
-        .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-        .slice(0, 4),
-    [students]
-  );
 
   return (
-    <div className="staff-dashboard-page container-xxl flex-grow-1 py-4">
+    <div className="staff-dashboard-page px-8 flex-grow-1 py-4">
       {loading ? (
         <div className="dashboard-state">Loading dashboard...</div>
       ) : error ? (
         <div className="dashboard-state dashboard-state-error">{error}</div>
       ) : (
         <>
-          <section className="operations-hero">
-            <div className="operations-copy">
-              <span className="section-kicker">Operations Overview</span>
-              <h1 className="operations-title">Run the registrar queue with clearer priorities.</h1>
-              <p className="operations-description">
-                Monitor requests in flight, catch hold cases early, and keep escalation handling visible
-                without bouncing between multiple staff pages.
+          <section className="top-board">
+            <div className="overview-panel">
+              <div className="overview-header">
+                <div>
+                  <span className="section-kicker">Operations Board</span>
+                  <h1 className="overview-title">A tighter daily view for registrar work.</h1>
+                </div>
+                <div className="overview-actions">
+                  <Link href="/staff/dashboard/request-queue" className="primary-action">
+                    Open Queue
+                  </Link>
+                  <Link href="/staff/dashboard/student-list" className="secondary-action">
+                    Students
+                  </Link>
+                </div>
+              </div>
+
+              <p className="overview-copy">
+                Scan active demand, surface stalled requests, and move directly into the queue or
+                escalation inbox without hunting through the sidebar.
               </p>
 
-              <div className="operations-actions">
-                <Link href="/staff/dashboard/request-queue" className="hero-primary-btn">
-                  Open Request Queue
-                </Link>
-                <Link href="/staff/dashboard/student-list" className="hero-secondary-btn">
-                  Manage Students
-                </Link>
+              <div className="overview-grid">
+                <div className="overview-tile overview-tile-main">
+                  <span className="tile-label">Student Records</span>
+                  <strong className="tile-value">{totalStudents}</strong>
+                  <span className="tile-note">Total students currently managed by the system</span>
+                </div>
+                <div className="overview-tile">
+                  <span className="tile-label">Newest Request</span>
+                  <strong className="tile-value tile-value-compact">
+                    {latestRequest?.request_id || "None yet"}
+                  </strong>
+                  <span className="tile-note">
+                    {latestRequest ? summarizeRequestItems(latestRequest.request_items) : "Waiting for request activity"}
+                  </span>
+                </div>
+                <div className="overview-tile">
+                  <span className="tile-label">Escalation Pressure</span>
+                  <strong className="tile-value">{openEscalationsCount}</strong>
+                  <span className="tile-note">Open tickets still waiting on a staff response</span>
+                </div>
               </div>
             </div>
 
-            <div className="hero-focus-card">
-              <span className="focus-label">Escalation Focus</span>
-              <h3 className="focus-title">
-                {latestTicket?.ticket_code || "No active escalation spotlight"}
-              </h3>
-              <p className="focus-description">
-                {latestTicket
-                  ? `${latestTicket.student?.full_name || "Student"} raised ${latestTicket.subject || "an escalation"}`
-                  : "The escalation inbox is currently quiet."}
-              </p>
-              <div className="focus-meta">
-                <span>{latestTicket ? formatDateTime(latestTicket.latest_message_at || latestTicket.created_at) : "Up to date"}</span>
+            <div className="side-stack">
+              <div className="focus-card">
+                <div className="focus-top">
+                  <span className="focus-chip">Escalation Focus</span>
+                  <span className={`focus-badge ${latestTicket?.status === "open" ? "danger" : "calm"}`}>
+                    {latestTicket?.status === "open" ? "Open" : "Stable"}
+                  </span>
+                </div>
+
                 {latestTicket ? (
-                  <Link href={`/staff/dashboard/escalations?ticket=${latestTicket.id}`} className="focus-link">
-                    Open Ticket
-                  </Link>
-                ) : null}
+                  <>
+                    <p className="focus-code">{latestTicket.ticket_code}</p>
+                    <p className="focus-text">
+                      <strong>{latestTicket.student?.full_name || "Student"}</strong> raised{" "}
+                      {latestTicket.subject || "an escalation"} linked to{" "}
+                      {latestTicket.document_request?.request_id || "a request"}.
+                    </p>
+                    <div className="focus-bottom">
+                      <span className="focus-time">{formatDateTime(latestTicket.latest_message_at || latestTicket.created_at)}</span>
+                      <Link href={`/staff/dashboard/escalations?ticket=${latestTicket.id}`} className="focus-link">
+                        Open Ticket
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <p className="focus-text">No escalation needs immediate review right now.</p>
+                )}
               </div>
             </div>
           </section>
@@ -221,12 +216,12 @@ export default function StaffDashboardPage() {
             <article className="metric-card metric-card-primary">
               <span className="metric-label">Processing</span>
               <strong className="metric-value">{processingCount}</strong>
-              <span className="metric-note">Requests actively moving through verification and fulfillment</span>
+              <span className="metric-note">Requests actively moving through validation and fulfillment</span>
             </article>
             <article className="metric-card">
               <span className="metric-label">On Hold</span>
               <strong className="metric-value">{onHoldCount}</strong>
-              <span className="metric-note">Requests needing staff follow-up or missing requirement review</span>
+              <span className="metric-note">Requests blocked by requirements, payment, or staff review</span>
             </article>
             <article className="metric-card">
               <span className="metric-label">Completed</span>
@@ -238,67 +233,6 @@ export default function StaffDashboardPage() {
               <strong className="metric-value">{openEscalationsCount}</strong>
               <span className="metric-note">Student concerns still awaiting closure or follow-up</span>
             </article>
-          </section>
-
-          <section className="dashboard-grid">
-            <div className="panel panel-wide">
-              <div className="panel-header">
-                <div>
-                  <span className="section-kicker">Immediate Attention</span>
-                  <h3 className="panel-title">Priority Queue</h3>
-                </div>
-                <Link href="/staff/dashboard/request-queue" className="panel-link">
-                  View Full Queue
-                </Link>
-              </div>
-
-              {urgentRequests.length > 0 ? (
-                <div className="priority-list">
-                  {urgentRequests.map((item) => (
-                    <Link key={item.key} href={item.href} className="priority-item">
-                      <span className={`priority-indicator ${item.tone}`}></span>
-                      <div className="priority-body">
-                        <p className="priority-title">{item.title}</p>
-                        <p className="priority-subtitle">{item.subtitle}</p>
-                      </div>
-                      <span className="priority-meta">{item.meta}</span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="panel-empty-state">No urgent hold requests or open escalations right now.</div>
-              )}
-            </div>
-
-            <div className="panel">
-              <div className="panel-header">
-                <div>
-                  <span className="section-kicker">Newly Added</span>
-                  <h3 className="panel-title">Recent Students</h3>
-                </div>
-                <Link href="/staff/dashboard/student-list" className="panel-link">
-                  Student List
-                </Link>
-              </div>
-
-              {latestStudents.length > 0 ? (
-                <div className="student-stack">
-                  {latestStudents.map((student) => (
-                    <div className="student-item" key={student.id}>
-                      <div className="student-avatar">
-                        {(student.first_name || "S").charAt(0)}
-                      </div>
-                      <div className="student-body">
-                        <p className="student-name">{student.full_name || `${student.first_name || ""} ${student.last_name || ""}`.trim() || "Student"}</p>
-                        <p className="student-program">{studentProgram(student)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="panel-empty-state">No student records available.</div>
-              )}
-            </div>
           </section>
 
           <section className="panel recent-requests-panel">
@@ -343,7 +277,7 @@ export default function StaffDashboardPage() {
                           </td>
                           <td>{PAYMENT_LABELS[request.payment_status] || "Not Paid"}</td>
                           <td>
-                            <Link className="btn btn-sm btn-outline-info rounded-pill" href={`/staff/dashboard/request-queue/${request.id}`}>
+                            <Link href={`/staff/dashboard/request-queue/${request.id}`} className="btn btn-sm btn-outline-info rounded-pill">
                               Check
                             </Link>
                           </td>
@@ -381,15 +315,15 @@ export default function StaffDashboardPage() {
           color: #a52828;
         }
 
-        .operations-hero {
+        .top-board {
           display: grid;
-          grid-template-columns: minmax(0, 1.8fr) minmax(300px, 0.9fr);
+          grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.95fr);
           gap: 20px;
           margin-bottom: 20px;
         }
 
-        .operations-copy,
-        .hero-focus-card,
+        .overview-panel,
+        .focus-card,
         .metric-card,
         .panel {
           border-radius: 15px;
@@ -398,11 +332,18 @@ export default function StaffDashboardPage() {
           box-shadow: 0 18px 44px rgba(19, 50, 136, 0.08);
         }
 
-        .operations-copy {
-          padding: 28px;
+        .overview-panel {
+          padding: 24px;
           background:
-            radial-gradient(circle at top right, rgba(115, 148, 255, 0.18), transparent 36%),
-            linear-gradient(135deg, #ffffff 0%, #eef3ff 55%, #f7f9ff 100%);
+            radial-gradient(circle at top right, rgba(115, 148, 255, 0.15), transparent 34%),
+            linear-gradient(135deg, #ffffff 0%, #f2f6ff 56%, #f8fbff 100%);
+        }
+
+        .overview-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 20px;
         }
 
         .section-kicker {
@@ -414,39 +355,43 @@ export default function StaffDashboardPage() {
           color: #6b7697;
         }
 
-        .operations-title,
-        .panel-title,
-        .focus-title {
+        .overview-title,
+        .panel-title {
           color: #1b2753;
           font-weight: 800;
         }
 
-        .operations-title {
-          margin: 12px 0;
-          font-size: clamp(1.8rem, 3vw, 2.7rem);
-          line-height: 1.04;
-          max-width: 640px;
+        .overview-title {
+          margin: 10px 0 0;
+          font-size: clamp(1.55rem, 2.8vw, 2.1rem);
+          line-height: 1.08;
+          max-width: 560px;
         }
 
-        .operations-description,
-        .focus-description,
+        .overview-copy,
         .metric-note,
         .panel-empty-state,
         .student-program,
-        .priority-subtitle {
+        .priority-subtitle,
+        .tile-note,
+        .focus-text {
           color: #667390;
           line-height: 1.6;
         }
 
-        .operations-actions {
+        .overview-copy {
+          margin: 14px 0 0;
+          max-width: 620px;
+        }
+
+        .overview-actions {
           display: flex;
           flex-wrap: wrap;
           gap: 12px;
-          margin-top: 22px;
         }
 
-        .hero-primary-btn,
-        .hero-secondary-btn,
+        .primary-action,
+        .secondary-action,
         .focus-link,
         .panel-link,
         .table-action-btn {
@@ -457,7 +402,7 @@ export default function StaffDashboardPage() {
           transition: 160ms ease;
         }
 
-        .hero-primary-btn {
+        .primary-action {
           min-height: 46px;
           padding: 0 18px;
           border-radius: 999px;
@@ -466,43 +411,146 @@ export default function StaffDashboardPage() {
           font-weight: 700;
         }
 
-        .hero-secondary-btn {
+        .secondary-action {
           min-height: 46px;
           padding: 0 18px;
           border-radius: 999px;
           border: 1px solid rgba(19, 50, 136, 0.14);
-          background: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.92);
           color: #133288;
           font-weight: 700;
         }
 
-        .hero-focus-card {
-          padding: 24px;
+        .overview-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+          margin-top: 20px;
+        }
+
+        .overview-tile {
+          border-radius: 15px;
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(19, 50, 136, 0.08);
+          padding: 16px;
+          min-height: 126px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+        }
+
+        .overview-tile-main {
+          background: linear-gradient(160deg, #133288 0%, #3154be 100%);
+        }
+
+        .tile-label {
+          display: block;
+          font-size: 0.72rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #7080a4;
+        }
+
+        .overview-tile-main .tile-label,
+        .overview-tile-main .tile-value,
+        .overview-tile-main .tile-note {
+          color: #fff;
+        }
+
+        .tile-value {
+          display: block;
+          font-size: 1.9rem;
+          line-height: 1;
+          color: #1a2553;
+          font-weight: 800;
+        }
+
+        .tile-value-compact {
+          font-size: 1.02rem;
+          line-height: 1.25;
+        }
+
+        .tile-note {
+          font-size: 0.9rem;
+        }
+
+        .side-stack {
+          display: block;
+        }
+
+        .focus-card {
+          padding: 22px;
+        }
+
+        .focus-card {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 240px;
           background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
         }
 
-        .focus-label,
-        .metric-label {
-          font-size: 0.74rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #7280a1;
-        }
-
-        .focus-title {
-          margin: 12px 0 10px;
-          font-size: 1.3rem;
-        }
-
-        .focus-meta {
+        .focus-top {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
+        }
+
+        .focus-chip,
+        .focus-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 30px;
+          padding: 0 11px;
+          border-radius: 999px;
+          font-size: 0.72rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .focus-chip {
+          background: #edf2ff;
+          color: #486091;
+        }
+
+        .focus-badge.danger {
+          background: #ffe0de;
+          color: #b22c2c;
+        }
+
+        .focus-badge.calm {
+          background: #dff5da;
+          color: #2f7f31;
+        }
+
+        .focus-code {
+          margin: 22px 0 0;
+          font-size: 0.92rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          color: #7b87a8;
+          text-transform: uppercase;
+        }
+
+        .focus-text {
+          margin: 14px 0 0;
+          font-size: 1.05rem;
+          color: #1b2753;
+        }
+
+        .focus-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-top: 24px;
+        }
+
+        .focus-time {
           color: #7a86a5;
           font-size: 0.92rem;
         }
@@ -532,6 +580,14 @@ export default function StaffDashboardPage() {
           background: linear-gradient(160deg, #133288 0%, #3154be 100%);
         }
 
+        .metric-label {
+          font-size: 0.74rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #7280a1;
+        }
+
         .metric-value {
           font-size: clamp(1.8rem, 2.5vw, 2.2rem);
           line-height: 1;
@@ -546,19 +602,8 @@ export default function StaffDashboardPage() {
           color: #fff;
         }
 
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-
         .panel {
           padding: 22px;
-        }
-
-        .panel-wide {
-          min-height: 100%;
         }
 
         .panel-header {
@@ -567,85 +612,6 @@ export default function StaffDashboardPage() {
           justify-content: space-between;
           gap: 16px;
           margin-bottom: 16px;
-        }
-
-        .priority-list,
-        .student-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .priority-item {
-          display: grid;
-          grid-template-columns: auto minmax(0, 1fr) auto;
-          gap: 12px;
-          align-items: center;
-          padding: 14px 16px;
-          border-radius: 15px;
-          background: #f8faff;
-          border: 1px solid rgba(19, 50, 136, 0.07);
-          text-decoration: none;
-        }
-
-        .priority-indicator {
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-        }
-
-        .priority-indicator.warning {
-          background: #c79511;
-        }
-
-        .priority-indicator.danger {
-          background: #da3b3b;
-        }
-
-        .priority-title,
-        .student-name {
-          margin: 0;
-          color: #1d2955;
-          font-weight: 700;
-        }
-
-        .priority-subtitle,
-        .student-program {
-          margin: 2px 0 0;
-          font-size: 0.9rem;
-        }
-
-        .priority-meta {
-          font-size: 0.82rem;
-          font-weight: 700;
-          color: #7380a2;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-
-        .student-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 0;
-          border-bottom: 1px solid #edf1f7;
-        }
-
-        .student-item:last-child {
-          border-bottom: 0;
-        }
-
-        .student-avatar {
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          background: #dce5ff;
-          color: #133288;
-          font-weight: 800;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
         }
 
         .requests-table-wrap {
@@ -720,40 +686,38 @@ export default function StaffDashboardPage() {
         }
 
         @media (max-width: 1199px) {
-          .operations-hero,
-          .dashboard-grid {
+          .top-board {
             grid-template-columns: 1fr;
           }
 
           .metrics-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
+
+          .overview-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
         }
 
         @media (max-width: 767px) {
-          .metrics-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .operations-copy,
-          .hero-focus-card,
+          .overview-panel,
+          .focus-card,
           .metric-card,
           .panel {
             padding: 18px;
           }
 
-          .panel-header,
-          .focus-meta {
+          .overview-header,
+          .focus-top,
+          .focus-bottom,
+          .panel-header {
             flex-direction: column;
             align-items: flex-start;
           }
 
-          .priority-item {
-            grid-template-columns: auto minmax(0, 1fr);
-          }
-
-          .priority-meta {
-            grid-column: 2;
+          .metrics-grid,
+          .overview-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
