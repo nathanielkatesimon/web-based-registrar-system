@@ -116,7 +116,7 @@ export default function StudentDashboardLayout({children}) {
           title: "m-0 px-8 pt-4 text-start text-info",
           htmlContainer: "m-0",
           confirmButton: "btn btn-primary w-100",
-          cancelButton: "btn btn-outline-dark w-100 mt-2 ms-0",
+          cancelButton: "btn btn-outline-secondary w-100 mt-2 ms-0",
           actions: "w-100 px-8"
         },
       });
