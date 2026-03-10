@@ -243,8 +243,9 @@ export default function StudentDashboardPage() {
                 ) : null}
               </div>
             </section>
-
-            <Link href="/student/dashboard/profile/deficiencies">
+            
+            
+            <div><Link href="/student/dashboard/profile/deficiencies">
             <div className="deficiency-panel">
               <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                 <div>
@@ -276,7 +277,7 @@ export default function StudentDashboardPage() {
                 </div>
               )}
             </div>
-            </Link>
+            </Link></div>
           </div>
 
           <section className="queue-panel">
