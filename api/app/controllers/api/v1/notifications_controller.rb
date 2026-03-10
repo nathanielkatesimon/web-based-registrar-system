@@ -4,7 +4,7 @@ class Api::V1::NotificationsController < ApplicationController
   before_action :set_notification, only: :read
 
   def index
-    notifications = current_user.notifications.latest_first.limit(50)
+    notifications = current_user.notifications.latest_first.limit(10)
 
     render json: notifications.map(&:as_api_json)
   end
