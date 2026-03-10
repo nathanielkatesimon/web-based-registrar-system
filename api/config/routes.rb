@@ -21,6 +21,11 @@ Rails.application.routes.draw do
       resources :staffs
       resources :family_infos, only: [:show, :update]
       resources :deficiencies, only: [:show, :update]
+      resources :notifications, only: [:index] do
+        member do
+          patch :read
+        end
+      end
       resources :document_request_items
       resources :document_types
       resources :document_requests do

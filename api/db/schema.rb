@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_09_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_10_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -165,6 +165,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_130000) do
     t.index ["user_id"], name: "index_family_infos_on_user_id", unique: true
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "document_request_id", null: false
+    t.integer "kind", default: 0, null: false
+    t.string "link_url", null: false
+    t.text "message", null: false
+    t.datetime "read_at"
+    t.bigint "student_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_request_id"], name: "index_notifications_on_document_request_id"
+    t.index ["student_id", "created_at"], name: "index_notifications_on_student_id_and_created_at"
+    t.index ["student_id", "read_at"], name: "index_notifications_on_student_id_and_read_at"
+    t.index ["student_id"], name: "index_notifications_on_student_id"
+  end
+
   create_table "request_time_lines", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "document_request_id", null: false
@@ -255,6 +271,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_130000) do
   add_foreign_key "escalation_tickets", "users", column: "closed_by_id"
   add_foreign_key "escalation_tickets", "users", column: "student_id"
   add_foreign_key "family_infos", "users"
+  add_foreign_key "notifications", "document_requests"
+  add_foreign_key "notifications", "users", column: "student_id"
   add_foreign_key "request_time_lines", "document_requests"
   add_foreign_key "student_profiles", "users"
 end

@@ -16,6 +16,7 @@ class Student < User
   has_one :family_info, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_one :deficiency, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
   has_many :document_requests, foreign_key: :user_id, inverse_of: :student, dependent: :destroy
+  has_many :notifications, foreign_key: :student_id, inverse_of: :student, dependent: :destroy
   has_many :escalation_tickets, foreign_key: :student_id, inverse_of: :student, dependent: :destroy
 
   accepts_nested_attributes_for :student_profile

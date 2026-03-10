@@ -153,6 +153,25 @@ class Api::V1::DocumentRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 3, item.quantity
   end
 
+  test "should create notification when status changes" do
+    sign_in_as(@staff)
+
+    assert_difference("Notification.count", 1) do
+      patch api_v1_document_request_url(@document_request),
+            params: { document_request: { status: :processing } },
+            as: :json
+    end
+
+    assert_response :success
+
+    notification = Notification.order(:id).last
+    assert_equal @student.id, notification.student_id
+    assert_equal @document_request.id, notification.document_request_id
+    assert_equal "document_request_status", notification.kind
+    assert_equal "/student/dashboard/tracker?request=#{@document_request.reload.request_id}", notification.link_url
+    assert_match(/being processed/i, notification.message)
+  end
+
   test "should return unprocessable_content when nested item uses non existing document_type" do
     sign_in_as(@student)
 

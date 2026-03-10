@@ -1,6 +1,7 @@
 class DocumentRequest < ApplicationRecord
   belongs_to :student, class_name: "Student", foreign_key: :user_id, inverse_of: :document_requests
   has_many :document_request_items, dependent: :destroy
+  has_many :notifications, dependent: :destroy, inverse_of: :document_request
   has_many :request_time_lines, -> { order(created_at: :asc) }, dependent: :destroy
   has_one :escalation_ticket, dependent: :destroy, inverse_of: :document_request
 
@@ -43,6 +44,7 @@ class DocumentRequest < ApplicationRecord
   after_create_commit :assign_request_id!
   after_create_commit :create_request_submitted_timeline!
   after_update_commit :create_status_change_timeline!
+  after_update_commit :create_status_change_notification!
 
   def items
     document_request_items
@@ -112,5 +114,47 @@ class DocumentRequest < ApplicationRecord
     return if request_time_lines.exists?(type: timeline_type)
 
     request_time_lines.create!(type: timeline_type)
+  end
+
+  def create_status_change_notification!
+    return unless previous_changes.key?("status")
+
+    title, message = status_change_notification_content
+    return if title.blank? || message.blank?
+
+    notifications.create!(
+      student: student,
+      kind: :document_request_status,
+      title: title,
+      message: message,
+      link_url: "/student/dashboard/tracker?request=#{request_id.presence || id}"
+    )
+  end
+
+  def status_change_notification_content
+    request_code = request_id.presence || "Request ##{id}"
+
+    case status
+    when "processing"
+      [
+        "Request now processing",
+        "#{request_code} is now being processed by the Registrar."
+      ]
+    when "on_hold"
+      [
+        "Request placed on hold",
+        "#{request_code} was placed on hold. Review the request details for the next steps."
+      ]
+    when "completed"
+      [
+        "Request completed",
+        "#{request_code} has been completed and is ready for your review."
+      ]
+    when "closed"
+      [
+        "Request closed",
+        "#{request_code} has been closed."
+      ]
+    end
   end
 end

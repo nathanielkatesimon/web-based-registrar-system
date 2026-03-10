@@ -11,25 +11,13 @@ import { usePathname, useRouter } from "next/navigation";
 import useSessionStore from "@/store/session-store";
 import useStudentDocumentRequestStore from "@/store/student/requests/document_request_store";
 
-const DEFICIENCY_FIELDS = [
-  { key: "enrollment_form", label: "Enrollment Form" },
-  { key: "form_138", label: "Form 138" },
-  { key: "form_137", label: "Form 137" },
-  { key: "certificate_of_good_moral_character", label: "Certificate of Good Moral Character" },
-  { key: "id_pictures", label: "ID Pictures" },
-  { key: "birth_certificate", label: "NSO/PSA Birth Certificate" },
-  { key: "senior_high_school_diploma", label: "Senior High School Diploma" },
-  { key: "honorable_dismissal", label: "Honorable Dismissal" },
-  { key: "transcript_of_records", label: "Transcript of Records" },
-];
-
 export default function StudentDashboardLayout({children}) {
   const { currentUser, csrfToken } = useSessionStore();
   const pathname = usePathname();
   const router = useRouter();
   const requestStep = useStudentDocumentRequestStore((state) => state.step);
   const resetRequestFlow = useStudentDocumentRequestStore((state) => state.resetRequestFlow);
-  const [deficiencies, setDeficiencies] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const avatarSrc = useMemo(() => {
     const source = currentUser?.avatar_url;
@@ -48,9 +36,9 @@ export default function StudentDashboardLayout({children}) {
   useEffect(() => {
     let isMounted = true;
 
-    const loadDeficiencies = async () => {
+    const loadNotifications = async () => {
       try {
-        const response = await api("/api/v1/deficiencies/personal_info");
+        const response = await api("/api/v1/notifications");
 
         let payload = null;
         try {
@@ -61,17 +49,13 @@ export default function StudentDashboardLayout({children}) {
 
         if (!response.ok || !isMounted) return;
 
-        const lackingItems = DEFICIENCY_FIELDS.filter(
-          (field) => payload?.[field.key] === "lacking"
-        );
-
-        setDeficiencies(lackingItems);
+        setNotifications(Array.isArray(payload) ? payload : []);
       } catch {
-        if (isMounted) setDeficiencies([]);
+        if (isMounted) setNotifications([]);
       }
     };
 
-    if (currentUser?.id) loadDeficiencies();
+    if (currentUser?.id) loadNotifications();
 
     return () => {
       isMounted = false;
@@ -120,7 +104,24 @@ export default function StudentDashboardLayout({children}) {
 
   const isExactMatch = (route) => pathname === route;
   const isRoutePrefix = (route) => pathname?.startsWith(route);
-  const hasNotifications = deficiencies.length > 0;
+  const unreadNotificationsCount = notifications.filter((notification) => !notification.read_at).length;
+  const hasNotifications = notifications.length > 0;
+
+  const handleNotificationClick = async (notificationId) => {
+    try {
+      await api(`/api/v1/notifications/${notificationId}/read`, {
+        method: "PATCH",
+      });
+
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) =>
+          notification.id === notificationId && !notification.read_at
+            ? { ...notification, read_at: new Date().toISOString() }
+            : notification
+        )
+      );
+    } catch {}
+  };
 
   return (
     <AuthRequiredGuard requiredType="Student">
@@ -212,7 +213,7 @@ export default function StudentDashboardLayout({children}) {
                       >
                         <span className="position-relative">
                           <i className="bx bx-bell bx-md"></i>
-                          {hasNotifications ? (
+                          {unreadNotificationsCount > 0 ? (
                             <span className="badge rounded-pill bg-danger badge-dot badge-notifications border mt-1 me-1"></span>
                           ) : null}
                         </span>
@@ -272,27 +273,61 @@ export default function StudentDashboardLayout({children}) {
                     <h5 className="offcanvas-title fw-bold text-dark" id="studentNotificationsOffcanvasLabel">
                       Notifications
                     </h5>
+                    <p className="mb-0 text-muted small">
+                      {unreadNotificationsCount > 0
+                        ? `${unreadNotificationsCount} unread update${unreadNotificationsCount > 1 ? "s" : ""}`
+                        : "Document request updates"}
+                    </p>
                   </div>
                 </div>
                 <div className="offcanvas-body px-4 py-4">
-                  <div className="rounded-4 border bg-white shadow-sm p-4">
-                    <p className="text-info fw-semibold mb-2">My Deficiencies</p>
-                    <p className="text-muted small mb-3">Please comply the following:</p>
+                  <div className="rounded-4 bg-white">
                     {hasNotifications ? (
-                      <ul className="list-unstyled m-0 d-flex flex-column gap-3">
-                        {deficiencies.map((item) => (
-                          <li key={item.key} className="d-flex align-items-start gap-3">
-                            <span
-                              className="d-inline-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-                              style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#8d1020", fontSize: "11px", marginTop: "2px" }}
+                      <div className="d-flex flex-column gap-2">
+                        {notifications.map((notification) => (
+                          <Link
+                            key={notification.id}
+                            href={notification.link_url || "/student/dashboard/tracker"}
+                            className="text-decoration-none"
+                            onClick={() => handleNotificationClick(notification.id)}
+                          >
+                            <div
+                              className="rounded-4 border p-3"
+                              style={{
+                                backgroundColor: notification.read_at ? "#f8f9fb" : "#eef2ff",
+                                borderColor: notification.read_at ? "#e2e6ea" : "#cfd8ff",
+                              }}
                             >
-                              !
-                            </span>
-                            <span className="text-dark small">{item.label}</span>
-                          </li>
+                              <div className="d-flex align-items-start gap-3">
+                                <span
+                                  className="d-inline-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                                  style={{
+                                    width: "18px",
+                                    height: "18px",
+                                    borderRadius: "50%",
+                                    backgroundColor: notification.read_at ? "#98a2b3" : "#133288",
+                                    fontSize: "11px",
+                                    marginTop: "2px"
+                                  }}
+                                >
+                                  !
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="mb-1 text-dark fw-semibold small">{notification.title}</p>
+                                  <p className="mb-2 text-muted small">{notification.message}</p>
+                                  <p className="mb-0 text-info small">
+                                    View request
+                                    {notification.document_request?.request_id ? ` ${notification.document_request.request_id}` : ""}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
                         ))}
-                      </ul>
-                    ) : null}
+                      </div>
+                    ) : (
+                      <p className="mb-0 text-muted small">No document request notifications yet.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -311,6 +346,10 @@ export default function StudentDashboardLayout({children}) {
               background-color: #e9ecef !important;
               color: #133288 !important;
               box-shadow: none !important;
+            }
+
+            .min-w-0 {
+              min-width: 0;
             }
           `}</style>
         </div>
