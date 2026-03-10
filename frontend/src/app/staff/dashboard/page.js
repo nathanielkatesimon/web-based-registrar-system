@@ -186,7 +186,7 @@ export default function StaffDashboardPage() {
                 <div className="focus-top">
                   <span className="focus-chip">Escalation Focus</span>
                   <span className={`focus-badge ${latestTicket?.status === "open" ? "danger" : "calm"}`}>
-                    {latestTicket?.status === "open" ? "Open" : "Stable"}
+                    {latestTicket?.status === "open" ? "Open" : "Closed"}
                   </span>
                 </div>
 
