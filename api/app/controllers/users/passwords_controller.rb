@@ -18,6 +18,7 @@ class Users::PasswordsController < Devise::PasswordsController
     self.resource = resource_class.reset_password_by_token(update_resource_params)
 
     if resource.errors.empty?
+      resource.update_column(:claimed, true) if resource.is_a?(Student) && !resource.claimed?
       render json: { message: I18n.t("devise.passwords.updated_not_active") }, status: :ok
     else
       render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity

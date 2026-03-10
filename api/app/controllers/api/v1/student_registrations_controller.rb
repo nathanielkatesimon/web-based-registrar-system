@@ -4,7 +4,17 @@ class Api::V1::StudentRegistrationsController < Devise::RegistrationsController
   skip_before_action :verify_authenticity_token, only: [:create]
 
   def create
-    build_resource(sign_up_params.merge(type: "Student"))
+    existing_claimable_student = Student.find_by(auth_id: sign_up_params[:auth_id], claimed: false)
+    if existing_claimable_student
+      existing_claimable_student.deliver_account_claim_instructions!
+      render json: {
+        claim_required: true,
+        message: "This account was already created by a staff. We sent an email so you can create your password."
+      }, status: :accepted
+      return
+    end
+
+    build_resource(sign_up_params.merge(type: "Student", claimed: true))
     resource.student_profile.registration_flow = true if resource.student_profile
 
     resource.save
@@ -95,7 +105,7 @@ class Api::V1::StudentRegistrationsController < Devise::RegistrationsController
     if resource.persisted?
       render json: {
         user: resource.as_json(
-          only: [:id, :auth_id, :type],
+          only: [:id, :auth_id, :type, :claimed],
           include: {
             student_profile: {}
           }

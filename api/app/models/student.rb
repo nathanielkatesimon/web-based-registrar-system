@@ -65,6 +65,10 @@ class Student < User
     end
   end
 
+  def claimable?
+    !claimed?
+  end
+
   private
 
   def blank_required_value?(value)

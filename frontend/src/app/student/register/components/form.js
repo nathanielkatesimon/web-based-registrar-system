@@ -261,13 +261,20 @@ export default function StudentRegistrationForm() {
       });
       const responseJson = await response.json();
 
-      if (response.status === 200 || response.status === 201) {
-        if (responseJson?.message) {
+      if (response.ok) {
+        if (responseJson?.claim_required) {
+          await ShowAlert({
+            icon: "info",
+            title: "Create Your Password",
+            text: responseJson.message || "This account was already created by a staff. Check your email to create your password."
+          });
+          window.location.href = "/student/login";
+        } else if (responseJson?.message) {
           await ShowAlert({ icon: "info", title: "Already Signed In", text: responseJson.message  });
         } else {
           await ShowAlert({ icon: "success", title: "Registration Successful", text: "Account created successfully."  });
+          window.location.href = "/student/dashboard";
         }
-        window.location.href = "/student/dashboard";
       } else {
         await ShowAlert({ icon: "error", title: "Registration Failed", text: parseError(responseJson) || "Please review your inputs and try again."  });
       }

@@ -2,7 +2,7 @@ class StudentSerializer < ActiveModel::Serializer
   include Rails.application.routes.url_helpers
 
   attributes :id, :type, :email, :auth_id, :first_name, :middle_name,
-             :last_name, :extension, :full_name, :avatar_url,
+             :last_name, :extension, :claimed, :full_name, :avatar_url,
              :incomplete_personal_info, :incomplete_family_info, :incomplete_academic_info,
              :created_at, :updated_at
 

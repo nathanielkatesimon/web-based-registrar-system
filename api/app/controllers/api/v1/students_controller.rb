@@ -36,6 +36,7 @@ class Api::V1::StudentsController < ApplicationController
       generated_password = SecureRandom.alphanumeric(16)
       attrs["password"] = generated_password if attrs["password"].blank?
       attrs["password_confirmation"] = attrs["password"] if attrs["password_confirmation"].blank?
+      attrs["claimed"] = false
     end
 
     @student = Student.new(attrs)

@@ -16,6 +16,12 @@ class User < ApplicationRecord
            foreign_key: :sender_id,
            inverse_of: :sender,
            dependent: :destroy
+
+  def deliver_account_claim_instructions!
+    token = send(:set_reset_password_token)
+    send_devise_notification(:account_claim_instructions, token, {})
+    token
+  end
   
   def auth_id_format
     if type == 'Student' && auth_id.present? && auth_id !~ /^(\d{11}|\d{12}|\d{13})$/

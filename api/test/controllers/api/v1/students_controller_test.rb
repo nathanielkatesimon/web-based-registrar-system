@@ -256,6 +256,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     student = Student.order(:id).last
     assert_equal "2026000000001", student.auth_id
+    assert_equal false, student.claimed
     assert_equal "college", student.student_profile.school_level
     assert_equal "ACLC", student.student_profile.current_college_school_name
     assert_equal "Sample Senior High", student.student_profile.current_senior_high_school_name
@@ -294,6 +295,7 @@ class Api::V1::StudentsControllerTest < ActionDispatch::IntegrationTest
 
     created_student = Student.order(:id).last
     assert_equal "2026000000002", created_student.auth_id
+    assert_equal false, created_student.claimed
     assert_nil created_student.student_profile.current_senior_high_school_name
   end
 

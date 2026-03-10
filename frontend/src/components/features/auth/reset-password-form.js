@@ -20,7 +20,9 @@ export default function ResetPasswordForm() {
 
   const resetPasswordToken = searchParams.get("reset_password_token") || "";
   const type = searchParams.get("type") || "";
+  const mode = searchParams.get("mode") || "";
   const loginPath = type === "staff" ? "/staff/login" : "/student/login";
+  const isClaimMode = mode === "claim";
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -64,8 +66,10 @@ export default function ResetPasswordForm() {
       if (response.ok) {
         await ShowAlert({
           icon: "success",
-          title: "Password Updated",
-          text: responseJson.message || "Your password has been changed successfully."
+          title: isClaimMode ? "Account Claimed" : "Password Updated",
+          text: isClaimMode
+            ? "Your password has been created successfully."
+            : (responseJson.message || "Your password has been changed successfully.")
         });
         window.location.href = loginPath;
         return;
@@ -95,9 +99,11 @@ export default function ResetPasswordForm() {
       noValidate
     >
       <div className="mb-8">
-        <h4 className="mb-2 text-black">Set a new password</h4>
+        <h4 className="mb-2 text-black">{isClaimMode ? "Create your password" : "Set a new password"}</h4>
         <p className="mb-0 text-muted">
-          Choose a new password for your E-Registrar account.
+          {isClaimMode
+            ? "This account was already created by a staff. Create your password to claim it."
+            : "Choose a new password for your E-Registrar account."}
         </p>
       </div>
       <div className="mb-6 form-password-toggle fv-plugins-icon-container">
@@ -107,7 +113,7 @@ export default function ResetPasswordForm() {
             id="password"
             className="form-control form-control-lg"
             name="password"
-            placeholder="New password"
+            placeholder={isClaimMode ? "Create password" : "New password"}
             value={formValues.password}
             onChange={handleInputChange}
             minLength={6}
@@ -126,7 +132,7 @@ export default function ResetPasswordForm() {
             id="password_confirmation"
             className="form-control form-control-lg"
             name="password_confirmation"
-            placeholder="Confirm new password"
+            placeholder={isClaimMode ? "Confirm password" : "Confirm new password"}
             value={formValues.password_confirmation}
             onChange={handleInputChange}
             minLength={6}
@@ -140,7 +146,7 @@ export default function ResetPasswordForm() {
       </div>
       <div className="mb-6">
         <button className="btn btn-lg btn-primary d-grid w-100" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Updating..." : "Update password"}
+          {isSubmitting ? (isClaimMode ? "Creating..." : "Updating...") : (isClaimMode ? "Create password" : "Update password")}
         </button>
       </div>
       <div className="text-center">

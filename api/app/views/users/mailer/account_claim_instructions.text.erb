@@ -1,0 +1,8 @@
+Hello <%= @resource.full_name.presence || @resource.auth_id %>,
+
+This account was already created by a staff.
+
+Create your password to claim your E-Registrar account:
+<%= @claim_account_url %>
+
+If you were not expecting this email, you can ignore it.

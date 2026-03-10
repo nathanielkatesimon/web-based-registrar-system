@@ -37,6 +37,7 @@ class Users::PasswordsControllerTest < ActionDispatch::IntegrationTest
   test "should reset password with valid token" do
     raw_token, encrypted_token = Devise.token_generator.generate(User, :reset_password_token)
     @student.update_columns(
+      claimed: false,
       reset_password_token: encrypted_token,
       reset_password_sent_at: Time.current
     )
@@ -52,6 +53,8 @@ class Users::PasswordsControllerTest < ActionDispatch::IntegrationTest
         as: :json
 
     assert_response :success
-    assert @student.reload.valid_password?("newpassword123")
+    @student.reload
+    assert @student.valid_password?("newpassword123")
+    assert_equal true, @student.claimed
   end
 end

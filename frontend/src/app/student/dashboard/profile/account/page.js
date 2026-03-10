@@ -9,6 +9,7 @@ import ShowAlert from "@/lib/show-alert";
 const INITIAL_FORM = {
   auth_id: "",
   email: "",
+  claimed: true,
   current_password: "",
   password: "",
   password_confirmation: "",
@@ -56,6 +57,7 @@ export default function AccountPage() {
         const nextFormData = {
           auth_id: payload?.auth_id || "",
           email: payload?.email || "",
+          claimed: payload?.claimed ?? true,
           current_password: "",
           password: "",
           password_confirmation: "",
@@ -181,6 +183,7 @@ export default function AccountPage() {
       const nextFormData = {
         auth_id: responseJson?.auth_id || formData.auth_id.trim(),
         email: responseJson?.email || formData.email.trim(),
+        claimed: responseJson?.claimed ?? formData.claimed,
         current_password: "",
         password: "",
         password_confirmation: "",
@@ -240,6 +243,16 @@ export default function AccountPage() {
           noValidate
         >
           <div className="row g-3">
+            {isStaffMode && (
+              <div className="col-12 mb-2">
+                <span
+                  className={`badge ${formData.claimed ? "bg-success" : "bg-warning text-dark"}`}
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  {formData.claimed ? "Claimed" : "Unclaimed"}
+                </span>
+              </div>
+            )}
             <div className="col-md-6 mb-3">
               <label className="form-label fw-bold mb-1 small">
                 USN<span className="text-danger">*</span>
