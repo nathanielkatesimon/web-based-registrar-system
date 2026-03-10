@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import formatMoney from "@/lib/formatMoney";
 
 const STATUS_FILTERS = [
   { label: "All Requests", value: "all" },
@@ -166,8 +165,8 @@ export default function StudentDashboardPage() {
     ["processing", "on_hold"].includes(request.status)
   ).length;
   const completedRequestsCount = requests.filter((request) => request.status === "completed").length;
+  const onHoldRequestsCount = requests.filter((request) => request.status === "on_hold").length;
   const unreadNotificationsCount = notifications.filter((notification) => !notification.read_at).length;
-  const totalSpentCents = requests.reduce((sum, request) => sum + Number(request.total_cents || 0), 0);
 
   return (
     <div className="student-dashboard-page px-4 px-lg-5 py-4">
@@ -181,10 +180,10 @@ export default function StudentDashboardPage() {
             <section className="pulse-panel">
               <div className="pulse-copy">
                 <span className="pulse-kicker">Request Pulse</span>
-                <h2 className="pulse-title">A cleaner view of your registrar activity.</h2>
+                <h2 className="pulse-title">See what needs attention before it slows your request down.</h2>
                 <p className="pulse-description">
-                  Track active requests, watch for payment or hold issues, and jump straight into the
-                  request that needs your attention.
+                  Keep an eye on in-progress requests, hold statuses, unread updates, and recent activity
+                  so you can act on registrar requirements faster.
                 </p>
 
                 <div className="pulse-actions">
@@ -201,22 +200,22 @@ export default function StudentDashboardPage() {
                 <div className="metric-card metric-card-main">
                   <span className="metric-label">Active Requests</span>
                   <strong className="metric-value">{activeRequestsCount}</strong>
-                  <span className="metric-note">Currently being processed or waiting on action</span>
+                  <span className="metric-note">Requests still in motion across processing and hold stages</span>
                 </div>
                 <div className="metric-card">
                   <span className="metric-label">Completed</span>
                   <strong className="metric-value">{completedRequestsCount}</strong>
-                  <span className="metric-note">Finished document requests</span>
+                  <span className="metric-note">Requests that have already been finalized</span>
                 </div>
                 <div className="metric-card">
                   <span className="metric-label">Unread Updates</span>
                   <strong className="metric-value">{unreadNotificationsCount}</strong>
-                  <span className="metric-note">Fresh status notifications</span>
+                  <span className="metric-note">Recent request notifications you have not opened yet</span>
                 </div>
                 <div className="metric-card">
-                  <span className="metric-label">Total Value</span>
-                  <strong className="metric-value metric-money">{formatMoney(totalSpentCents)}</strong>
-                  <span className="metric-note">Combined request total so far</span>
+                  <span className="metric-label">On Hold</span>
+                  <strong className="metric-value">{onHoldRequestsCount}</strong>
+                  <span className="metric-note">Requests currently blocked or waiting for action</span>
                 </div>
               </div>
 
@@ -347,7 +346,7 @@ export default function StudentDashboardPage() {
                               href={`/student/dashboard/tracker?request=${encodeURIComponent(
                                 String(request.request_id || request.id)
                               )}`}
-                              className="queue-action-btn"
+                              className="btn btn-sm btn-outline-info rounded-pill"
                             >
                               {request.status === "processing" ? "Track" : "Check"}
                             </Link>
@@ -534,10 +533,6 @@ export default function StudentDashboardPage() {
           font-size: 0.86rem;
           color: #66738f;
           line-height: 1.4;
-        }
-
-        .metric-money {
-          font-size: 1.45rem;
         }
 
         .spotlight-card {
