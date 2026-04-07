@@ -102,7 +102,7 @@ export default function StaffDashboardLayout({ children }) {
                     </a>
                     <ul className="dropdown-menu dropdown-menu-end">
                       <li>
-                        <a className="dropdown-item" href="javascript:void(0);">
+                        <div className="dropdown-item bg-white user-select-none">
                           <div className="d-flex">
                             <div className="flex-shrink-0 me-3">
                               <div className="avatar avatar-online">
@@ -114,7 +114,7 @@ export default function StaffDashboardLayout({ children }) {
                               <small className="text-muted">{currentUser?.type || "Staff"}</small>
                             </div>
                           </div>
-                        </a>
+                        </div>
                       </li>
                       <li>
                         <div className="dropdown-divider my-1"></div>

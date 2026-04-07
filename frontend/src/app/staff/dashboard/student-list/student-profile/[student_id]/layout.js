@@ -21,7 +21,7 @@ export default function StaffStudentProfileLayout({ children }) {
   const basePath = `/staff/dashboard/student-list/student-profile/${studentId}`;
   const category = searchParams.get("category") || "";
   const programId = searchParams.get("program_id") || "";
-  const [authId, setAuthId] = useState("");
+  const [studentFullName, setStudentFullName] = useState("");
 
   const selectedProgram = useMemo(
     () => PROGRAM_OPTIONS.find((item) => item.id === programId && item.category === category),
@@ -39,10 +39,11 @@ export default function StaffStudentProfileLayout({ children }) {
         const response = await api(`/api/v1/students/${studentId}`);
         const payload = await response.json();
         if (!response.ok || !isMounted) return;
-        setAuthId(payload?.auth_id || "");
+        console.log(payload)
+        setStudentFullName(payload?.full_name || "");
       } catch {
         if (!isMounted) return;
-        setAuthId("");
+        setStudentFullName("");
       }
     };
 
@@ -67,7 +68,7 @@ export default function StaffStudentProfileLayout({ children }) {
           {categoryLabel} - {programLabel}
         </Link>
         <i className="bx bx-chevron-right text-muted"></i>
-        <span className="text-info fw-semibold">{authId || "Student"}</span>
+        <span className="text-info fw-semibold">{studentFullName || "Student"}</span>
       </div>
       <div className="container-fluid px-0"  style={{marginTop: 38.63}}>
         <div className="d-flex">
@@ -98,7 +99,7 @@ export default function StaffStudentProfileLayout({ children }) {
             </nav>
           </aside>
 
-          <main className="flex-grow-1 px-4 py-3">
+          <main className="flex-grow-1 px-4 py-3" style={{marginLeft: "220px"}}>
             <div className="pb-4">{children}</div>
           </main>
         </div>

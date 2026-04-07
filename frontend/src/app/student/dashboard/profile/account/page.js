@@ -243,16 +243,6 @@ export default function AccountPage() {
           noValidate
         >
           <div className="row g-3">
-            {isStaffMode && (
-              <div className="col-12 mb-2">
-                <span
-                  className={`badge ${formData.claimed ? "bg-success" : "bg-warning text-dark"}`}
-                  style={{ fontSize: "0.9rem" }}
-                >
-                  {formData.claimed ? "Claimed" : "Unclaimed"}
-                </span>
-              </div>
-            )}
             <div className="col-md-6 mb-3">
               <label className="form-label fw-bold mb-1 small">
                 USN<span className="text-danger">*</span>

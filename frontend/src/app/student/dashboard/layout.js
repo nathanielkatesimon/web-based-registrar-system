@@ -254,7 +254,7 @@ export default function StudentDashboardLayout({children}) {
                       </a>
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
-                          <a className="dropdown-item" href="pages-account-settings-account.html">
+                          <div className="dropdown-item bg-white user-select-none">
                             <div className="d-flex">
                               <div className="flex-shrink-0 me-3">
                                 <div className="avatar avatar-online">
@@ -266,7 +266,7 @@ export default function StudentDashboardLayout({children}) {
                                 <small className="text-muted">{currentUser?.type || "Student"}</small>
                               </div>
                             </div>
-                          </a>
+                          </div>
                         </li>
                         <li>
                           <div className="dropdown-divider my-1"></div>
