@@ -67,6 +67,12 @@ export default function StaffDashboardLayout({ children }) {
                   <div className="text-truncate">Escalations</div>
                 </Link>
               </li>
+              <li className={`menu-item ${isRoutePrefix("/staff/dashboard/documents") ? "active" : ""}`}>
+                <Link href="/staff/dashboard/documents" className="menu-link fs-5">
+                  <i className="menu-icon tf-icons pb-1 bx bx-file"></i>
+                  <div className="text-truncate">Documents</div>
+                </Link>
+              </li>
               <li className={`menu-item ${isRoutePrefix("/staff/dashboard/profile") ? "active" : ""}`}>
                 <Link href="/staff/dashboard/profile" className="menu-link fs-5">
                   <i className="menu-icon tf-icons pb-1 bx bx-user"></i>
