@@ -92,7 +92,7 @@ export default function StudentDashboardLayout({children}) {
   useEffect(() => {
     if (!currentUser?.id || !csrfToken || !showProfileBadge) return;
 
-    const promptKey = `student-profile-incomplete-prompt:${currentUser.id}:${csrfToken}`;
+    const promptKey = `student-profile-incomplete-prompt:${currentUser.id}`;
     if (typeof window === "undefined" || window.sessionStorage.getItem(promptKey)) return;
 
     window.sessionStorage.setItem(promptKey, "shown");
@@ -127,7 +127,7 @@ export default function StudentDashboardLayout({children}) {
     };
 
     showPrompt();
-  }, [currentUser?.id, csrfToken, showProfileBadge, router]);
+  }, [currentUser?.id, showProfileBadge, router]);
 
   const isExactMatch = (route) => pathname === route;
   const isRoutePrefix = (route) => pathname?.startsWith(route);
