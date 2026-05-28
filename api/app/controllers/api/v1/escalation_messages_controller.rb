@@ -15,6 +15,7 @@ class Api::V1::EscalationMessagesController < ApplicationController
     if message.save
       @escalation_ticket.reload
       broadcast_message_created!(@escalation_ticket, message)
+      deliver_message_notification(message)
       render json: message_json(message), status: :created
     else
       render json: { errors: message.errors.full_messages }, status: :unprocessable_entity
@@ -83,6 +84,14 @@ class Api::V1::EscalationMessagesController < ApplicationController
       created_at: ticket.created_at,
       updated_at: ticket.updated_at
     }
+  end
+
+  def deliver_message_notification(message)
+    if message.sender.is_a?(Staff)
+      EscalationMailer.message_to_student(message).deliver_later
+    elsif message.sender.is_a?(Student) && @escalation_ticket.assigned_staff.present?
+      EscalationMailer.message_to_staff(message).deliver_later
+    end
   end
 
   def broadcast_message_created!(ticket, message)

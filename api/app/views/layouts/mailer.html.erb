@@ -1,13 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <style>
-      /* Email styles need to be inline */
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>E-Registrar</title>
   </head>
+  <body style="margin:0;padding:0;background-color:#eef1f8;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <body>
-    <%= yield %>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef1f8;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+
+            <%# ── Header ─────────────────────────────────────────────────── %>
+            <tr>
+              <td style="background-color:#040F5F;border-radius:14px 14px 0 0;padding:26px 36px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.4px;display:block;">
+                        E&#8209;Registrar
+                      </span>
+                      <span style="color:#93aee8;font-size:12px;display:block;margin-top:3px;letter-spacing:0.2px;">
+                        University Records &amp; Registrar Portal
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <%# ── Body ───────────────────────────────────────────────────── %>
+            <tr>
+              <td style="background-color:#ffffff;padding:36px 36px 32px;">
+                <%= yield %>
+              </td>
+            </tr>
+
+            <%# ── Footer ─────────────────────────────────────────────────── %>
+            <tr>
+              <td style="background-color:#f4f6ff;border-radius:0 0 14px 14px;padding:18px 36px;border-top:1px solid #e2e8f5;">
+                <p style="margin:0;font-size:11px;color:#8892b0;text-align:center;line-height:1.7;">
+                  This is an automated notification from the E&#8209;Registrar system.<br>
+                  Please do not reply to this email &mdash; use the portal to communicate.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+
   </body>
 </html>

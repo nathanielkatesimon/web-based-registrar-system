@@ -1,0 +1,32 @@
+E-REGISTRAR — University Records & Registrar Portal
+=====================================================
+
+Hello, <%= @staff.full_name %>,
+
+<%= @sender.full_name %> (Student) has sent a new message on
+escalation ticket <%= @ticket.ticket_code %> that you are handling.
+Please respond at your earliest convenience.
+
+TICKET
+------
+Subject : <%= @ticket.subject %>
+Student : <%= @ticket.student.full_name %> (<%= @ticket.student.auth_id %>)
+Status  : <%= @ticket.status.capitalize %>
+
+MESSAGE
+-------
+<%= @message.body %>
+
+Sent <%= @message.created_at.strftime("%B %-d, %Y at %-I:%M %p") %>
+
+-----------------------------------------------------
+Open the ticket in the portal:
+<%= @ticket_url %>
+-----------------------------------------------------
+
+REMINDER: As the assigned handler you are responsible for this ticket
+through to resolution. Please reply promptly and close the ticket once
+the matter is resolved.
+
+This is an automated notification. Please do not reply to this email.
+Log in to the E-Registrar portal to respond.
