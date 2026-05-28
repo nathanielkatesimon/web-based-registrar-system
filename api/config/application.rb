@@ -24,8 +24,14 @@ module WebBasedRegistrarSystemApi
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Enables the session store for api_only applications
-    config.session_store :cookie_store, key: "_interslice_session"
+    # Enables the session store for api_only applications.
+    # Production needs SameSite=None; Secure so the cookie crosses Railway's
+    # two separate domains (frontend + API). assume_ssl is set in production.rb.
+    if Rails.env.production?
+      config.session_store :cookie_store, key: "_interslice_session", same_site: :none, secure: true
+    else
+      config.session_store :cookie_store, key: "_interslice_session"
+    end
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
 
