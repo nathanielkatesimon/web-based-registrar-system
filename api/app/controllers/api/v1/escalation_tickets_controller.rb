@@ -6,7 +6,7 @@ class Api::V1::EscalationTicketsController < ApplicationController
   # GET /api/v1/escalation_tickets
   def index
     tickets = escalation_tickets_scope
-      .includes(:student, :document_request)
+      .includes(:student, :document_request, :assigned_staff)
       .order(Arel.sql("COALESCE(last_message_at, created_at) DESC"))
 
     render json: tickets.map { |ticket| ticket_summary_json(ticket) }
@@ -14,6 +14,13 @@ class Api::V1::EscalationTicketsController < ApplicationController
 
   # GET /api/v1/escalation_tickets/:id
   def show
+    if current_user.is_a?(Staff)
+      newly_assigned = @escalation_ticket.assign_to_staff!(current_user)
+      if newly_assigned
+        @escalation_ticket.reload
+        broadcast_ticket_updated!(@escalation_ticket)
+      end
+    end
     render json: ticket_detail_json(@escalation_ticket)
   end
 
@@ -72,6 +79,8 @@ class Api::V1::EscalationTicketsController < ApplicationController
     @escalation_ticket.reload
     broadcast_ticket_updated!(@escalation_ticket)
     render json: ticket_detail_json(@escalation_ticket)
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :forbidden
   end
 
   # PATCH /api/v1/escalation_tickets/:id/reopen
@@ -80,6 +89,8 @@ class Api::V1::EscalationTicketsController < ApplicationController
     @escalation_ticket.reload
     broadcast_ticket_updated!(@escalation_ticket)
     render json: ticket_detail_json(@escalation_ticket)
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :forbidden
   end
 
   private
@@ -135,6 +146,10 @@ class Api::V1::EscalationTicketsController < ApplicationController
       },
       latest_message_preview: latest&.body&.truncate(100),
       latest_message_at: latest&.created_at || ticket.last_message_at,
+      assigned_staff: ticket.assigned_staff ? {
+        id: ticket.assigned_staff.id,
+        full_name: ticket.assigned_staff.full_name
+      } : nil,
       closed_at: ticket.closed_at,
       created_at: ticket.created_at,
       updated_at: ticket.updated_at
@@ -157,6 +172,10 @@ class Api::V1::EscalationTicketsController < ApplicationController
         auth_id: ticket.student.auth_id
       },
       can_chat: ticket.can_chat?(current_user),
+      assigned_staff: ticket.assigned_staff ? {
+        id: ticket.assigned_staff.id,
+        full_name: ticket.assigned_staff.full_name
+      } : nil,
       closed_at: ticket.closed_at,
       closed_by: ticket.closed_by ? {
         id: ticket.closed_by.id,

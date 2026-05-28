@@ -5,6 +5,12 @@ class Staff < User
            inverse_of: :closed_by,
            dependent: :nullify
 
+  has_many :assigned_escalation_tickets,
+           class_name: "EscalationTicket",
+           foreign_key: :assigned_staff_id,
+           inverse_of: :assigned_staff,
+           dependent: :nullify
+
   after_initialize :mark_as_claimed, if: :new_record?
 
   private

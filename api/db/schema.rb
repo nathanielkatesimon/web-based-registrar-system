@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_10_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -110,6 +110,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_010000) do
   end
 
   create_table "escalation_tickets", force: :cascade do |t|
+    t.bigint "assigned_staff_id"
     t.datetime "closed_at"
     t.bigint "closed_by_id"
     t.datetime "created_at", null: false
@@ -120,6 +121,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_010000) do
     t.string "subject", null: false
     t.string "ticket_code", null: false
     t.datetime "updated_at", null: false
+    t.index ["assigned_staff_id"], name: "index_escalation_tickets_on_assigned_staff_id"
     t.index ["closed_by_id"], name: "index_escalation_tickets_on_closed_by_id"
     t.index ["document_request_id"], name: "index_escalation_tickets_on_document_request_id"
     t.index ["last_message_at"], name: "index_escalation_tickets_on_last_message_at"
@@ -270,6 +272,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_010000) do
   add_foreign_key "escalation_messages", "escalation_tickets"
   add_foreign_key "escalation_messages", "users", column: "sender_id"
   add_foreign_key "escalation_tickets", "document_requests"
+  add_foreign_key "escalation_tickets", "users", column: "assigned_staff_id"
   add_foreign_key "escalation_tickets", "users", column: "closed_by_id"
   add_foreign_key "escalation_tickets", "users", column: "student_id"
   add_foreign_key "family_infos", "users"

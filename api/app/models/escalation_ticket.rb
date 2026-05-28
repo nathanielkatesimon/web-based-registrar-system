@@ -2,6 +2,7 @@ class EscalationTicket < ApplicationRecord
   belongs_to :student, class_name: "Student", foreign_key: :student_id, inverse_of: :escalation_tickets
   belongs_to :document_request, optional: true, inverse_of: :escalation_ticket
   belongs_to :closed_by, class_name: "Staff", optional: true, inverse_of: :closed_escalation_tickets
+  belongs_to :assigned_staff, class_name: "Staff", optional: true, inverse_of: :assigned_escalation_tickets
   has_many :escalation_messages, -> { order(created_at: :asc) }, dependent: :destroy, inverse_of: :escalation_ticket
 
   enum :status, {
@@ -19,7 +20,7 @@ class EscalationTicket < ApplicationRecord
 
   def participant?(user)
     return false if user.blank?
-    return true if user.is_a?(Staff)
+    return true if user.is_a?(Staff) && assigned_staff_id == user.id
 
     student_id == user.id
   end
@@ -31,14 +32,25 @@ class EscalationTicket < ApplicationRecord
     open?
   end
 
+  # Assigns the ticket to staff_user if unassigned. Returns true if newly assigned, false if already owned.
+  def assign_to_staff!(staff_user)
+    raise ArgumentError, "staff required" unless staff_user.is_a?(Staff)
+    return false if assigned_staff_id.present?
+
+    update!(assigned_staff: staff_user)
+    true
+  end
+
   def close_by_staff!(staff_user)
     raise ArgumentError, "staff required" unless staff_user.is_a?(Staff)
+    raise ArgumentError, "only the assigned staff can close this ticket" if assigned_staff_id.present? && assigned_staff_id != staff_user.id
 
     update!(status: :closed, closed_at: Time.current, closed_by: staff_user)
   end
 
   def reopen_by_staff!(staff_user)
     raise ArgumentError, "staff required" unless staff_user.is_a?(Staff)
+    raise ArgumentError, "only the assigned staff can reopen this ticket" if assigned_staff_id.present? && assigned_staff_id != staff_user.id
 
     update!(status: :open, closed_at: nil, closed_by: nil)
   end

@@ -1,7 +1,12 @@
 class EscalationTicketChannel < ApplicationCable::Channel
   def subscribed
     @ticket = find_ticket
-    reject unless @ticket&.participant?(current_user)
+    return reject unless @ticket
+
+    # Any staff may subscribe to receive live updates; interaction is enforced via HTTP endpoints.
+    # Students may only subscribe to their own ticket.
+    allowed = current_user.is_a?(Staff) || @ticket.student_id == current_user.id
+    return reject unless allowed
 
     stream_from ticket_stream_name(@ticket.id)
   end

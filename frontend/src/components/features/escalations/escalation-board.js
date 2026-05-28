@@ -134,7 +134,14 @@ export default function EscalationBoard({ role }) {
       if (payload.event === "ticket_updated" && payload.ticket?.id === selectedTicketIdRef.current) {
         setSelectedDetail((prev) => {
           if (!prev) return prev;
-          return { ...prev, status: payload.ticket.status, closed_at: payload.ticket.closed_at };
+          return {
+            ...prev,
+            status: payload.ticket.status,
+            closed_at: payload.ticket.closed_at,
+            assigned_staff: payload.ticket.assigned_staff !== undefined
+              ? payload.ticket.assigned_staff
+              : prev.assigned_staff,
+          };
         });
       }
     },
@@ -229,11 +236,16 @@ export default function EscalationBoard({ role }) {
     }
   }, [filteredTickets, selectedTicketId]);
 
+  const isAssignedStaff = useMemo(
+    () => isStaff && selectedDetail?.assigned_staff?.id === currentUser?.id,
+    [isStaff, selectedDetail, currentUser]
+  );
+
   const canSend = useMemo(() => {
     if (!selectedDetail) return false;
-    if (isStaff) return true;
+    if (isStaff) return isAssignedStaff;
     return selectedDetail.status === "open";
-  }, [selectedDetail, isStaff]);
+  }, [selectedDetail, isStaff, isAssignedStaff]);
 
   const handleSendMessage = async () => {
     if (!selectedDetail || !newMessage.trim() || isSending) return;
@@ -459,6 +471,13 @@ export default function EscalationBoard({ role }) {
                     </div>
                     <div className="small text-muted text-truncate">{ticket.subject}</div>
                     {isStaff && <div className="small text-muted">{ticket.student?.full_name || "Student"}</div>}
+                    {isStaff && (
+                      <div className="small text-muted">
+                        {ticket.assigned_staff
+                          ? `Handler: ${ticket.assigned_staff.full_name}`
+                          : <span className="badge text-bg-warning fw-normal">Unassigned</span>}
+                      </div>
+                    )}
                     <div className="small text-muted">{toDateTime(ticket.created_at)}</div>
                   </button>
                 );
@@ -495,12 +514,19 @@ export default function EscalationBoard({ role }) {
                         
                       </h5>
                     {isStaff && <div className="small text-muted">{selectedDetail.student?.full_name}</div>}
+                    {isStaff && (
+                      <div className="small text-muted mt-1">
+                        {selectedDetail.assigned_staff
+                          ? <>Handler: <strong>{selectedDetail.assigned_staff.full_name}</strong></>
+                          : <span className="text-warning fw-semibold">Unassigned</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="d-flex align-items-center gap-2">
                     <span className={`badge rounded-pill ${selectedDetail.status === "open" ? "text-bg-primary" : "text-bg-secondary"}`}>
                       {selectedDetail.status === "open" ? "Ticket Open" : "Ticket Closed"}
                     </span>
-                    {isStaff && (
+                    {isAssignedStaff && (
                       <button
                         type="button"
                         className="btn btn-outline-primary btn-sm"
@@ -539,6 +565,11 @@ export default function EscalationBoard({ role }) {
                   })}
                 </div>
 
+                {isStaff && selectedDetail.assigned_staff && !isAssignedStaff ? (
+                  <div className="alert alert-info py-2 small mb-2">
+                    This ticket is assigned to <strong>{selectedDetail.assigned_staff.full_name}</strong>. You can view but not interact.
+                  </div>
+                ) : null}
                 {!canSend && !isStaff ? (
                   <div className="alert alert-warning py-2 small">
                     This ticket is closed. You can no longer send messages unless staff reopens it.
